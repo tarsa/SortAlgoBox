@@ -26,6 +26,7 @@ Current basic goals:
  * making parallel performance optimized OpenCL implementations
  * making a benchmark suite that measures OpenCL implementations performance and
    sorting algorithms from Java standard libraries
+ * make GPGPU implementations of (some) sorting algorithms
  
 Current bonus goals:
 
