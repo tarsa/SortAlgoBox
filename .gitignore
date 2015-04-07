@@ -1,0 +1,8 @@
+# root
+/project/project/target
+/project/target
+/target
+
+# modules
+/core/target
+/deps/target
