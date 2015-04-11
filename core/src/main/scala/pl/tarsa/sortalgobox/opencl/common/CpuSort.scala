@@ -79,7 +79,6 @@ class CpuSort(sourceCodePath: String) extends SortAlgorithm[Int] {
     val global_work_size = Array(1L)
     val local_work_size = Array(1L)
 
-    val time = System.nanoTime()
     clEnqueueNDRangeKernel(commandQueue, kernel, 1, null, global_work_size,
       local_work_size, 0, null, null)
 
@@ -90,7 +89,6 @@ class CpuSort(sourceCodePath: String) extends SortAlgorithm[Int] {
       array.length * bytesInInt, pBuffer, 0, null, null)
     buffer.get(array)
     timeLine.append("Array buffer retrieved")
-    println(s"Time host: ${(System.nanoTime() - time) / 1e6}ms")
 
     memObjects.foreach(clReleaseMemObject)
     clReleaseKernel(kernel)
