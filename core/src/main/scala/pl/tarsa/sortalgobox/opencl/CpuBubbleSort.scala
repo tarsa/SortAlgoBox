@@ -20,4 +20,6 @@
  */
 package pl.tarsa.sortalgobox.opencl
 
+import pl.tarsa.sortalgobox.opencl.common.CpuSort
+
 object CpuBubbleSort extends CpuSort("/CpuBubbleSort.cl")

@@ -1,4 +1,4 @@
-package pl.tarsa.sortalgobox.opencl
+package pl.tarsa.sortalgobox.opencl.common
 
 import org.jocl.CL._
 import org.jocl._

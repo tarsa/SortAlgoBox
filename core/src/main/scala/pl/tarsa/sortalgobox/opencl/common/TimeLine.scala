@@ -1,4 +1,4 @@
-package pl.tarsa.sortalgobox.opencl
+package pl.tarsa.sortalgobox.opencl.common
 
 import scala.collection.mutable.ArrayBuffer
 

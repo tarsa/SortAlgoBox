@@ -18,12 +18,12 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
-package pl.tarsa.sortalgobox.opencl
+package pl.tarsa.sortalgobox.opencl.common
 
-import java.nio.{ByteOrder, ByteBuffer}
+import java.nio.{ByteBuffer, ByteOrder}
 
 import org.jocl.CL._
-import org.jocl.{Sizeof, cl_mem, Pointer}
+import org.jocl.{Pointer, Sizeof, cl_mem}
 import pl.tarsa.sortalgobox.sorts.common.SortAlgorithm
 
 import scala.Array._
