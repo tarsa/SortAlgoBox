@@ -1,13 +1,15 @@
-// Cpu version of Bubble Sort
+// Cpu version of Insertion Sort
 
 void swap(__global int *, int, int);
 
 __kernel void sort(__global int * array, int const n)
 {
-    for (int i = n - 1; i > 0; i--) {
-        for (int j = 0; j < i; j++) {
-            if (array[j] > array[j + 1]) {
-                swap(array, j, j + 1);
+    for (int i = 1; i < n; i++) {
+        for (int j = i; j > 0; j--) {
+            if (array[j - 1] > array[j]) {
+                swap(array, j - 1, j);
+            } else {
+                break;
             }
         }
     }
