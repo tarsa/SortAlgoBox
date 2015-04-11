@@ -1,9 +1,8 @@
 // Cpu version of Insertion Sort
 
-void swap(__global int *, int, int);
+void swap(__global int * const, int const, int const);
 
-__kernel void sort(__global int * array, int const n)
-{
+__kernel void sort(__global int * const array, int const n) {
     for (int i = 1; i < n; i++) {
         for (int j = i; j > 0; j--) {
             if (array[j - 1] > array[j]) {
@@ -15,8 +14,8 @@ __kernel void sort(__global int * array, int const n)
     }
 }
 
-void swap(__global int * array, int i1, int i2) {
-    int temp = array[i1];
+void swap(__global int * const array, int const i1, int const i2) {
+    int const temp = array[i1];
     array[i1] = array[i2];
     array[i2] = temp;
 }
