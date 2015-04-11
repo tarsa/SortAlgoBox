@@ -31,4 +31,13 @@ class CommonUnitSpecBase extends FlatSpec with MockFactory with Matchers {
   def typeBehavior[T](implicit tag: TypeTag[T]): Unit = {
     behavior of typeOf[T].typeSymbol.toString
   }
+
+  def guardedOpenCLTest(body: => Unit): Unit = {
+    val skip = System.getProperty("skip_opencl_tests") != null
+    if (skip) {
+      pending
+    } else {
+      body
+    }
+  }
 }
