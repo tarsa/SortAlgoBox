@@ -2,7 +2,6 @@
 
 void bottomUpMerge(__global int * const, __global int * const,
                    int const, int const, int const);
-
 void arrayCopy(__global int * const, int const,
                __global int * const, int const,
                int const);

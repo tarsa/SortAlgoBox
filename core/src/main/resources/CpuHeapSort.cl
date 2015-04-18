@@ -1,9 +1,9 @@
 // Cpu version of Heap Sort
 
-void swap(__global int * const, int const, int const);
 void heapify(__global int * const, int const);
 void drainHeap(__global int * const, int const);
 void siftDown(__global int * const, int const, int const);
+void swap(__global int * const, int const, int const);
 
 __kernel void sort(__global int * const array, int const n) {
     heapify(array, n);
