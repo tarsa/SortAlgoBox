@@ -20,10 +20,27 @@
  */
 package pl.tarsa.sortalgobox.opencl
 
-import pl.tarsa.sortalgobox.opencl.common.{FakeTimeLine, CpuSort}
+import pl.tarsa.sortalgobox.sorts.SortChecker
+import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
-object CpuMergeSort extends CpuSort("/CpuMergeSort.cl") {
-  override def sort(array: Array[Int]): Unit = {
-    sort(array, FakeTimeLine, List(array.length), Nil)
+class CpuShellSortSpec extends CommonUnitSpecBase {
+  typeBehavior[CpuShellSort.type ]
+
+  def intSort = CpuShellSort
+
+  it should "handle empty array" in guardedOpenCLTest {
+    SortChecker(intSort).forEmptyArray()
+  }
+
+  it should "handle single element array" in guardedOpenCLTest {
+    SortChecker(intSort).forSingleElementArray()
+  }
+
+  it should "sort small array" in guardedOpenCLTest {
+    SortChecker(intSort).forFewElementsArray()
+  }
+
+  it should "sort random array" in guardedOpenCLTest {
+    SortChecker(intSort).forArrayOfSize(100)
   }
 }

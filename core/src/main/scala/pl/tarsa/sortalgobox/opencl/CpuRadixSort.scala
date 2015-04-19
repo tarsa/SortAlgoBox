@@ -24,6 +24,6 @@ import pl.tarsa.sortalgobox.opencl.common.{CpuSort, FakeTimeLine}
 
 object CpuRadixSort extends CpuSort("/CpuRadixSort.cl") {
   override def sort(array: Array[Int]): Unit = {
-    sort(array, FakeTimeLine, List(array.length))
+    sort(array, FakeTimeLine, List(array.length), Nil)
   }
 }

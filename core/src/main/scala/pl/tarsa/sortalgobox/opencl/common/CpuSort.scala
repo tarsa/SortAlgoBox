@@ -30,12 +30,13 @@ import scala.Array._
 import scala.io.Source
 
 class CpuSort(sourceCodePath: String) extends SortAlgorithm[Int] {
-  override def sort(array: Array[Int]): Unit = sort(array, FakeTimeLine, Nil)
+  override def sort(array: Array[Int]): Unit = sort(
+    array, FakeTimeLine, Nil, Nil)
 
-  def sort(array: Array[Int], timeLine: TimeLine,
-    additionalBuffers: List[Int]): Unit = {
+  def sort(array: Array[Int], timeLine: TimeLine, additionalBuffers: List[Int],
+    precomputedArrays: List[Array[Int]]): Unit = {
 
-    if (array.isEmpty) {
+    if (array.isEmpty || array.length == 1) {
       return
     }
 
@@ -53,13 +54,27 @@ class CpuSort(sourceCodePath: String) extends SortAlgorithm[Int] {
 
     timeLine.append("Command queue set up")
 
-    val memObjects = ofDim[cl_mem](1 + additionalBuffers.size)
+    val memObjects = ofDim[cl_mem](1 + additionalBuffers.size +
+      precomputedArrays.size)
+    val additionalBuffersStart = 1
+    val precomputedArraysStart = additionalBuffersStart +
+      additionalBuffers.size
+
     memObjects(0) = clCreateBuffer(context,
       CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
       array.length * bytesInInt, pBuffer, null)
     additionalBuffers.zipWithIndex.foreach { case (n, i) =>
-      memObjects(1 + i) = clCreateBuffer(context, CL_MEM_READ_WRITE,
-      n * bytesInInt, null, null)
+      memObjects(additionalBuffersStart + i) = clCreateBuffer(context,
+        CL_MEM_READ_WRITE, n * bytesInInt, null, null)
+    }
+    precomputedArrays.zipWithIndex.foreach { case (precomputedArray, i) =>
+      val buffer = ByteBuffer.allocateDirect(precomputedArray.length *
+        bytesInInt).order(ByteOrder.nativeOrder()).asIntBuffer()
+      buffer.put(precomputedArray)
+      val pBuffer = Pointer.to(buffer)
+      memObjects(precomputedArraysStart + i) = clCreateBuffer(context,
+        CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+        precomputedArray.length * bytesInInt, pBuffer, null)
     }
     timeLine.append("Array buffer object created")
 
@@ -80,11 +95,18 @@ class CpuSort(sourceCodePath: String) extends SortAlgorithm[Int] {
     clSetKernelArg(kernel, 0, Sizeof.cl_mem, Pointer.to(memObjects(0)))
     clSetKernelArg(kernel, 1, Sizeof.cl_int, Pointer.to(Array(arraySize)))
     additionalBuffers.zipWithIndex.foreach { case (n, i) =>
-        val baseIndex = 2 + i * 2
-        clSetKernelArg(kernel, baseIndex + 0, Sizeof.cl_mem,
-          Pointer.to(memObjects(1 + i)))
-        clSetKernelArg(kernel, baseIndex + 1, Sizeof.cl_int,
-          Pointer.to(Array(n)))
+      val baseIndex = (additionalBuffersStart + i) * 2
+      clSetKernelArg(kernel, baseIndex + 0, Sizeof.cl_mem,
+        Pointer.to(memObjects(1 + i)))
+      clSetKernelArg(kernel, baseIndex + 1, Sizeof.cl_int,
+        Pointer.to(Array(n)))
+    }
+    precomputedArrays.zipWithIndex.foreach { case (precomputedArray, i) =>
+      val baseIndex = (precomputedArraysStart + i) * 2
+      clSetKernelArg(kernel, baseIndex + 0, Sizeof.cl_mem,
+        Pointer.to(memObjects(1 + i)))
+      clSetKernelArg(kernel, baseIndex + 1, Sizeof.cl_int,
+        Pointer.to(Array(precomputedArray.length)))
     }
 
     timeLine.append("Kernel set up")
