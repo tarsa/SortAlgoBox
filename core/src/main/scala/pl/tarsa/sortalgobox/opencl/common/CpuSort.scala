@@ -131,6 +131,6 @@ class CpuSort(sourceCodePath: String) extends SortAlgorithm[Int] {
     clReleaseCommandQueue(commandQueue)
     clReleaseContext(context)
 
-    timeLine.append("Host histogram computation ended")
+    timeLine.append("Sorting ended")
   }
 }
