@@ -26,27 +26,25 @@ import pl.tarsa.sortalgobox.sorts.common.SortAlgorithm
 
 class BitonicSort[T: Conv] extends SortAlgorithm[T] {
   override def sort(array: Array[T]): Unit = {
-    if (array.nonEmpty) {
-      val size = array.length
-      val phasesPerBlock = Stream.iterate(1)(_ + 1)
-        .takeWhile(phases => (1L << (phases - 1)) <= size - 1)
-      for (phasesInBlock <- phasesPerBlock;
-           phase <- phasesInBlock to 1 by -1) {
-        val firstPhaseInBlock = phase == phasesInBlock
-        val halfBlockSize = 1 << (phase - 1)
-        for (i <- 0 until (size / 2)) {
-          val (first, second) = if (firstPhaseInBlock) {
-            val upper = (i + (i & -halfBlockSize)) ^ (halfBlockSize - 1)
-            val lower = upper ^ ((halfBlockSize << 1) - 1)
-            (upper, lower)
-          } else {
-            val upper = i + (i & -halfBlockSize)
-            val lower = upper + halfBlockSize
-            (upper, lower)
-          }
-          if (second < size && array(first) > array(second)) {
-            swap(array, first, second)
-          }
+    val size = array.length
+    val phasesPerBlock = Stream.iterate(1)(_ + 1)
+      .takeWhile(phases => (1L << (phases - 1)) < size)
+    for (phasesInBlock <- phasesPerBlock;
+         phase <- phasesInBlock to 1 by -1) {
+      val firstPhaseInBlock = phase == phasesInBlock
+      val halfBlockSize = 1 << (phase - 1)
+      for (i <- 0 until (size / 2)) {
+        val (first, second) = if (firstPhaseInBlock) {
+          val upper = (i + (i & -halfBlockSize)) ^ (halfBlockSize - 1)
+          val lower = upper ^ ((halfBlockSize << 1) - 1)
+          (upper, lower)
+        } else {
+          val upper = i + (i & -halfBlockSize)
+          val lower = upper + halfBlockSize
+          (upper, lower)
+        }
+        if (second < size && array(first) > array(second)) {
+          swap(array, first, second)
         }
       }
     }

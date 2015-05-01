@@ -26,11 +26,9 @@ import pl.tarsa.sortalgobox.sorts.common.SortAlgorithm
 
 class SelectionSort[T: Conv] extends SortAlgorithm[T] {
   override def sort(array: Array[T]): Unit = {
-    if (array.nonEmpty) {
-      for (i <- array.indices.init) {
-        val j = array.view.zipWithIndex.drop(i).minBy(_._1)._2
-        swap(array, i, j)
-      }
+    for (i <- 0 to array.length - 2) {
+      val j = array.view.zipWithIndex.drop(i).minBy(_._1)._2
+      swap(array, i, j)
     }
   }
 }

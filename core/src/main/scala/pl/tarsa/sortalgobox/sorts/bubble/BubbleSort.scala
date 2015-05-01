@@ -26,12 +26,10 @@ import pl.tarsa.sortalgobox.sorts.common.SortAlgorithm
 
 class BubbleSort[T: Conv] extends SortAlgorithm[T] {
   override def sort(array: Array[T]): Unit = {
-    if (array.nonEmpty) {
-      for (i <- array.indices.reverse.init;
-           j <- 0 until i) {
-        if (array(j) > array(j + 1)) {
-          swap(array, j, j + 1)
-        }
+    for (i <- array.length - 1 to 1 by -1;
+         j <- 0 until i) {
+      if (array(j) > array(j + 1)) {
+        swap(array, j, j + 1)
       }
     }
   }
