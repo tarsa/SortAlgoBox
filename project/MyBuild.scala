@@ -23,6 +23,7 @@ object MyBuild extends Build {
       name := "SortingAlgorithmsToolbox")
     .settings(commonSettings: _*)
     .aggregate(core)
+    .settings(run := (run in core in Compile).evaluated)
 
   lazy val core = Project(id = "core", base = file("./core"))
     .settings(commonSettings: _*)
