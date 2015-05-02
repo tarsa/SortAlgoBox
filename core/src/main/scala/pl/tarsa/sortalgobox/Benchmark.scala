@@ -38,7 +38,7 @@ object Benchmark {
       "GpuBitonicSort" -> GpuBitonicSort)
     val generator = new Random(5)
     for (size <- Iterator.iterate(1)(x => (x * 1.3).toInt + 5)
-      .takeWhile(_ < 12345678)) {
+      .takeWhile(_ < 1234567)) {
       val iterations = if (size > 123456) 1 else if (size > 12345) 2 else 4
       println(s"Size: $size")
       val original = Array.fill[Int](size)(generator.nextInt())
