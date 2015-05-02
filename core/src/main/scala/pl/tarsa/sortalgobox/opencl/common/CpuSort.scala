@@ -23,18 +23,24 @@ package pl.tarsa.sortalgobox.opencl.common
 import java.nio.{ByteBuffer, ByteOrder}
 
 import org.jocl.CL._
-import org.jocl.{Pointer, Sizeof, cl_mem}
+import org.jocl._
 import pl.tarsa.sortalgobox.sorts.common.SortAlgorithm
 
 import scala.Array._
 import scala.io.Source
 
 class CpuSort(sourceCodePath: String) extends SortAlgorithm[Int] {
-  override def sort(array: Array[Int]): Unit = sort(
-    array, FakeTimeLine, Nil, Nil)
+  override def sort(array: Array[Int]): Unit = {
+    CLContextsCache.withCpuContext(sort(array, _))
+  }
 
-  def sort(array: Array[Int], timeLine: TimeLine, additionalBuffers: List[Int],
-    precomputedArrays: List[Array[Int]]): Unit = {
+  def sort(array: Array[Int], deviceContext: CLDeviceContext): Unit = {
+    sort(array, FakeTimeLine, Nil, Nil, deviceContext)
+  }
+
+  def sort(array: Array[Int], timeLine: TimeLine,
+    additionalBuffers: List[Int], precomputedArrays: List[Array[Int]],
+    deviceContext: CLDeviceContext): Unit = {
 
     if (array.isEmpty || array.length == 1) {
       return
@@ -48,7 +54,7 @@ class CpuSort(sourceCodePath: String) extends SortAlgorithm[Int] {
 
     setExceptionsEnabled(true)
 
-    val (deviceId, context) = CLContextsManager.createCpuContext()
+    val CLDeviceContext(deviceId, context) = CLContextsCache.cpuContext
 
     val commandQueue = clCreateCommandQueue(context, deviceId, 0, null)
 
@@ -129,7 +135,6 @@ class CpuSort(sourceCodePath: String) extends SortAlgorithm[Int] {
     clReleaseKernel(kernel)
     clReleaseProgram(program)
     clReleaseCommandQueue(commandQueue)
-    clReleaseContext(context)
 
     timeLine.append("Sorting ended")
   }

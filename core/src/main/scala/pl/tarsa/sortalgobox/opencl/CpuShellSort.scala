@@ -20,12 +20,12 @@
  */
 package pl.tarsa.sortalgobox.opencl
 
-import pl.tarsa.sortalgobox.opencl.common.{CpuSort, FakeTimeLine}
+import pl.tarsa.sortalgobox.opencl.common._
 import pl.tarsa.sortalgobox.sorts.shell.TokudaGapSequence
 
 object CpuShellSort extends CpuSort("/CpuShellSort.cl") {
-  override def sort(array: Array[Int]): Unit = {
+  override def sort(array: Array[Int], deviceContext: CLDeviceContext): Unit = {
     sort(array, FakeTimeLine, Nil,
-      List(TokudaGapSequence.forSize(array.length)))
+      List(TokudaGapSequence.forSize(array.length)), deviceContext)
   }
 }

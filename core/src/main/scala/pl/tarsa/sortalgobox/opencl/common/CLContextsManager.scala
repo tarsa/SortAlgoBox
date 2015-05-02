@@ -6,15 +6,33 @@ import org.jocl._
 object CLContextsManager {
   lazy val contextsDescriptions = CLContextDescription.enumerate()
 
-  def createCpuContext(): (cl_device_id, cl_context) = {
+  def createCpuContext(): CLDeviceContext = {
     contextsDescriptions
       .filter(_.matchesFragments(Option("Intel"), None, None))
       .head.toCLDeviceContext
   }
 
-  def createGpuContext(): (cl_device_id, cl_context) = {
+  def createGpuContext(): CLDeviceContext = {
     contextsDescriptions
       .filter(_.deviceType == CL_DEVICE_TYPE_GPU)
       .head.toCLDeviceContext
+  }
+
+  def withCpuContext(f: CLDeviceContext => Unit): Unit = {
+    val deviceContext = createCpuContext()
+    try {
+      f(deviceContext)
+    } finally {
+      clReleaseContext(deviceContext.context)
+    }
+  }
+
+  def withGpuContext(f: CLDeviceContext => Unit): Unit = {
+    val deviceContext = createGpuContext()
+    try {
+      f(deviceContext)
+    } finally {
+      clReleaseContext(deviceContext.context)
+    }
   }
 }

@@ -24,12 +24,12 @@ class CLContextDescription(val platformName: String,
     platformMatches && deviceMatches && vendorMatches
   }
 
-  def toCLDeviceContext: (cl_device_id, cl_context) = {
+  def toCLDeviceContext: CLDeviceContext = {
     val contextProperties = new cl_context_properties()
     contextProperties.addProperty(CL_CONTEXT_PLATFORM, platformId)
     val context = clCreateContext(contextProperties, 1, Array(deviceId),
       null, null, null)
-    (deviceId, context)
+    CLDeviceContext(deviceId, context)
   }
 }
 

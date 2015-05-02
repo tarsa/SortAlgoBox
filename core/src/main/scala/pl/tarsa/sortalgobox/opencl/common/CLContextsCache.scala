@@ -18,12 +18,17 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
-package pl.tarsa.sortalgobox.opencl
+package pl.tarsa.sortalgobox.opencl.common
 
-import pl.tarsa.sortalgobox.opencl.common._
+object CLContextsCache {
+  lazy val cpuContext = CLContextsManager.createCpuContext()
+  lazy val gpuContext = CLContextsManager.createGpuContext()
 
-object CpuMergeSort extends CpuSort("/CpuMergeSort.cl") {
-  override def sort(array: Array[Int], deviceContext: CLDeviceContext): Unit = {
-    sort(array, FakeTimeLine, List(array.length), Nil, deviceContext)
+  def withCpuContext(f: CLDeviceContext => Unit): Unit = {
+    f(cpuContext)
+  }
+
+  def withGpuContext(f: CLDeviceContext => Unit): Unit = {
+    f(gpuContext)
   }
 }

@@ -23,8 +23,8 @@ package pl.tarsa.sortalgobox.opencl
 import java.nio.{ByteOrder, ByteBuffer}
 
 import org.jocl.CL._
-import org.jocl.{Sizeof, cl_mem, Pointer}
-import pl.tarsa.sortalgobox.opencl.common.{CLContextsManager, TimeLine, FakeTimeLine}
+import org.jocl._
+import pl.tarsa.sortalgobox.opencl.common._
 import pl.tarsa.sortalgobox.sorts.common.SortAlgorithm
 
 import scala.Array._
@@ -33,9 +33,12 @@ import scala.io.Source
 object GpuBitonicSort extends SortAlgorithm[Int] {
   val sourceCodePath = "/GpuBitonicSort.cl"
 
-  override def sort(array: Array[Int]): Unit = sort(array, FakeTimeLine)
+  override def sort(array: Array[Int]): Unit = {
+    CLContextsCache.withGpuContext(sort(array, FakeTimeLine, _))
+  }
 
-  def sort(array: Array[Int], timeLine: TimeLine): Unit = {
+  def sort(array: Array[Int], timeLine: TimeLine,
+    deviceContext: CLDeviceContext): Unit = {
 
     if (array.isEmpty || array.length == 1) {
       return
@@ -49,15 +52,14 @@ object GpuBitonicSort extends SortAlgorithm[Int] {
 
     setExceptionsEnabled(true)
 
-    val (deviceId, context) = CLContextsManager.createGpuContext()
-
-    val commandQueue = clCreateCommandQueue(context, deviceId, 0, null)
+    val commandQueue = clCreateCommandQueue(deviceContext.context,
+      deviceContext.deviceId, 0, null)
 
     timeLine.append("Command queue set up")
 
     val memObjects = ofDim[cl_mem](1)
 
-    memObjects(0) = clCreateBuffer(context,
+    memObjects(0) = clCreateBuffer(deviceContext.context,
       CL_MEM_READ_WRITE, array.length * bytesInInt, null, null)
     timeLine.append("Array buffer object created")
 
@@ -70,8 +72,8 @@ object GpuBitonicSort extends SortAlgorithm[Int] {
     val programSource = programFile.getLines().mkString("\n")
     programFile.close()
 
-    val program = clCreateProgramWithSource(context, 1, Array(programSource),
-      null, null)
+    val program = clCreateProgramWithSource(deviceContext.context, 1,
+      Array(programSource), null, null)
 
     clBuildProgram(program, 0, null, null, null, null)
 
@@ -114,7 +116,6 @@ object GpuBitonicSort extends SortAlgorithm[Int] {
     clReleaseKernel(kernelFollowing)
     clReleaseProgram(program)
     clReleaseCommandQueue(commandQueue)
-    clReleaseContext(context)
 
     timeLine.append("Sorting ended")
   }

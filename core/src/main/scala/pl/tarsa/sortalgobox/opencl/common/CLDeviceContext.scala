@@ -18,12 +18,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
-package pl.tarsa.sortalgobox.opencl
+package pl.tarsa.sortalgobox.opencl.common
 
-import pl.tarsa.sortalgobox.opencl.common._
+import org.jocl._
 
-object CpuMergeSort extends CpuSort("/CpuMergeSort.cl") {
-  override def sort(array: Array[Int], deviceContext: CLDeviceContext): Unit = {
-    sort(array, FakeTimeLine, List(array.length), Nil, deviceContext)
-  }
-}
+case class CLDeviceContext(deviceId: cl_device_id, context: cl_context)
