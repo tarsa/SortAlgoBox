@@ -45,7 +45,7 @@ abstract class Benchmark {
            if activeSorts(sortId)) {
         var totalTime = 0L
         var iterations = 0
-        while (iterations < 10 && totalTime < 1000) {
+        while (iterations < 20 && totalTime < 1000) {
           System.arraycopy(original, 0, buffer, 0, size)
           val currentStartTime = System.currentTimeMillis()
           sortAlgo.sort(buffer)
@@ -65,9 +65,11 @@ abstract class Benchmark {
 
   def warmUp(): Unit = {
     val ints = Array(5, 3, 2, 8)
-    new BitonicSort[Int]().sort(ints.clone())
-    CpuBitonicSort.sort(ints.clone())
-    GpuBitonicSort.sort(ints.clone())
+    for (_ <- 0 to 5) {
+      sorts.foreach { case (_, sortAlgo) =>
+        sortAlgo.sort(ints.clone())
+      }
+    }
   }
 
   def newSize(size: Int): Unit
