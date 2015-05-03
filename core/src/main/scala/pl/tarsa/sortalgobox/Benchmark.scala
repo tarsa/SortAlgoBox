@@ -22,28 +22,26 @@ package pl.tarsa.sortalgobox
 
 import pl.tarsa.sortalgobox.opencl.{GpuBitonicSort, CpuBitonicSort}
 import pl.tarsa.sortalgobox.sorts.bitonic.BitonicSort
+import pl.tarsa.sortalgobox.sorts.common.SortAlgorithm
 
 import scala.util.Random
 
-object Benchmark {
+abstract class Benchmark {
+  def sorts: List[(String, SortAlgorithm[Int])]
 
   def isSorted(ints: Array[Int]): Boolean = {
     ints.indices.tail.forall(i => ints(i - 1) <= ints(i))
   }
 
-  def main(args: Array[String]) {
-    val sorts = Map(
-      "BitonicSort" -> new BitonicSort[Int],
-      "CpuBitonicSort" -> CpuBitonicSort,
-      "GpuBitonicSort" -> GpuBitonicSort)
+  def start(): Unit = {
     val generator = new Random(5)
     for (size <- Iterator.iterate(1)(x => (x * 1.3).toInt + 5)
       .takeWhile(_ < 1234567)) {
+      newSize(size)
       val iterations = if (size > 123456) 1 else if (size > 12345) 2 else 4
-      println(s"Size: $size")
       val original = Array.fill[Int](size)(generator.nextInt())
       val buffer = Array.ofDim[Int](size)
-      for ((sortName, sortAlgo) <- sorts) {
+      for ((sortAlgo, sortId) <- sorts.map(_._2).zipWithIndex) {
         val totalTime = (1 to iterations).map { _ =>
           System.arraycopy(original, 0, buffer, 0, size)
           val currentStartTime = System.currentTimeMillis()
@@ -53,7 +51,7 @@ object Benchmark {
           currentTotalTime
         }.sum
         val time = totalTime.toDouble / iterations
-        println(s"Sort name: $sortName, time: $time")
+        newData(sortId, time)
       }
     }
   }
@@ -64,4 +62,8 @@ object Benchmark {
     CpuBitonicSort.sort(ints.clone())
     GpuBitonicSort.sort(ints.clone())
   }
+
+  def newSize(size: Int): Unit
+
+  def newData(sortId: Int, time: Double): Unit
 }
