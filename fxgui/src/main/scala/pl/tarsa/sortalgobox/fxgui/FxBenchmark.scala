@@ -22,22 +22,17 @@ package pl.tarsa.sortalgobox.fxgui
 
 import javafx.scene.chart.XYChart.Data
 
-import pl.tarsa.sortalgobox.Benchmark
-import pl.tarsa.sortalgobox.opencl.{CpuBitonicSort, GpuBitonicSort}
-import pl.tarsa.sortalgobox.sorts.bitonic.BitonicSort
+import pl.tarsa.sortalgobox.{Benchmark, SortsConfigurations}
 
 import scala.concurrent.Future
-import scalafx.application.{Platform, JFXApp}
+import scalafx.application.{JFXApp, Platform}
 import scalafx.collections.ObservableBuffer
 import scalafx.geometry.Side
 import scalafx.scene.Scene
-import scalafx.scene.chart.{NumberAxis, CategoryAxis, LineChart, XYChart}
+import scalafx.scene.chart.{CategoryAxis, LineChart, NumberAxis, XYChart}
 
 object FxBenchmark extends Benchmark with JFXApp {
-  val sorts = List(
-    "BitonicSort" -> new BitonicSort[Int],
-    "CpuBitonicSort" -> CpuBitonicSort,
-    "GpuBitonicSort" -> GpuBitonicSort)
+  val sorts = SortsConfigurations.sorts
 
   val seriesWithBuffers = sorts.map { case (name, _) =>
     val buffer = ObservableBuffer[Data[String, Number]]()

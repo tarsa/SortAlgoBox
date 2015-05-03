@@ -20,18 +20,16 @@
  */
 package pl.tarsa.sortalgobox
 
-object CliBenchmark extends Benchmark {
-  val sorts = SortsConfigurations.sorts
+import pl.tarsa.sortalgobox.opencl.{CpuBitonicSort, GpuBitonicSort}
+import pl.tarsa.sortalgobox.sorts.bitonic.BitonicSort
+import pl.tarsa.sortalgobox.sorts.common.SortAlgorithm
+import pl.tarsa.sortalgobox.standard.{ParallelArraysSort, SequentialArraysSort}
 
-  def main(args: Array[String]) {
-    start()
-  }
-
-  override def newSize(size: Int): Unit = {
-    println(s"Size: $size")
-  }
-
-  override def newData(sortId: Int, time: Double): Unit = {
-    println(s"Sort name: ${sorts(sortId)._1}, time: $time ms")
-  }
+object SortsConfigurations {
+  lazy val sorts: List[(String, SortAlgorithm[Int])] = List(
+    "BitonicSort" -> new BitonicSort[Int],
+    "CpuBitonicSort" -> CpuBitonicSort,
+    "GpuBitonicSort" -> GpuBitonicSort,
+    "SequentialArraysSort" -> new SequentialArraysSort,
+    "ParallelArraySort" -> new ParallelArraysSort)
 }
