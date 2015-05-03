@@ -35,22 +35,29 @@ abstract class Benchmark {
 
   def start(): Unit = {
     val generator = new Random(5)
-    for (size <- Iterator.iterate(1)(x => (x * 1.3).toInt + 5)
-      .takeWhile(_ < 1234567)) {
+    val activeSorts = Array.fill[Boolean](sorts.length)(true)
+    for (size <- Iterator.iterate(1234)(x => (x * 1.3).toInt + 5)
+      .takeWhile(_ < 123456789)) {
       newSize(size)
-      val iterations = if (size > 123456) 1 else if (size > 12345) 2 else 4
       val original = Array.fill[Int](size)(generator.nextInt())
       val buffer = Array.ofDim[Int](size)
-      for ((sortAlgo, sortId) <- sorts.map(_._2).zipWithIndex) {
-        val totalTime = (1 to iterations).map { _ =>
+      for ((sortAlgo, sortId) <- sorts.map(_._2).zipWithIndex
+           if activeSorts(sortId)) {
+        var totalTime = 0L
+        var iterations = 0
+        while (iterations < 10 && totalTime < 1000) {
           System.arraycopy(original, 0, buffer, 0, size)
           val currentStartTime = System.currentTimeMillis()
           sortAlgo.sort(buffer)
           val currentTotalTime = System.currentTimeMillis() - currentStartTime
           assert(isSorted(buffer))
-          currentTotalTime
-        }.sum
+          totalTime += currentTotalTime
+          iterations += 1
+        }
         val time = totalTime.toDouble / iterations
+        if (time > 1000) {
+          activeSorts(sortId) = false
+        }
         newData(sortId, time)
       }
     }
