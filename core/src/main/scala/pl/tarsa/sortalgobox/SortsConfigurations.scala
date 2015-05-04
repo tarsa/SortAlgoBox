@@ -20,7 +20,7 @@
  */
 package pl.tarsa.sortalgobox
 
-import pl.tarsa.sortalgobox.opencl.{CpuBitonicSort, GpuBitonicSort}
+import pl.tarsa.sortalgobox.opencl.{CpuQuickSort, CpuBitonicSort, GpuBitonicSort}
 import pl.tarsa.sortalgobox.sorts.bitonic.BitonicSort
 import pl.tarsa.sortalgobox.sorts.common.SortAlgorithm
 import pl.tarsa.sortalgobox.standard.{ParallelArraysSort, SequentialArraysSort}
@@ -31,5 +31,6 @@ object SortsConfigurations {
     "CpuBitonicSort" -> CpuBitonicSort,
     "GpuBitonicSort" -> GpuBitonicSort,
     "SequentialArraysSort" -> new SequentialArraysSort,
-    "ParallelArraySort" -> new ParallelArraysSort)
+    "ParallelArraySort" -> new ParallelArraysSort,
+    "CpuQuickSort" -> CpuQuickSort)
 }
