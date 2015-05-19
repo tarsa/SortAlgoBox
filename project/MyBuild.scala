@@ -13,6 +13,7 @@ object MyBuild extends Build {
     .settings(commonSettings: _*)
     .settings(
       libraryDependencies ++= Seq(
+        "org.apache.commons" % "commons-math3" % "3.5",
         "org.jocl" % "jocl" % "0.1.9",
         "org.scalatest" %% "scalatest" % "2.2.1" % "test",
         "org.scalamock" %% "scalamock-scalatest-support" % "3.2" % "test",
@@ -20,7 +21,7 @@ object MyBuild extends Build {
       )
     )
 
-  lazy val rootDeps = Seq(core, fxgui)
+  lazy val rootDeps = Seq(core, fxgui, random)
 
   lazy val root = Project(id = "parent", base = file("."))
     .settings(
@@ -39,4 +40,8 @@ object MyBuild extends Build {
   lazy val fxgui = Project(id = "fxgui", base = file("./fxgui"))
     .settings(commonSettings: _*)
     .dependsOn(deps % "compile->compile;test->test", core)
+
+  lazy val random = Project(id = "random", base = file("./random"))
+    .settings(commonSettings: _*)
+    .dependsOn(deps % "compile->compile;test->test")
 }
