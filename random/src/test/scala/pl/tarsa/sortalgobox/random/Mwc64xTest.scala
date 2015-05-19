@@ -27,7 +27,7 @@ class Mwc64xTest extends CommonUnitSpecBase {
 
   it should "generate the same numbers as in test vector" in {
     val source = io.Source.fromInputStream(getClass.getResourceAsStream(
-      "/pl/tarsa/sortalgobox/random/mwc64x_test_vector.txt"))
+      "/pl/tarsa/sortalgobox/random/mwc64x/test_vector.txt"))
     val testVector = source.getLines().map(Integer.parseUnsignedInt(_, 16))
     val rng = new Mwc64x
     var i = 0
