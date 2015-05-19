@@ -1,7 +1,7 @@
 import sbt._
 import Keys._
 
-object MyBuild extends Build {
+object MainBuild extends Build {
 
   lazy val commonSettings = Seq(
     scalaVersion := "2.11.6",
