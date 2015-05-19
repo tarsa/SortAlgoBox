@@ -1,7 +1,6 @@
 package pl.tarsa.sortalgobox.opencl.common
 
 import org.jocl.CL._
-import org.jocl._
 
 object CLContextsManager {
   lazy val contextsDescriptions = CLContextDescription.enumerate()
