@@ -54,6 +54,8 @@ class Mwc64xTest extends CommonUnitSpecBase {
   it should "have working skipping" in {
     val rng1 = new Mwc64x
     val rng2 = new Mwc64x
+    rng1.skip(0)
+    assertResult(rng2)(rng1)
     val distance = 100
     rng1.skip(distance)
     for (_ <- 0 until distance) {
@@ -73,6 +75,20 @@ class Mwc64xTest extends CommonUnitSpecBase {
       val rngSkip = new Mwc64x
       rngSkip.skip(segmentLength * (i + 1))
       assertResult(rngSkip)(rngStep)
+    }
+  }
+
+  it should "have additive skipping" in {
+    val segmentLength = 8192L
+    for (i <- 1 until 20) {
+      for (j <- 0 until i) {
+        val rng1 = new Mwc64x
+        val rng2 = new Mwc64x
+        rng1.skip(segmentLength * j)
+        rng1.skip(segmentLength * (i - j))
+        rng2.skip(segmentLength * i)
+        assertResult(rng2)(rng1)
+      }
     }
   }
 }

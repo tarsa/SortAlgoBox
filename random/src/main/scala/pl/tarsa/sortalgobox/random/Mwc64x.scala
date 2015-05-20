@@ -48,17 +48,14 @@ case class Mwc64x(var state: Long = Mwc64x.initialState)
 
 object Mwc64x {
   val initialState = 1745055044494293084L
-  val aBig = BigInt("4294883355")
-  val aLong = aBig.toLong
-  val mBig = BigInt("18446383549859758079")
+  val aLong = 4294883355L
+  val aBig = BigInt(aLong)
+  val mBig = (aBig << 32) - 1
 
   def skip(state: Long, distance: Long): Long = {
-    val c = state >>> 32
-    val x = state & 0xFFFFFFFFL
+    val (c, x) = (state >>> 32, state & 0xFFFFFFFFL)
     val m = aBig.modPow(distance, mBig)
-    val v1 = aBig * x + c
-    val v2 = v1 * m % mBig
-    val (x1, c1) = v2 /% aBig
+    val (x1, c1) = ((aBig * x + c) * m % mBig) /% aBig
     (c1.toLong << 32) + x1.toLong
   }
 }
