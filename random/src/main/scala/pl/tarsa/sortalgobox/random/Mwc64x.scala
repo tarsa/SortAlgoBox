@@ -22,22 +22,43 @@ package pl.tarsa.sortalgobox.random
 
 import org.apache.commons.math3.random._
 
-class Mwc64x(private var state: Long = 1745055044494293084L)
+case class Mwc64x(var state: Long = Mwc64x.initialState)
   extends BitsStreamGenerator {
 
-  override def next(bits: Int) = {
+  override def next(bits: Int): Int = {
     val c = state >>> 32
     val x = state & 0xFFFFFFFFL
-    state = 4294883355L * x + c
+    state = Mwc64x.aLong * x + c
     (x ^ c).toInt
   }
 
-  override def setSeed(seed: Int) = setSeed(Array(seed))
+  override def setSeed(seed: Int): Unit = setSeed(Array(seed))
 
-  override def setSeed(seed: Array[Int]) = setSeed(
+  override def setSeed(seed: Array[Int]): Unit = setSeed(
     RandomGeneratorFactory.convertToLong(seed))
 
   override def setSeed(seed: Long): Unit = {
     state = seed
+  }
+
+  def skip(distance: Long): Unit = {
+    state = Mwc64x.skip(state, distance)
+  }
+}
+
+object Mwc64x {
+  val initialState = 1745055044494293084L
+  val aBig = BigInt("4294883355")
+  val aLong = aBig.toLong
+  val mBig = BigInt("18446383549859758079")
+
+  def skip(state: Long, distance: Long): Long = {
+    val c = state >>> 32
+    val x = state & 0xFFFFFFFFL
+    val m = aBig.modPow(distance, mBig)
+    val v1 = aBig * x + c
+    val v2 = v1 * m % mBig
+    val (x1, c1) = v2 /% aBig
+    (c1.toLong << 32) + x1.toLong
   }
 }

@@ -25,6 +25,19 @@ import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 class Mwc64xTest extends CommonUnitSpecBase {
   typeBehavior[Mwc64x]
 
+  it should "have hashCode and equals working" in {
+    val rng1 = new Mwc64x
+    val rng2 = new Mwc64x
+    assert(rng1 == rng2)
+    assert(rng1.hashCode() == rng2.hashCode())
+    rng1.nextInt()
+    assert(rng1 != rng2)
+    assert(rng1.hashCode() != rng2.hashCode())
+    rng2.skip(1)
+    assert(rng1 == rng2)
+    assert(rng1.hashCode() == rng2.hashCode())
+  }
+
   it should "generate the same numbers as in test vector" in {
     val source = io.Source.fromInputStream(getClass.getResourceAsStream(
       "/pl/tarsa/sortalgobox/random/mwc64x/test_vector.txt"))
@@ -36,5 +49,30 @@ class Mwc64xTest extends CommonUnitSpecBase {
       i += 1
     }
     assertResult(12345)(i)
+  }
+
+  it should "have working skipping" in {
+    val rng1 = new Mwc64x
+    val rng2 = new Mwc64x
+    val distance = 100
+    rng1.skip(distance)
+    for (_ <- 0 until distance) {
+      rng2.nextInt()
+    }
+    assertResult(rng2)(rng1)
+  }
+
+  it should "have reliable skipping" in {
+    val segmentLength = 8192L
+    for (i <- 0L until 123L) {
+      val rngStep = new Mwc64x
+      rngStep.skip(segmentLength * i)
+      for (_ <- 0L until segmentLength) {
+        rngStep.nextInt()
+      }
+      val rngSkip = new Mwc64x
+      rngSkip.skip(segmentLength * (i + 1))
+      assertResult(rngSkip)(rngStep)
+    }
   }
 }
