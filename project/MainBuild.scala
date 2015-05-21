@@ -47,5 +47,5 @@ object MainBuild extends Build {
 
   lazy val random = Project(id = "random", base = file("./random"))
     .settings(commonSettings: _*)
-    .dependsOn(deps % "compile->compile;test->test")
+    .dependsOn(deps % "compile->compile;test->test", opencl)
 }
