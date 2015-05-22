@@ -37,7 +37,7 @@ abstract class Benchmark {
     val generator = new Random(5)
     val activeSorts = Array.fill[Boolean](sorts.length)(true)
     for (size <- Iterator.iterate(1234)(x => (x * 1.3).toInt + 5)
-      .takeWhile(_ < 123456789)) {
+      .takeWhile(_ < 123456789 && activeSorts.exists(identity))) {
       newSize(size)
       val original = Array.fill[Int](size)(generator.nextInt())
       val buffer = Array.ofDim[Int](size)
