@@ -34,7 +34,7 @@ object GpuBitonicSort extends SortAlgorithm[Int] {
   val sourceCodePath = "/GpuBitonicSort.cl"
 
   override def sort(array: Array[Int]): Unit = {
-    CLContextsCache.withGpuContext(sort(array, FakeTimeLine, _))
+    CLCache.withGpuContext(sort(array, FakeTimeLine, _))
   }
 
   def sort(array: Array[Int], timeLine: TimeLine,
@@ -72,10 +72,7 @@ object GpuBitonicSort extends SortAlgorithm[Int] {
     val programSource = programFile.getLines().mkString("\n")
     programFile.close()
 
-    val program = clCreateProgramWithSource(deviceContext.context, 1,
-      Array(programSource), null, null)
-
-    clBuildProgram(program, 0, null, null, null, null)
+    val program = CLCache.getCachedProgram(deviceContext, List(programSource))
 
     val kernelFirst = clCreateKernel(program, "firstPhase", null)
     val kernelFollowing = clCreateKernel(program, "followingPhase", null)
@@ -114,7 +111,6 @@ object GpuBitonicSort extends SortAlgorithm[Int] {
     memObjects.foreach(clReleaseMemObject)
     clReleaseKernel(kernelFirst)
     clReleaseKernel(kernelFollowing)
-    clReleaseProgram(program)
     clReleaseCommandQueue(commandQueue)
 
     timeLine.append("Sorting ended")

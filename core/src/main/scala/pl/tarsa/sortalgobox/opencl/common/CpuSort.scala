@@ -31,7 +31,7 @@ import scala.io.Source
 
 class CpuSort(sourceCodePath: String) extends SortAlgorithm[Int] {
   override def sort(array: Array[Int]): Unit = {
-    CLContextsCache.withCpuContext(sort(array, _))
+    CLCache.withCpuContext(sort(array, _))
   }
 
   def sort(array: Array[Int], deviceContext: CLDeviceContext): Unit = {
@@ -54,7 +54,7 @@ class CpuSort(sourceCodePath: String) extends SortAlgorithm[Int] {
 
     setExceptionsEnabled(true)
 
-    val CLDeviceContext(deviceId, context) = CLContextsCache.cpuContext
+    val CLDeviceContext(deviceId, context) = deviceContext
 
     val commandQueue = clCreateCommandQueue(context, deviceId, 0, null)
 
@@ -89,10 +89,7 @@ class CpuSort(sourceCodePath: String) extends SortAlgorithm[Int] {
     val programSource = programFile.getLines().mkString("\n")
     programFile.close()
 
-    val program = clCreateProgramWithSource(context, 1, Array(programSource),
-      null, null)
-
-    clBuildProgram(program, 0, null, null, null, null)
+    val program = CLCache.getCachedProgram(deviceContext, List(programSource))
 
     val kernel = clCreateKernel(program, "sort", null)
 
@@ -133,7 +130,6 @@ class CpuSort(sourceCodePath: String) extends SortAlgorithm[Int] {
 
     memObjects.foreach(clReleaseMemObject)
     clReleaseKernel(kernel)
-    clReleaseProgram(program)
     clReleaseCommandQueue(commandQueue)
 
     timeLine.append("Sorting ended")

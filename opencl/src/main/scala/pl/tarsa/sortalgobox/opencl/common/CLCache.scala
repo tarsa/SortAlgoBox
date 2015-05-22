@@ -20,7 +20,10 @@
  */
 package pl.tarsa.sortalgobox.opencl.common
 
-object CLContextsCache {
+import org.jocl.CL._
+import org.jocl._
+
+trait CLContextsCache {
   lazy val cpuContext = CLContextsManager.createCpuContext()
   lazy val gpuContext = CLContextsManager.createGpuContext()
 
@@ -32,3 +35,26 @@ object CLContextsCache {
     f(gpuContext)
   }
 }
+
+trait CLProgramsCache { CLContextsCache =>
+  def getCachedProgram(deviceContext: CLDeviceContext,
+    programSources: List[String]): cl_program = {
+    programsCache.getOrElseUpdate((deviceContext, programSources),
+      buildProgram(deviceContext, programSources))
+  }
+
+  private val programsCache = collection.mutable.Map[(CLDeviceContext,
+    List[String]), cl_program]()
+
+  private def buildProgram(deviceContext: CLDeviceContext,
+    programSources: List[String]): cl_program = {
+    val program = clCreateProgramWithSource(deviceContext.context,
+      programSources.size, programSources.toArray, null, null)
+
+    clBuildProgram(program, 0, null, null, null, null)
+
+    program
+  }
+}
+
+object CLCache extends CLContextsCache with CLProgramsCache

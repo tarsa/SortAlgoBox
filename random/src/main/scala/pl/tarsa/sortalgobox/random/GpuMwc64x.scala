@@ -20,7 +20,7 @@
  */
 package pl.tarsa.sortalgobox.random
 
-import pl.tarsa.sortalgobox.opencl.common.{CLDeviceContext, CLContextsCache}
+import pl.tarsa.sortalgobox.opencl.common.{CLDeviceContext, CLCache}
 
 import java.nio.{ByteOrder, ByteBuffer}
 
@@ -45,7 +45,7 @@ class GpuMwc64x {
       throw new IllegalArgumentException("Wrong vector length")
     }
     val array = Array.ofDim[Int](n)
-    CLContextsCache.withGpuContext { deviceContext =>
+    CLCache.withGpuContext { deviceContext =>
       generateWithContext(array, workItems, vectorLength, deviceContext)
     }
     array
@@ -77,10 +77,7 @@ class GpuMwc64x {
       programSource
     }
 
-    val program = clCreateProgramWithSource(deviceContext.context,
-      programSources.size, programSources.toArray, null, null)
-
-    clBuildProgram(program, 0, null, null, null, null)
+    val program = CLCache.getCachedProgram(deviceContext, programSources)
 
     val kernelName = s"DumpSamples_$vectorLength"
     val kernel = clCreateKernel(program, kernelName, null)
@@ -98,7 +95,6 @@ class GpuMwc64x {
     clEnqueueNDRangeKernel(commandQueue, kernel, 1, null, global_work_size,
       local_work_size, 0, null, null)
 
-
     val buffer = ByteBuffer.allocateDirect(array.length * bytesInInt)
       .order(ByteOrder.nativeOrder()).asIntBuffer()
     val pBuffer = Pointer.to(buffer)
@@ -109,7 +105,6 @@ class GpuMwc64x {
 
     memObjects.foreach(clReleaseMemObject)
     clReleaseKernel(kernel)
-    clReleaseProgram(program)
     clReleaseCommandQueue(commandQueue)
   }
 }
