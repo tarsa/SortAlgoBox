@@ -20,8 +20,6 @@
  */
 package pl.tarsa.sortalgobox
 
-import pl.tarsa.sortalgobox.opencl.{GpuBitonicSort, CpuBitonicSort}
-import pl.tarsa.sortalgobox.sorts.bitonic.BitonicSort
 import pl.tarsa.sortalgobox.sorts.common.SortAlgorithm
 
 import scala.util.Random
@@ -34,6 +32,7 @@ abstract class Benchmark {
   }
 
   def start(): Unit = {
+    warmUp()
     val generator = new Random(5)
     val activeSorts = Array.fill[Boolean](sorts.length)(true)
     for (size <- Iterator.iterate(1234)(x => (x * 1.3).toInt + 5)
@@ -64,11 +63,10 @@ abstract class Benchmark {
   }
 
   def warmUp(): Unit = {
-    val ints = Array(5, 3, 2, 8)
-    for (_ <- 0 to 5) {
-      sorts.foreach { case (_, sortAlgo) =>
-        sortAlgo.sort(ints.clone())
-      }
+    val rng = new Random()
+    val ints = Array.fill[Int](1234567)(rng.nextInt())
+    sorts.foreach { case (_, sortAlgo) =>
+      sortAlgo.sort(ints.clone())
     }
   }
 
