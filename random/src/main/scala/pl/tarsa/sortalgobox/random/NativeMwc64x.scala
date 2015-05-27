@@ -35,8 +35,9 @@ class NativeMwc64x {
     val sourcePath = tempDir.resolve(fileNameSource)
     Files.copy(getClass.getResourceAsStream(
       "/pl/tarsa/sortalgobox/random/mwc64x/native/mwc64x.cpp"), sourcePath)
-    val buildProcess = new ProcessBuilder("g++", "-O2", "-std=c++11", "-o",
-      fileNamePrefix, fileNameSource).directory(tempDir.toFile).start()
+    val buildProcess = new ProcessBuilder("g++", "-fopenmp", "-O2",
+      "-std=c++11", "-o", fileNamePrefix, fileNameSource)
+      .directory(tempDir.toFile).start()
     val buildExitValue = buildProcess.waitFor()
     println(s"Build process exit value: $buildExitValue")
     val generatorProcess = new ProcessBuilder(s"./$fileNamePrefix")
