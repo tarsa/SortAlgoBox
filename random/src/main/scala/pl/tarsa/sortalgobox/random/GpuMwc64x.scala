@@ -32,12 +32,12 @@ import scala.io.Source
 
 class GpuMwc64x {
   val sourceCodePaths = List(
-    "/pl/tarsa/sortalgobox/random/mwc64x/skip_mwc.cl",
-    "/pl/tarsa/sortalgobox/random/mwc64x/mwc64x_rng.cl",
-    "/pl/tarsa/sortalgobox/random/mwc64x/mwc64xvec2_rng.cl",
-    "/pl/tarsa/sortalgobox/random/mwc64x/mwc64xvec4_rng.cl",
-    "/pl/tarsa/sortalgobox/random/mwc64x/mwc64xvec8_rng.cl",
-    "/pl/tarsa/sortalgobox/random/mwc64x/dump_kernels.cl")
+    "/pl/tarsa/sortalgobox/random/mwc64x/opencl/skip_mwc.cl",
+    "/pl/tarsa/sortalgobox/random/mwc64x/opencl/mwc64x_rng.cl",
+    "/pl/tarsa/sortalgobox/random/mwc64x/opencl/mwc64xvec2_rng.cl",
+    "/pl/tarsa/sortalgobox/random/mwc64x/opencl/mwc64xvec4_rng.cl",
+    "/pl/tarsa/sortalgobox/random/mwc64x/opencl/mwc64xvec8_rng.cl",
+    "/pl/tarsa/sortalgobox/random/mwc64x/opencl/dump_kernels.cl")
   val allowedVectorLengths = Set(1, 2, 4, 8)
 
   def generate(n: Int, workItems: Int, vectorLength: Int = 1): Array[Int] = {
