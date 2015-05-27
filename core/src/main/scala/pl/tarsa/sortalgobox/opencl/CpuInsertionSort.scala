@@ -22,4 +22,5 @@ package pl.tarsa.sortalgobox.opencl
 
 import pl.tarsa.sortalgobox.opencl.common.CpuSort
 
-object CpuInsertionSort extends CpuSort("/CpuInsertionSort.cl")
+object CpuInsertionSort extends CpuSort(
+  "/pl/tarsa/sortalgobox/opencl/CpuInsertionSort.cl")

@@ -31,7 +31,7 @@ import scala.Array._
 import scala.io.Source
 
 object GpuBitonicSort extends SortAlgorithm[Int] {
-  val sourceCodePath = "/GpuBitonicSort.cl"
+  val sourceCodePath = "/pl/tarsa/sortalgobox/opencl/GpuBitonicSort.cl"
 
   override def sort(array: Array[Int]): Unit = {
     CLCache.withGpuContext(sort(array, FakeTimeLine, _))

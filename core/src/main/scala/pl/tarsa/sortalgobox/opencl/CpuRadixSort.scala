@@ -22,7 +22,8 @@ package pl.tarsa.sortalgobox.opencl
 
 import pl.tarsa.sortalgobox.opencl.common._
 
-object CpuRadixSort extends CpuSort("/CpuRadixSort.cl") {
+object CpuRadixSort extends CpuSort(
+  "/pl/tarsa/sortalgobox/opencl/CpuRadixSort.cl") {
   override def sort(array: Array[Int], deviceContext: CLDeviceContext): Unit = {
     sort(array, FakeTimeLine, List(array.length), Nil, deviceContext)
   }

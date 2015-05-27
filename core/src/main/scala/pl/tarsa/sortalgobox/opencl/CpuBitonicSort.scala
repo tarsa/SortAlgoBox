@@ -22,4 +22,5 @@ package pl.tarsa.sortalgobox.opencl
 
 import pl.tarsa.sortalgobox.opencl.common.CpuSort
 
-object CpuBitonicSort extends CpuSort("/CpuBitonicSort.cl")
+object CpuBitonicSort extends CpuSort(
+  "/pl/tarsa/sortalgobox/opencl/CpuBitonicSort.cl")

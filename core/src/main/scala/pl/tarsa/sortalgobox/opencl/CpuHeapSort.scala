@@ -22,4 +22,5 @@ package pl.tarsa.sortalgobox.opencl
 
 import pl.tarsa.sortalgobox.opencl.common.CpuSort
 
-object CpuHeapSort extends CpuSort("/CpuHeapSort.cl")
+object CpuHeapSort extends CpuSort(
+  "/pl/tarsa/sortalgobox/opencl/CpuHeapSort.cl")
