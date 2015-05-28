@@ -20,6 +20,7 @@
  */
 package pl.tarsa.sortalgobox
 
+import pl.tarsa.sortalgobox.natives.NativeStdSort
 import pl.tarsa.sortalgobox.opencl.{CpuQuickSort, CpuBitonicSort, GpuBitonicSort}
 import pl.tarsa.sortalgobox.random.Mwc64x
 import pl.tarsa.sortalgobox.sorts.bitonic.BitonicSort
@@ -27,7 +28,7 @@ import pl.tarsa.sortalgobox.sorts.common.SortAlgorithm
 import pl.tarsa.sortalgobox.standard.{ParallelArraysSort, SequentialArraysSort}
 
 object BenchmarksConfigurations {
-  private lazy val sorts: List[(String, SortAlgorithm[Int])] = List(
+  val sorts: List[(String, SortAlgorithm[Int])] = List(
     "BitonicSort" -> new BitonicSort[Int],
     "CpuBitonicSort" -> CpuBitonicSort,
     "GpuBitonicSort" -> GpuBitonicSort,
@@ -35,20 +36,24 @@ object BenchmarksConfigurations {
     "ParallelArraySort" -> new ParallelArraysSort,
     "CpuQuickSort" -> CpuQuickSort)
 
-  lazy val benchmarks: List[(String, Benchmark)] = sorts.map {
-    case (name, sort) =>
-      (name, new Benchmark {
-        override def forSize(n: Int, buffer: Option[Array[Int]] = None): Int = {
-          val array = buffer.getOrElse(Array.ofDim[Int](n))
-          val rng = new Mwc64x
-          array.indices.foreach(array(_) = rng.nextInt())
-          val startTime = System.currentTimeMillis()
-          sort.sort(array)
-          val totalTime = (System.currentTimeMillis() - startTime).toInt
-          assert(isSorted(array))
-          totalTime
-        }
-      })
+  val nativeBenchmarks: List[(String, Benchmark)] = List(
+    "NativeStdSort" -> new NativeStdSort)
+
+  val benchmarks: List[(String, Benchmark)] = nativeBenchmarks ::: sorts.map {
+    case (name, sort) => (name, sortToBenchmark(sort))
+  }
+
+  def sortToBenchmark(sort: SortAlgorithm[Int]) = new Benchmark {
+    override def forSize(n: Int, buffer: Option[Array[Int]]): Int = {
+      val array = buffer.getOrElse(Array.ofDim[Int](n))
+      val rng = new Mwc64x
+      array.indices.foreach(array(_) = rng.nextInt())
+      val startTime = System.currentTimeMillis()
+      sort.sort(array)
+      val totalTime = (System.currentTimeMillis() - startTime).toInt
+      assert(isSorted(array))
+      totalTime
+    }
   }
 
   def isSorted(ints: Array[Int]): Boolean = {
