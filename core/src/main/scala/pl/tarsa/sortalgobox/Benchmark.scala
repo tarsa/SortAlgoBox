@@ -20,9 +20,8 @@
  */
 package pl.tarsa.sortalgobox
 
+import pl.tarsa.sortalgobox.random.Mwc64x
 import pl.tarsa.sortalgobox.sorts.common.SortAlgorithm
-
-import scala.util.Random
 
 abstract class Benchmark {
   def sorts: List[(String, SortAlgorithm[Int])]
@@ -33,7 +32,7 @@ abstract class Benchmark {
 
   def start(): Unit = {
     warmUp()
-    val generator = new Random(5)
+    val generator = new Mwc64x
     val activeSorts = Array.fill[Boolean](sorts.length)(true)
     for (size <- Iterator.iterate(1234)(x => (x * 1.3).toInt + 5)
       .takeWhile(_ < 123456789 && activeSorts.exists(identity))) {
@@ -63,7 +62,7 @@ abstract class Benchmark {
   }
 
   def warmUp(): Unit = {
-    val rng = new Random()
+    val rng = new Mwc64x
     val ints = Array.fill[Int](1234567)(rng.nextInt())
     sorts.foreach { case (_, sortAlgo) =>
       sortAlgo.sort(ints.clone())

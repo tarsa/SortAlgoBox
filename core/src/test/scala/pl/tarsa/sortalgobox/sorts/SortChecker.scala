@@ -21,9 +21,8 @@
 package pl.tarsa.sortalgobox.sorts
 
 import org.scalatest.Matchers
+import pl.tarsa.sortalgobox.random.Mwc64x
 import pl.tarsa.sortalgobox.sorts.common.SortAlgorithm
-
-import scala.util.Random
 
 case class SortChecker(sortAlgorithm: SortAlgorithm[Int]) extends Matchers {
   def forEmptyArray(): Unit = {
@@ -43,8 +42,8 @@ case class SortChecker(sortAlgorithm: SortAlgorithm[Int]) extends Matchers {
     array shouldBe Array(2, 3, 5, 8)
   }
 
-  def forArrayOfSize(size: Int, seed: Int = 0): Unit = {
-    val generator = new Random(seed)
+  def forArrayOfSize(size: Int): Unit = {
+    val generator = new Mwc64x
     val array = Array.fill(size)(generator.nextInt())
     val sortedArray = array.sorted
     sortAlgorithm.sort(array)

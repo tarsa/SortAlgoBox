@@ -20,9 +20,8 @@
  */
 package pl.tarsa.sortalgobox
 
+import pl.tarsa.sortalgobox.random.Mwc64x
 import pl.tarsa.sortalgobox.sorts.common.SortAlgorithm
-
-import scala.util.Random
 
 class SortManager(props: SortSuiteProps, algorithms: Seq[SortAlgorithm[Int]]) {
   def executeAll(): Unit = {
@@ -31,7 +30,7 @@ class SortManager(props: SortSuiteProps, algorithms: Seq[SortAlgorithm[Int]]) {
   }
 
   def prepareArray = {
-    val generator = new Random(4)
+    val generator = new Mwc64x
     Array.fill[Int](props.size)(generator.nextInt())
   }
 }

@@ -35,7 +35,7 @@ object MainBuild extends Build {
 
   lazy val core = Project(id = "core", base = file("./core"))
     .settings(commonSettings: _*)
-    .dependsOn(deps % "compile->compile;test->test", opencl)
+    .dependsOn(deps % "compile->compile;test->test", opencl, random)
 
   lazy val fxgui = Project(id = "fxgui", base = file("./fxgui"))
     .settings(commonSettings: _*)
