@@ -20,45 +20,21 @@
  */
 package pl.tarsa.sortalgobox.natives
 
-import java.io.{PrintStream, File}
-import java.nio.file.Files
+import java.io.PrintStream
 import java.util.Scanner
 
 import pl.tarsa.sortalgobox.Benchmark
 
 class NativeStdSort extends Benchmark {
   override def forSize(n: Int, buffer: Option[Array[Int]]): Int = {
-    val fileNamePrefix = "main"
-    val fileNameSource = s"$fileNamePrefix.cpp"
-    val rootTempDir = new File(System.getProperty("java.io.tmpdir"),
-      "SortAlgoBox")
-    rootTempDir.mkdir()
-    val tempDir = Files.createTempDirectory(rootTempDir.toPath, "native")
-    val sourcePath = tempDir.resolve(fileNameSource)
-    Files.copy(getClass.getResourceAsStream(
-      "/pl/tarsa/sortalgobox/natives/std__sort/main.cpp"), sourcePath)
-    val buildProcess = new ProcessBuilder("g++", "-fopenmp", "-O2",
-      "-std=c++11", "-o", fileNamePrefix, fileNameSource)
-      .directory(tempDir.toFile).start()
-    val buildExitValue = buildProcess.waitFor()
-    if (buildExitValue != 0) {
-      println(s"Build process exit value: $buildExitValue")
-      return 0
-    }
-    val generatorProcess = new ProcessBuilder(s"./$fileNamePrefix")
-      .directory(tempDir.toFile).start()
+    val generatorProcess = NativesCache.runCachedProgram(
+      "/pl/tarsa/sortalgobox/natives/std__sort/main.cpp")
     val pipeTo = new PrintStream(generatorProcess.getOutputStream)
     pipeTo.println(n)
     pipeTo.flush()
     val pipeFrom = new Scanner(generatorProcess.getInputStream)
     val result = pipeFrom.nextLong(16).toInt
     generatorProcess.waitFor()
-    remove(tempDir.toFile)
     result
-  }
-
-  private def remove(file: File): Unit = {
-    Option(file.listFiles()).foreach(_.foreach(remove))
-    file.delete()
   }
 }
