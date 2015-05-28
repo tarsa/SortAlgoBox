@@ -20,8 +20,8 @@
  */
 package pl.tarsa.sortalgobox
 
-object CliBenchmark extends Benchmark {
-  val sorts = SortsConfigurations.sorts
+object CliBenchmarkSuite extends BenchmarkSuite {
+  override val benchmarks = BenchmarksConfigurations.benchmarks
 
   def main(args: Array[String]) {
     start()
@@ -32,6 +32,6 @@ object CliBenchmark extends Benchmark {
   }
 
   override def newData(sortId: Int, time: Double): Unit = {
-    println(s"Sort name: ${sorts(sortId)._1}, time: $time ms")
+    println(s"Sort name: ${benchmarks(sortId)._1}, time: $time ms")
   }
 }

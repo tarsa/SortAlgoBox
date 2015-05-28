@@ -22,7 +22,7 @@ package pl.tarsa.sortalgobox.fxgui
 
 import javafx.scene.chart.XYChart.Data
 
-import pl.tarsa.sortalgobox.{Benchmark, SortsConfigurations}
+import pl.tarsa.sortalgobox.{BenchmarkSuite, BenchmarksConfigurations}
 
 import scala.concurrent.Future
 import scalafx.application.{JFXApp, Platform}
@@ -31,12 +31,13 @@ import scalafx.geometry.Side
 import scalafx.scene.Scene
 import scalafx.scene.chart.{CategoryAxis, LineChart, NumberAxis, XYChart}
 
-object FxBenchmark extends Benchmark with JFXApp {
-  val sorts = SortsConfigurations.sorts
+object FxBenchmarkSuite extends BenchmarkSuite with JFXApp {
+  override val benchmarks = BenchmarksConfigurations.benchmarks
 
-  val seriesWithBuffers = sorts.map { case (name, _) =>
+  val seriesWithBuffers = benchmarks.map { case (sortName, _) =>
     val buffer = ObservableBuffer[Data[String, Number]]()
-    (new XYChart.Series[String, Number](XYChart.Series(name, buffer)), buffer)
+    (new XYChart.Series[String, Number](
+      XYChart.Series(sortName, buffer)), buffer)
   }
 
   stage = new JFXApp.PrimaryStage {

@@ -20,56 +20,6 @@
  */
 package pl.tarsa.sortalgobox
 
-import pl.tarsa.sortalgobox.random.Mwc64x
-import pl.tarsa.sortalgobox.sorts.common.SortAlgorithm
-
-abstract class Benchmark {
-  def sorts: List[(String, SortAlgorithm[Int])]
-
-  def isSorted(ints: Array[Int]): Boolean = {
-    ints.indices.tail.forall(i => ints(i - 1) <= ints(i))
-  }
-
-  def start(): Unit = {
-    warmUp()
-    val generator = new Mwc64x
-    val activeSorts = Array.fill[Boolean](sorts.length)(true)
-    for (size <- Iterator.iterate(1234)(x => (x * 1.3).toInt + 5)
-      .takeWhile(_ < 123456789 && activeSorts.exists(identity))) {
-      newSize(size)
-      val original = Array.fill[Int](size)(generator.nextInt())
-      val buffer = Array.ofDim[Int](size)
-      for ((sortAlgo, sortId) <- sorts.map(_._2).zipWithIndex
-           if activeSorts(sortId)) {
-        var totalTime = 0L
-        var iterations = 0
-        while (iterations < 20 && totalTime < 1000) {
-          System.arraycopy(original, 0, buffer, 0, size)
-          val currentStartTime = System.currentTimeMillis()
-          sortAlgo.sort(buffer)
-          val currentTotalTime = System.currentTimeMillis() - currentStartTime
-          assert(isSorted(buffer))
-          totalTime += currentTotalTime
-          iterations += 1
-        }
-        val time = totalTime.toDouble / iterations
-        if (time > 1000) {
-          activeSorts(sortId) = false
-        }
-        newData(sortId, time)
-      }
-    }
-  }
-
-  def warmUp(): Unit = {
-    val rng = new Mwc64x
-    val ints = Array.fill[Int](1234567)(rng.nextInt())
-    sorts.foreach { case (_, sortAlgo) =>
-      sortAlgo.sort(ints.clone())
-    }
-  }
-
-  def newSize(size: Int): Unit
-
-  def newData(sortId: Int, time: Double): Unit
+trait Benchmark {
+  def forSize(n: Int, buffer: Option[Array[Int]] = None): Int
 }
