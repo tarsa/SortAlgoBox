@@ -24,7 +24,7 @@ object CliBenchmarkSuite extends BenchmarkSuite {
   override val benchmarks = BenchmarksConfigurations.benchmarks
 
   def main(args: Array[String]) {
-    start()
+    run()
   }
 
   override def newSize(size: Int): Unit = {

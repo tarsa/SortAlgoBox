@@ -18,16 +18,15 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
-package pl.tarsa.sortalgobox.random
+package pl.tarsa.sortalgobox.tests
 
-import pl.tarsa.sortalgobox.tests.NativesUnitSpecBase
+import org.scalatest.BeforeAndAfterAll
+import pl.tarsa.sortalgobox.natives.NativesCache
 
-class NativeMwc64xTest extends NativesUnitSpecBase {
-  typeBehavior[NativeMwc64x]
+class NativesUnitSpecBase extends CommonUnitSpecBase with BeforeAndAfterAll {
+  val testNativesCache = new NativesCache
 
-  it should "generate the same results as Scala version" in {
-    val result = new NativeMwc64x(testNativesCache).generate(12345)
-    val scalaRng = new Mwc64x
-    assert(result.forall(_ == scalaRng.nextInt()))
+  override protected def afterAll(): Unit = {
+    testNativesCache.cleanup()
   }
 }

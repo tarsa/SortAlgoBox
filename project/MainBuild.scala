@@ -9,6 +9,8 @@ object MainBuild extends Build {
       file("/usr/lib/jvm/java-8-oracle/jre/lib/ext/jfxrt.jar"))
   )
 
+  val fullDep = "compile->compile;test->test"
+
   lazy val deps = Project(id = "deps", base = file("./deps"))
     .settings(commonSettings: _*)
     .settings(
@@ -21,7 +23,7 @@ object MainBuild extends Build {
       )
     )
 
-  lazy val depsCp = deps % "compile->compile;test->test"
+  lazy val depsCp = deps % fullDep
 
   lazy val rootDeps = Seq(core, fxgui, natives, opencl, random)
 
@@ -37,7 +39,7 @@ object MainBuild extends Build {
 
   lazy val core = Project(id = "core", base = file("./core"))
     .settings(commonSettings: _*)
-    .dependsOn(depsCp, natives, opencl, random)
+    .dependsOn(depsCp, nativesCp, opencl, random)
 
   lazy val fxgui = Project(id = "fxgui", base = file("./fxgui"))
     .settings(commonSettings: _*)
@@ -47,11 +49,13 @@ object MainBuild extends Build {
     .settings(commonSettings: _*)
     .dependsOn(depsCp)
 
+  lazy val nativesCp = natives % fullDep
+
   lazy val opencl = Project(id = "opencl", base = file("./opencl"))
     .settings(commonSettings: _*)
     .dependsOn(depsCp)
 
   lazy val random = Project(id = "random", base = file("./random"))
     .settings(commonSettings: _*)
-    .dependsOn(depsCp, natives, opencl)
+    .dependsOn(depsCp, nativesCp, opencl)
 }

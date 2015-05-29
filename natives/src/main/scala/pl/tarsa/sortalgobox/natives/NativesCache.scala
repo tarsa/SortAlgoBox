@@ -23,7 +23,7 @@ package pl.tarsa.sortalgobox.natives
 import java.io.File
 import java.nio.file.Files
 
-object NativesCache {
+class NativesCache {
   val fileNamePrefix = "main"
   val fileNameSource = s"$fileNamePrefix.cpp"
 
@@ -51,4 +51,16 @@ object NativesCache {
     }
     workDir.toFile
   }
+
+  def cleanup(): Unit = {
+    programsCache.values.foreach(removeDir)
+    programsCache.clear()
+  }
+
+  private def removeDir(dir: File): Unit = {
+    Option(dir.listFiles()).foreach(_.foreach(removeDir))
+    dir.delete()
+  }
 }
+
+object NativesCache extends NativesCache

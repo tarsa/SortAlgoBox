@@ -66,5 +66,5 @@ object FxBenchmarkSuite extends BenchmarkSuite with JFXApp {
     }
   }
 
-  Future(start())(scala.concurrent.ExecutionContext.Implicits.global)
+  Future(run())(scala.concurrent.ExecutionContext.Implicits.global)
 }

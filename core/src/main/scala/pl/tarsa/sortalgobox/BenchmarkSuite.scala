@@ -20,12 +20,13 @@
  */
 package pl.tarsa.sortalgobox
 
+import pl.tarsa.sortalgobox.natives.NativesCache
 import pl.tarsa.sortalgobox.random.Mwc64x
 
 abstract class BenchmarkSuite {
   def benchmarks: List[(String, Benchmark)]
 
-  def start(): Unit = {
+  def run(): Unit = {
     warmUp()
     val generator = new Mwc64x
     val activeBenchmarks = Array.fill[Boolean](benchmarks.length)(true)
@@ -49,6 +50,7 @@ abstract class BenchmarkSuite {
         newData(sortId, time)
       }
     }
+    NativesCache.cleanup()
   }
 
   def warmUp(): Unit = {

@@ -20,15 +20,14 @@
  */
 package pl.tarsa.sortalgobox.random
 
-import java.io.{File, PrintStream}
-import java.nio.file.Files
+import java.io.PrintStream
 import java.util.Scanner
 
 import pl.tarsa.sortalgobox.natives.NativesCache
 
-class NativeMwc64x {
+class NativeMwc64x(nativesCache: NativesCache = NativesCache) {
   def generate(n: Int): Array[Int] = {
-    val generatorProcess = NativesCache.runCachedProgram(
+    val generatorProcess = nativesCache.runCachedProgram(
       "/pl/tarsa/sortalgobox/random/mwc64x/native/mwc64x.cpp")
     val pipeTo = new PrintStream(generatorProcess.getOutputStream)
     pipeTo.println(n)
