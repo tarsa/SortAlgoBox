@@ -23,7 +23,9 @@ package pl.tarsa.sortalgobox.tests
 import org.scalatest.BeforeAndAfterAll
 import pl.tarsa.sortalgobox.natives.NativesCache
 
-class NativesUnitSpecBase extends CommonUnitSpecBase with BeforeAndAfterAll {
+abstract class NativesUnitSpecBase
+  extends CommonUnitSpecBase with BeforeAndAfterAll {
+
   val testNativesCache = new NativesCache
 
   override protected def afterAll(): Unit = {

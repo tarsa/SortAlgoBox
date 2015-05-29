@@ -25,7 +25,9 @@ import org.scalatest.{FlatSpec, Matchers}
 
 import scala.reflect.runtime.universe._
 
-class CommonUnitSpecBase extends FlatSpec with MockFactory with Matchers {
+abstract class CommonUnitSpecBase
+  extends FlatSpec with MockFactory with Matchers {
+
   val `have full code coverage` = "have full code coverage"
 
   def typeBehavior[T](implicit tag: TypeTag[T]): Unit = {
