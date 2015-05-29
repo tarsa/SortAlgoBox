@@ -24,37 +24,18 @@ import java.io.{File, PrintStream}
 import java.nio.file.Files
 import java.util.Scanner
 
+import pl.tarsa.sortalgobox.natives.NativesCache
+
 class NativeMwc64x {
   def generate(n: Int): Array[Int] = {
-    val fileNamePrefix = "mwc64x"
-    val fileNameSource = s"$fileNamePrefix.cpp"
-    val rootTempDir = new File(System.getProperty("java.io.tmpdir"),
-      "SortAlgoBox")
-    rootTempDir.mkdir()
-    val tempDir = Files.createTempDirectory(rootTempDir.toPath, "native")
-    val sourcePath = tempDir.resolve(fileNameSource)
-    Files.copy(getClass.getResourceAsStream(
-      "/pl/tarsa/sortalgobox/random/mwc64x/native/mwc64x.cpp"), sourcePath)
-    val buildProcess = new ProcessBuilder("g++", "-fopenmp", "-O2",
-      "-std=c++11", "-o", fileNamePrefix, fileNameSource)
-      .directory(tempDir.toFile).start()
-    val buildExitValue = buildProcess.waitFor()
-    println(s"Build process exit value: $buildExitValue")
-    val generatorProcess = new ProcessBuilder(s"./$fileNamePrefix")
-      .directory(tempDir.toFile).start()
+    val generatorProcess = NativesCache.runCachedProgram(
+      "/pl/tarsa/sortalgobox/random/mwc64x/native/mwc64x.cpp")
     val pipeTo = new PrintStream(generatorProcess.getOutputStream)
     pipeTo.println(n)
     pipeTo.flush()
     val pipeFrom = new Scanner(generatorProcess.getInputStream)
     val result = Array.fill[Int](n)(pipeFrom.nextLong(16).toInt)
-    val generatorExitValue = generatorProcess.waitFor()
-    println(s"Generator process exit value: $generatorExitValue")
-    remove(tempDir.toFile)
+    generatorProcess.waitFor()
     result
-  }
-
-  private def remove(file: File): Unit = {
-    Option(file.listFiles()).foreach(_.foreach(remove))
-    file.delete()
   }
 }

@@ -21,7 +21,9 @@ object MainBuild extends Build {
       )
     )
 
-  lazy val rootDeps = Seq(core, fxgui, opencl, random)
+  lazy val depsCp = deps % "compile->compile;test->test"
+
+  lazy val rootDeps = Seq(core, fxgui, natives, opencl, random)
 
   lazy val root = Project(id = "parent", base = file("."))
     .settings(
@@ -35,17 +37,21 @@ object MainBuild extends Build {
 
   lazy val core = Project(id = "core", base = file("./core"))
     .settings(commonSettings: _*)
-    .dependsOn(deps % "compile->compile;test->test", opencl, random)
+    .dependsOn(depsCp, natives, opencl, random)
 
   lazy val fxgui = Project(id = "fxgui", base = file("./fxgui"))
     .settings(commonSettings: _*)
-    .dependsOn(deps % "compile->compile;test->test", core)
+    .dependsOn(depsCp, core)
+
+  lazy val natives = Project(id = "natives", base = file("./natives"))
+    .settings(commonSettings: _*)
+    .dependsOn(depsCp)
 
   lazy val opencl = Project(id = "opencl", base = file("./opencl"))
     .settings(commonSettings: _*)
-    .dependsOn(deps % "compile->compile;test->test")
+    .dependsOn(depsCp)
 
   lazy val random = Project(id = "random", base = file("./random"))
     .settings(commonSettings: _*)
-    .dependsOn(deps % "compile->compile;test->test", opencl)
+    .dependsOn(depsCp, natives, opencl)
 }
