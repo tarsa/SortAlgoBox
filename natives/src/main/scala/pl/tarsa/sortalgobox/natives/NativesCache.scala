@@ -23,31 +23,38 @@ package pl.tarsa.sortalgobox.natives
 import java.io.File
 import java.nio.file.Files
 
-class NativesCache {
-  val fileNamePrefix = "main"
-  val fileNameSource = s"$fileNamePrefix.cpp"
+import scala.io.Source
 
-  def runCachedProgram(resourceName: String): Process = {
-    val workDir = programsCache.getOrElseUpdate(resourceName,
-      buildProgram(resourceName))
-    new ProcessBuilder(s"./$fileNamePrefix").directory(workDir).start()
+class NativesCache {
+  val executableFileName = "program"
+
+  def runCachedProgram(sources: Seq[NativeSource]): Process = {
+    val workDir = programsCache.getOrElseUpdate(sources, buildProgram(sources))
+    new ProcessBuilder(s"./$executableFileName").directory(workDir).start()
   }
 
-  private val programsCache = collection.mutable.Map[String, File]()
+  private val programsCache = collection.mutable.Map[Seq[NativeSource], File]()
 
-  private def buildProgram(resourceName: String): File = {
+  private def buildProgram(sources: Seq[NativeSource]): File = {
     val rootTempDir = new File(System.getProperty("java.io.tmpdir"),
       "SortAlgoBox")
     rootTempDir.mkdir()
     val workDir = Files.createTempDirectory(rootTempDir.toPath, "native")
-    val sourcePath = workDir.resolve(fileNameSource)
-    Files.copy(getClass.getResourceAsStream(resourceName), sourcePath)
-    val buildProcess = new ProcessBuilder("g++", "-fopenmp", "-O2",
-      "-std=c++11", "-o", fileNamePrefix, fileNameSource)
+    sources.foreach { source =>
+      val sourcePath = workDir.resolve(source.fileName)
+      val resourceName = source.resourceNamePrefix + source.fileName
+      Files.copy(getClass.getResourceAsStream(resourceName), sourcePath)
+    }
+    val buildProcess = new ProcessBuilder(Seq("g++", "-fopenmp", "-O2",
+      "-std=c++11", "-o", executableFileName) ++ sources.map(_.fileName): _*)
       .directory(workDir.toFile).start()
     val buildExitValue = buildProcess.waitFor()
     if (buildExitValue != 0) {
-      throw new Exception(s"Build process exit value: $buildExitValue")
+      val output = Source.fromInputStream(buildProcess.getErrorStream, "UTF-8")
+        .mkString
+      removeDir(workDir.toFile)
+      val msg = s"Build process exit value: $buildExitValue, output: $output"
+      throw new Exception(msg)
     }
     workDir.toFile
   }

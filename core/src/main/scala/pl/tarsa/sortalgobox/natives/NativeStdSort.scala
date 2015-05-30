@@ -24,11 +24,11 @@ import java.io.PrintStream
 import java.util.Scanner
 
 import pl.tarsa.sortalgobox.Benchmark
+import pl.tarsa.sortalgobox.random.NativeMwc64x
 
 class NativeStdSort extends Benchmark {
   override def forSize(n: Int, buffer: Option[Array[Int]]): Int = {
-    val generatorProcess = NativesCache.runCachedProgram(
-      "/pl/tarsa/sortalgobox/natives/std__sort/main.cpp")
+    val generatorProcess = NativesCache.runCachedProgram(NativeStdSort.sources)
     val pipeTo = new PrintStream(generatorProcess.getOutputStream)
     pipeTo.println(n)
     pipeTo.flush()
@@ -37,4 +37,9 @@ class NativeStdSort extends Benchmark {
     generatorProcess.waitFor()
     result
   }
+}
+
+object NativeStdSort extends NativeSourceSupport {
+  val sources = NativeMwc64x.header ++ makeSources(
+    ("/pl/tarsa/sortalgobox/natives/std__sort/", "main.cpp"))
 }
