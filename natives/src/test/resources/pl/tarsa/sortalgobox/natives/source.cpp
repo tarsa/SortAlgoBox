@@ -18,10 +18,22 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
-package pl.tarsa.sortalgobox.natives
+#include <cstdio>
+#include <cstdlib>
 
-trait NativeSourceSupport {
-  def makeSources(asTuples: (String, String)*): Seq[NativeSource] = {
-    asTuples.map(NativeSource.tupled)
-  }
+#ifndef PRINT_DEFINED
+#if defined(SOURCE)
+void print() {
+    puts("Hello from " xstr(SOURCE) "!");
+}
+#else
+void print() {
+    puts("Hello.");
+}
+#endif
+#endif
+
+int main(int argc, char** argv) {
+    print();
+    return EXIT_SUCCESS;
 }

@@ -18,31 +18,10 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
-package pl.tarsa.sortalgobox.random
+package pl.tarsa.sortalgobox.natives
 
-import java.io.PrintStream
-import java.util.Scanner
-
-import pl.tarsa.sortalgobox.natives._
-
-class NativeMwc64x(nativesCache: NativesCache = NativesCache) {
-  def generate(n: Int): Array[Int] = {
-    val buildConfig = NativeBuildConfig(NativeMwc64x.sources, "mwc64x.cpp")
-    val generatorProcess = nativesCache.runCachedProgram(buildConfig)
-    val pipeTo = new PrintStream(generatorProcess.getOutputStream)
-    pipeTo.println(n)
-    pipeTo.flush()
-    val pipeFrom = new Scanner(generatorProcess.getInputStream)
-    val result = Array.fill[Int](n)(pipeFrom.nextLong(16).toInt)
-    generatorProcess.waitFor()
-    result
+trait NativeComponentsSupport {
+  def makeComponents(asTuples: (String, String)*): Seq[NativeBuildComponent] = {
+    asTuples.map(NativeBuildComponent.tupled)
   }
-}
-
-object NativeMwc64x extends NativeComponentsSupport {
-  val header = makeComponents(
-    ("/pl/tarsa/sortalgobox/random/mwc64x/native/", "mwc64x.hpp"))
-
-  val sources = header ++ makeComponents(
-    ("/pl/tarsa/sortalgobox/random/mwc64x/native/", "mwc64x.cpp"))
 }

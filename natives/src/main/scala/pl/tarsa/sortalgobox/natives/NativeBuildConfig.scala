@@ -20,4 +20,11 @@
  */
 package pl.tarsa.sortalgobox.natives
 
-case class NativeSource(resourceNamePrefix: String, fileName: String)
+case class NativeBuildConfig(components: Seq[NativeBuildComponent],
+  mainSourceFile: String,
+  compilerOptions: CompilerOptions = CompilerOptions.default) {
+
+  def makeCommandLine: Seq[String] = {
+    compilerOptions.serialize :+ mainSourceFile
+  }
+}

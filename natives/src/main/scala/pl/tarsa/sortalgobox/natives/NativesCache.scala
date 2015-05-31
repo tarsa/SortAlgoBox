@@ -21,42 +21,46 @@
 package pl.tarsa.sortalgobox.natives
 
 import java.io.File
-import java.nio.file.Files
+import java.nio.file.{Paths, Path, Files}
 
 import scala.io.Source
 
 class NativesCache {
-  val executableFileName = "program"
-
-  def runCachedProgram(sources: Seq[NativeSource]): Process = {
-    val workDir = programsCache.getOrElseUpdate(sources, buildProgram(sources))
-    new ProcessBuilder(s"./$executableFileName").directory(workDir).start()
+  def runCachedProgram(buildConfig: NativeBuildConfig): Process = {
+    val workDir = programsCache.getOrElseUpdate(buildConfig,
+      buildProgram(buildConfig))
+    new ProcessBuilder(s"./${buildConfig.compilerOptions.executableFileName}")
+      .directory(workDir).start()
   }
 
-  private val programsCache = collection.mutable.Map[Seq[NativeSource], File]()
+  private val programsCache = collection.mutable.Map[NativeBuildConfig, File]()
 
-  private def buildProgram(sources: Seq[NativeSource]): File = {
-    val rootTempDir = new File(System.getProperty("java.io.tmpdir"),
-      "SortAlgoBox")
-    rootTempDir.mkdir()
-    val workDir = Files.createTempDirectory(rootTempDir.toPath, "native")
-    sources.foreach { source =>
-      val sourcePath = workDir.resolve(source.fileName)
-      val resourceName = source.resourceNamePrefix + source.fileName
-      Files.copy(getClass.getResourceAsStream(resourceName), sourcePath)
-    }
-    val buildProcess = new ProcessBuilder(Seq("g++", "-fopenmp", "-O2",
-      "-std=c++11", "-o", executableFileName) ++ sources.map(_.fileName): _*)
-      .directory(workDir.toFile).start()
+  private def buildProgram(buildConfig: NativeBuildConfig): File = {
+    NativesCache.rootTempDir.toFile.mkdir()
+    val workDir = Files.createTempDirectory(NativesCache.rootTempDir, "native")
+    val workDirFile = workDir.toFile
+    copyBuildComponents(buildConfig, workDir)
+    val buildProcess = new ProcessBuilder(buildConfig.makeCommandLine: _*)
+      .directory(workDirFile).start()
     val buildExitValue = buildProcess.waitFor()
     if (buildExitValue != 0) {
       val output = Source.fromInputStream(buildProcess.getErrorStream, "UTF-8")
         .mkString
-      removeDir(workDir.toFile)
+      removeDir(workDirFile)
       val msg = s"Build process exit value: $buildExitValue, output: $output"
       throw new Exception(msg)
     }
-    workDir.toFile
+    workDirFile
+  }
+
+  private def copyBuildComponents(buildConfig: NativeBuildConfig,
+    workDir: Path): Unit = {
+
+    buildConfig.components.foreach { component =>
+      val sourcePath = workDir.resolve(component.fileName)
+      val resourceName = component.resourceNamePrefix + component.fileName
+      Files.copy(getClass.getResourceAsStream(resourceName), sourcePath)
+    }
   }
 
   def cleanup(): Unit = {
@@ -70,4 +74,7 @@ class NativesCache {
   }
 }
 
-object NativesCache extends NativesCache
+object NativesCache extends NativesCache {
+  val rootTempDir = Paths.get(System.getProperty("java.io.tmpdir"),
+    "SortAlgoBox")
+}
