@@ -39,7 +39,8 @@ abstract class BenchmarkSuite {
         var totalTime = 0L
         var iterations = 0
         while (iterations < 20 && totalTime < 1000) {
-          val currentTotalTime = benchmark.forSize(size, Some(buffer))
+          val currentTotalTime = benchmark.forSize(size,
+            validate = iterations == 0, Some(buffer))
           totalTime += currentTotalTime
           iterations += 1
         }
@@ -54,7 +55,7 @@ abstract class BenchmarkSuite {
   }
 
   def warmUp(): Unit = {
-    benchmarks.foreach(_._2.forSize(1234567))
+    benchmarks.foreach(_._2.forSize(1234567, validate = true))
   }
 
   def newSize(size: Int): Unit

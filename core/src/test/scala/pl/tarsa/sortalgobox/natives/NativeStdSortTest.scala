@@ -18,8 +18,15 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
-package pl.tarsa.sortalgobox
+package pl.tarsa.sortalgobox.natives
 
-trait Benchmark {
-  def forSize(n: Int, validate: Boolean, buffer: Option[Array[Int]] = None): Int
+import pl.tarsa.sortalgobox.tests.NativesUnitSpecBase
+
+class NativeStdSortTest extends NativesUnitSpecBase {
+  typeBehavior[NativeStdSort]
+
+  it should "sort and validate" in {
+    val sort = new NativeStdSort(testNativesCache)
+    sort.forSize(12345, validate = true)
+  }
 }

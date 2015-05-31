@@ -28,10 +28,7 @@
 
 #include "mwc64x.hpp"
 
-int main(int argc, char** argv) {
-    uint64_t n;
-    std::cin >> n;
-    int32_t * tab = new int32_t[n];
+void fill(int32_t * const array, uint64_t const n) {
     uint64_t chunkSize = 1 << 12;
     uint64_t chunks = (n + chunkSize - 1) / chunkSize;
 #pragma omp parallel for
@@ -40,8 +37,17 @@ int main(int argc, char** argv) {
         MWC64X.skip(i * chunkSize);
         uint64_t start = std::min(n, i * chunkSize);
         uint64_t after = std::min(n, start + chunkSize);
-        std::generate(tab + start, tab + after, MWC64X);
+        std::generate(array + start, array + after, MWC64X);
     }
+}
+
+int main(int argc, char** argv) {
+    bool validate;
+    std::cin >> validate;
+    uint64_t n;
+    std::cin >> n;
+    int32_t * tab = new int32_t[n];
+    fill(tab, n);
 
     auto startingChrono = std::chrono::system_clock::now();
     std::sort(tab, tab + n);
@@ -49,6 +55,14 @@ int main(int argc, char** argv) {
     uint64_t elapsedChronoMilliseconds = std::chrono::duration_cast<std::chrono
         ::milliseconds>(elapsedChrono).count();
     printf("%lx\n", elapsedChronoMilliseconds);
+
+    if (validate) {
+        bool sorted = true;
+        for (uint64_t i = 1; sorted && (i < n); i++) {
+            sorted &= tab[i - 1] <= tab[i];
+        }
+        puts(sorted ? "pass" : "fail");
+    }
 
     return EXIT_SUCCESS;
 }

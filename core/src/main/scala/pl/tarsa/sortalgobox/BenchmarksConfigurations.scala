@@ -44,14 +44,18 @@ object BenchmarksConfigurations {
   }
 
   def sortToBenchmark(sort: SortAlgorithm[Int]) = new Benchmark {
-    override def forSize(n: Int, buffer: Option[Array[Int]]): Int = {
+    override def forSize(n: Int, validate: Boolean,
+      buffer: Option[Array[Int]]): Int = {
+
       val array = buffer.getOrElse(Array.ofDim[Int](n))
       val rng = new Mwc64x
       array.indices.foreach(array(_) = rng.nextInt())
       val startTime = System.currentTimeMillis()
       sort.sort(array)
       val totalTime = (System.currentTimeMillis() - startTime).toInt
-      assert(isSorted(array))
+      if (validate) {
+        assert(isSorted(array))
+      }
       totalTime
     }
   }
