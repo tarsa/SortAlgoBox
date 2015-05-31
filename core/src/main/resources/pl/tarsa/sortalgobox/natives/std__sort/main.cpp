@@ -28,26 +28,13 @@
 
 #include "mwc64x.hpp"
 
-void fill(int32_t * const array, uint64_t const n) {
-    uint64_t chunkSize = 1 << 12;
-    uint64_t chunks = (n + chunkSize - 1) / chunkSize;
-#pragma omp parallel for
-    for (uint64_t i = 0; i < chunks; i++) {
-        mwc64x_t MWC64X;
-        MWC64X.skip(i * chunkSize);
-        uint64_t start = std::min(n, i * chunkSize);
-        uint64_t after = std::min(n, start + chunkSize);
-        std::generate(array + start, array + after, MWC64X);
-    }
-}
-
 int main(int argc, char** argv) {
     bool validate;
     std::cin >> validate;
     uint64_t n;
     std::cin >> n;
     int32_t * tab = new int32_t[n];
-    fill(tab, n);
+    mwc64xFill(tab, n);
 
     auto startingChrono = std::chrono::system_clock::now();
     std::sort(tab, tab + n);

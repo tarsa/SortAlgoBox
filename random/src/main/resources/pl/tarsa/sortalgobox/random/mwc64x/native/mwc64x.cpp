@@ -30,18 +30,9 @@
 int main(int argc, char** argv) {
     uint64_t n;
     std::cin >> n;
-    uint32_t * tab = new uint32_t[n];
+    int32_t * tab = new int32_t[n];
 
-    uint64_t chunkSize = 1 << 12;
-    uint64_t chunks = (n + chunkSize - 1) / chunkSize;
-#pragma omp parallel for
-    for (uint64_t i = 0; i < chunks; i++) {
-        mwc64x_t MWC64X;
-        MWC64X.skip(i * chunkSize);
-        uint64_t start = std::min(n, i * chunkSize);
-        uint64_t after = std::min(n, start + chunkSize);
-        std::generate(tab + start, tab + after, MWC64X);
-    }
+    mwc64xFill(tab, n);
 
     std::cout << std::setfill('0');
     for (int i = 0; i < n; i++) {

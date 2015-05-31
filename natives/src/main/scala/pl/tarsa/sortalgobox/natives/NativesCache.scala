@@ -47,7 +47,7 @@ class NativesCache {
       val output = Source.fromInputStream(buildProcess.getErrorStream, "UTF-8")
         .mkString
       removeDir(workDirFile)
-      val msg = s"Build process exit value: $buildExitValue, output: $output"
+      val msg = s"Build process exit value: $buildExitValue, output:\n$output"
       throw new Exception(msg)
     }
     workDirFile
