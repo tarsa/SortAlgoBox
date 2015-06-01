@@ -21,7 +21,8 @@
 package pl.tarsa.sortalgobox
 
 import pl.tarsa.sortalgobox.natives.NativeStdSort
-import pl.tarsa.sortalgobox.opencl.{CpuQuickSort, CpuBitonicSort, GpuBitonicSort}
+import pl.tarsa.sortalgobox.natives.sab._
+import pl.tarsa.sortalgobox.opencl.{CpuBitonicSort, CpuQuickSort, GpuBitonicSort}
 import pl.tarsa.sortalgobox.random.Mwc64x
 import pl.tarsa.sortalgobox.sorts.bitonic.BitonicSort
 import pl.tarsa.sortalgobox.sorts.common.SortAlgorithm
@@ -37,7 +38,28 @@ object BenchmarksConfigurations {
     "CpuQuickSort" -> CpuQuickSort)
 
   val nativeBenchmarks: List[(String, Benchmark)] = List(
-    "NativeStdSort" -> new NativeStdSort)
+    "NativeStdSort" ->
+      new NativeStdSort,
+    "NativeSabHeapBinaryAheadSimpleVariantA" ->
+      new NativeSabHeapBinaryAheadSimpleVariantA(),
+    "NativeSabHeapBinaryAheadSimpleVariantB" ->
+      new NativeSabHeapBinaryAheadSimpleVariantB(),
+    "NativeSabHeapBinaryCascadingVariantA" ->
+      new NativeSabHeapBinaryCascadingVariantA(),
+    "NativeSabHeapBinaryCascadingVariantB" ->
+      new NativeSabHeapBinaryCascadingVariantB(),
+    "NativeSabHeapBinaryCascadingVariantC" ->
+      new NativeSabHeapBinaryCascadingVariantC(),
+    "NativeSabHeapBinaryCascadingVariantD" ->
+      new NativeSabHeapBinaryCascadingVariantD(),
+    "NativeSabHeapSimdDwordCascadingVariantB" ->
+      new NativeSabHeapSimdDwordCascadingVariantB(),
+    "NativeSabHeapSimdDwordCascadingVariantC" ->
+      new NativeSabHeapSimdDwordCascadingVariantC(),
+    "NativeSabHeapSimdDwordVariantB" ->
+      new NativeSabHeapSimdDwordVariantB(),
+    "NativeSabHeapSimdDwordVariantC" ->
+      new NativeSabHeapSimdDwordVariantC())
 
   val benchmarks: List[(String, Benchmark)] = nativeBenchmarks ::: sorts.map {
     case (name, sort) => (name, sortToBenchmark(sort))

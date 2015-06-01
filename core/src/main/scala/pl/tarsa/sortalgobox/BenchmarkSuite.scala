@@ -30,7 +30,7 @@ abstract class BenchmarkSuite {
     warmUp()
     val generator = new Mwc64x
     val activeBenchmarks = Array.fill[Boolean](benchmarks.length)(true)
-    for (size <- Iterator.iterate(1234)(x => (x * 1.3).toInt + 5)
+    for (size <- Iterator.iterate(4096)(x => (x * 1.3).toInt + 5)
       .takeWhile(_ < 123456789 && activeBenchmarks.exists(identity))) {
       newSize(size)
       val buffer = Array.ofDim[Int](size)

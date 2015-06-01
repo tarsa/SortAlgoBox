@@ -57,7 +57,7 @@ object CompilerOptions {
   val defaultDefines: Seq[CompilerDefine] = Seq(
     CompilerDefine("xstr(s)", Some("str(s)")),
     CompilerDefine("str(s)", Some("#s")))
-  val defaultOptions: Seq[String] = Seq("-fopenmp")
+  val defaultOptions: Seq[String] = Seq("-fopenmp", "-mavx2")
   val defaultExecutableFileName: String = "program"
 
   val default = CompilerOptions()

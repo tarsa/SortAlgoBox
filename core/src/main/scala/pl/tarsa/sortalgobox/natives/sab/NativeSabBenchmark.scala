@@ -18,21 +18,35 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
-package pl.tarsa.sortalgobox.natives
+package pl.tarsa.sortalgobox.natives.sab
 
 import java.io.PrintStream
 import java.util.Scanner
 
 import pl.tarsa.sortalgobox.Benchmark
+import pl.tarsa.sortalgobox.natives._
 import pl.tarsa.sortalgobox.random.NativeMwc64x
 
-class NativeStdSort(nativesCache: NativesCache = NativesCache)
+class NativeSabBenchmark(sortAlgoName: String, sortHeader: String,
+  nativesCache: NativesCache = NativesCache, sortSimd: Boolean = false)
   extends Benchmark {
 
   override def forSize(n: Int, validate: Boolean,
     buffer: Option[Array[Int]]): Int = {
 
-    val buildConfig = NativeBuildConfig(NativeStdSort.components, "main.cpp")
+    val simdDefines = if (sortSimd) {
+      Seq(CompilerDefine("SORT_SIMD", None))
+    } else {
+      Seq.empty[CompilerDefine]
+    }
+    val algoDefines = Seq(
+      CompilerDefine("SORT_ALGO", Some(sortAlgoName)),
+      CompilerDefine("SORT_HEADER", Some(sortHeader))) ++ simdDefines
+    val compilerOptions = CompilerOptions(defines =
+      CompilerOptions.defaultDefines ++ algoDefines )
+    val buildConfig = NativeBuildConfig(
+      NativeSabBenchmark.components(sortHeader), "main.cpp",
+      compilerOptions)
     val generatorProcess = nativesCache.runCachedProgram(buildConfig)
     val pipeTo = new PrintStream(generatorProcess.getOutputStream)
     pipeTo.println(if (validate) 1 else 0)
@@ -49,7 +63,11 @@ class NativeStdSort(nativesCache: NativesCache = NativesCache)
   }
 }
 
-object NativeStdSort extends NativeComponentsSupport {
-  val components = NativeMwc64x.header ++ makeComponents(
-    ("/pl/tarsa/sortalgobox/natives/std__sort/", "main.cpp"))
+object NativeSabBenchmark extends NativeComponentsSupport {
+  val namePrefix = "/pl/tarsa/sortalgobox/natives/sab/"
+
+  def components(sortHeader: String) = NativeMwc64x.header ++ makeComponents(
+    (namePrefix, "main.cpp"),
+    (namePrefix, "sortalgocommon.hpp"),
+    (namePrefix, sortHeader))
 }
