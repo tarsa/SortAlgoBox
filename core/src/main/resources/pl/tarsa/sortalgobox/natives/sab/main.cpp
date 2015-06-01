@@ -67,9 +67,9 @@ int main(int argc, char** argv) {
     tarsa::SORT_ALGO<int32_t, true>(work, size);
 #endif
     auto elapsedChrono = std::chrono::system_clock::now() - startingChrono;
-    uint64_t elapsedChronoMilliseconds = std::chrono::duration_cast<std::chrono
-        ::milliseconds>(elapsedChrono).count();
-    printf("%lx\n", elapsedChronoMilliseconds);
+    uint64_t elapsedChronoNanoseconds = std::chrono::duration_cast<std::chrono
+        ::nanoseconds>(elapsedChrono).count();
+    printf("%lx\n", elapsedChronoNanoseconds);
 
     if (validate) {
         int32_t * reference;

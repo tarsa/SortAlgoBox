@@ -57,10 +57,10 @@ object FxBenchmarkSuite extends BenchmarkSuite with JFXApp {
     this.size = size
   }
 
-  override def newData(sortId: Int, time: Double): Unit = {
+  override def newData(sortId: Int, timeInMs: Double): Unit = {
     val sizeString = size.toString
     Platform.runLater {
-      val safeTime = Math.max(1.0, time)
+      val safeTime = Math.max(1.0, timeInMs)
       seriesWithBuffers(sortId)._2 +=
         XYChart.Data[String, Number](sizeString, Math.log10(safeTime))
     }

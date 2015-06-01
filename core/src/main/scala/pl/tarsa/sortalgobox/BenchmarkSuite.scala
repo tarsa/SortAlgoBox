@@ -26,6 +26,9 @@ import pl.tarsa.sortalgobox.random.Mwc64x
 abstract class BenchmarkSuite {
   def benchmarks: List[(String, Benchmark)]
 
+  val nanosecondsInMillisecond = 1e6
+  val nanosecondsInSecond = 1e9
+
   def run(): Unit = {
     warmUp()
     val generator = new Mwc64x
@@ -34,21 +37,21 @@ abstract class BenchmarkSuite {
       .takeWhile(_ < 123456789 && activeBenchmarks.exists(identity))) {
       newSize(size)
       val buffer = Array.ofDim[Int](size)
-        for ((benchmark, sortId) <- benchmarks.map(_._2).zipWithIndex
+      for ((benchmark, sortId) <- benchmarks.map(_._2).zipWithIndex
            if activeBenchmarks(sortId)) {
         var totalTime = 0L
         var iterations = 0
-        while (iterations < 20 && totalTime < 1000) {
+        while (iterations < 20 && totalTime < nanosecondsInSecond) {
           val currentTotalTime = benchmark.forSize(size,
             validate = iterations == 0, Some(buffer))
           totalTime += currentTotalTime
           iterations += 1
         }
-        val time = totalTime.toDouble / iterations
-        if (time > 1000) {
+        val timeInMs = totalTime / (iterations * nanosecondsInMillisecond)
+        if (timeInMs > 1000) {
           activeBenchmarks(sortId) = false
         }
-        newData(sortId, time)
+        newData(sortId, timeInMs)
       }
     }
     NativesCache.cleanup()
@@ -60,5 +63,5 @@ abstract class BenchmarkSuite {
 
   def newSize(size: Int): Unit
 
-  def newData(sortId: Int, time: Double): Unit
+  def newData(sortId: Int, timeInMs: Double): Unit
 }

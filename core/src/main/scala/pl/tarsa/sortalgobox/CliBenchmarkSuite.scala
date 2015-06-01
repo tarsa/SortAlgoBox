@@ -31,7 +31,7 @@ object CliBenchmarkSuite extends BenchmarkSuite {
     println(s"Size: $size")
   }
 
-  override def newData(sortId: Int, time: Double): Unit = {
-    println(s"Sort name: ${benchmarks(sortId)._1}, time: $time ms")
+  override def newData(sortId: Int, timeInMs: Double): Unit = {
+    println(f"Sort name: ${benchmarks(sortId)._1}%s, time: $timeInMs%.3f ms")
   }
 }

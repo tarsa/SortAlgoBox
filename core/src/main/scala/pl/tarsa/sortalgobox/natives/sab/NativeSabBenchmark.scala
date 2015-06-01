@@ -32,7 +32,7 @@ class NativeSabBenchmark(sortAlgoName: String, sortHeader: String,
   extends Benchmark {
 
   override def forSize(n: Int, validate: Boolean,
-    buffer: Option[Array[Int]]): Int = {
+    buffer: Option[Array[Int]]): Long = {
 
     val simdDefines = if (sortSimd) {
       Seq(CompilerDefine("SORT_SIMD", None))

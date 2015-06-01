@@ -30,7 +30,7 @@ class NativeStdSort(nativesCache: NativesCache = NativesCache)
   extends Benchmark {
 
   override def forSize(n: Int, validate: Boolean,
-    buffer: Option[Array[Int]]): Int = {
+    buffer: Option[Array[Int]]): Long = {
 
     val buildConfig = NativeBuildConfig(NativeStdSort.components, "main.cpp")
     val generatorProcess = nativesCache.runCachedProgram(buildConfig)

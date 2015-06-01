@@ -39,9 +39,9 @@ int main(int argc, char** argv) {
     auto startingChrono = std::chrono::system_clock::now();
     std::sort(tab, tab + n);
     auto elapsedChrono = std::chrono::system_clock::now() - startingChrono;
-    uint64_t elapsedChronoMilliseconds = std::chrono::duration_cast<std::chrono
-        ::milliseconds>(elapsedChrono).count();
-    printf("%lx\n", elapsedChronoMilliseconds);
+    uint64_t elapsedChronoNanoseconds = std::chrono::duration_cast<std::chrono
+        ::nanoseconds>(elapsedChrono).count();
+    printf("%lx\n", elapsedChronoNanoseconds);
 
     if (validate) {
         bool sorted = true;
