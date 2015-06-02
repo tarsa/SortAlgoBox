@@ -38,7 +38,7 @@ trait CLContextsCache {
 
 trait CLProgramsCache { CLContextsCache =>
   def getCachedProgram(deviceContext: CLDeviceContext,
-    programSources: List[String]): cl_program = {
+    programSources: List[String]): cl_program = synchronized {
     programsCache.getOrElseUpdate((deviceContext, programSources),
       buildProgram(deviceContext, programSources))
   }

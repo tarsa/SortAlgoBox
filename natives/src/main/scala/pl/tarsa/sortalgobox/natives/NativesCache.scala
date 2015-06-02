@@ -26,7 +26,7 @@ import java.nio.file.{Paths, Path, Files}
 import scala.io.Source
 
 class NativesCache {
-  def runCachedProgram(buildConfig: NativeBuildConfig): Process = {
+  def runCachedProgram(buildConfig: NativeBuildConfig): Process = synchronized {
     val workDir = programsCache.getOrElseUpdate(buildConfig,
       buildProgram(buildConfig))
     new ProcessBuilder(s"./${buildConfig.compilerOptions.executableFileName}")
@@ -63,7 +63,7 @@ class NativesCache {
     }
   }
 
-  def cleanup(): Unit = {
+  def cleanup(): Unit = synchronized {
     programsCache.values.foreach(removeDir)
     programsCache.clear()
   }
