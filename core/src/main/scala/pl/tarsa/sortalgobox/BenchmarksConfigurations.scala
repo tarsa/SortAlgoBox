@@ -43,12 +43,12 @@ object BenchmarksConfigurations {
   }
 
   val nativeBenchmarks: List[(String, Benchmark)] = List(
-    "NativeStdSort" ->
-      new NativeStdSort,
     "NativeSabHeapBinaryAheadSimpleVariantA" ->
       new NativeSabHeapBinaryAheadSimpleVariantA(),
     "NativeSabHeapBinaryAheadSimpleVariantB" ->
       new NativeSabHeapBinaryAheadSimpleVariantB(),
+    "NativeSabHeapBinaryCached" ->
+      new NativeSabHeapBinaryCached(),
     "NativeSabHeapBinaryCascadingVariantA" ->
       new NativeSabHeapBinaryCascadingVariantA(),
     "NativeSabHeapBinaryCascadingVariantB" ->
@@ -57,6 +57,24 @@ object BenchmarksConfigurations {
       new NativeSabHeapBinaryCascadingVariantC(),
     "NativeSabHeapBinaryCascadingVariantD" ->
       new NativeSabHeapBinaryCascadingVariantD(),
+    "NativeSabHeapBinaryClusteredVariantA" ->
+      new NativeSabHeapBinaryClusteredVariantA(),
+    "NativeSabHeapBinaryClusteredVariantB" ->
+      new NativeSabHeapBinaryClusteredVariantB(),
+    "NativeSabHeapBinaryOneBasedVariantA" ->
+      new NativeSabHeapBinaryOneBasedVariantA(),
+    "NativeSabHeapBinaryOneBasedVariantB" ->
+      new NativeSabHeapBinaryOneBasedVariantB(),
+    "NativeSabHeapHybrid" ->
+      new NativeSabHeapHybrid(),
+    "NativeSabHeapHybridCascading" ->
+      new NativeSabHeapHybridCascading(),
+    "NativeSabHeapQuaternaryCascadingVariantA" ->
+      new NativeSabHeapQuaternaryCascadingVariantA(),
+    "NativeSabHeapQuaternaryVariantA" ->
+      new NativeSabHeapQuaternaryVariantA(),
+    "NativeSabHeapQuaternaryVariantB" ->
+      new NativeSabHeapQuaternaryVariantB(),
     "NativeSabHeapSimdDwordCascadingVariantB" ->
       new NativeSabHeapSimdDwordCascadingVariantB(),
     "NativeSabHeapSimdDwordCascadingVariantC" ->
@@ -64,7 +82,20 @@ object BenchmarksConfigurations {
     "NativeSabHeapSimdDwordVariantB" ->
       new NativeSabHeapSimdDwordVariantB(),
     "NativeSabHeapSimdDwordVariantC" ->
-      new NativeSabHeapSimdDwordVariantC())
+      new NativeSabHeapSimdDwordVariantC(),
+    "NativeSabHeapTernaryCascadingVariantA" ->
+      new NativeSabHeapTernaryCascadingVariantA(),
+    "NativeSabHeapTernaryClusteredVariantA" ->
+      new NativeSabHeapTernaryClusteredVariantA(),
+    "NativeSabHeapTernaryClusteredVariantB" ->
+      new NativeSabHeapTernaryClusteredVariantB(),
+    "NativeSabHeapTernaryOneBasedVariantA" ->
+      new NativeSabHeapTernaryOneBasedVariantA(),
+    "NativeSabHeapTernaryOneBasedVariantB" ->
+      new NativeSabHeapTernaryOneBasedVariantB(),
+    "NativeSabQuickRandomized" ->
+      new NativeSabQuickRandomized(),
+    "NativeStdSort" -> new NativeStdSort)
 
   val benchmarks: List[(String, Benchmark)] = nativeBenchmarks :::
     measuredSorts.map {
