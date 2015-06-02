@@ -24,27 +24,23 @@ import org.scalatest.Matchers
 import pl.tarsa.sortalgobox.random.Mwc64x
 import pl.tarsa.sortalgobox.sorts.common._
 
-case class SortChecker(sortAlgorithm: MeasuredSortAlgorithm[Int]) 
+class SortChecker(measuredSortAlgorithm: MeasuredSortAlgorithm[Int])
   extends Matchers {
-  
-  def this(sortAlgorithm: SortAlgorithm[Int]) {
-    this(MeasuringSortAlgorithmWrapper(sortAlgorithm))
-  }
   
   def forEmptyArray(): Unit = {
     val array = Array.emptyIntArray
-    sortAlgorithm.sort(array)
+    measuredSortAlgorithm.sort(array)
   }
 
   def forSingleElementArray(): Unit = {
     val array = Array(5)
-    sortAlgorithm.sort(array)
+    measuredSortAlgorithm.sort(array)
     array shouldBe Array(5)
   }
 
   def forFewElementsArray(): Unit = {
     val array = Array(5, 3, 2, 8)
-    sortAlgorithm.sort(array)
+    measuredSortAlgorithm.sort(array)
     array shouldBe Array(2, 3, 5, 8)
   }
 
@@ -52,7 +48,17 @@ case class SortChecker(sortAlgorithm: MeasuredSortAlgorithm[Int])
     val generator = new Mwc64x
     val array = Array.fill(size)(generator.nextInt())
     val sortedArray = array.sorted
-    sortAlgorithm.sort(array)
+    measuredSortAlgorithm.sort(array)
     array shouldBe sortedArray
+  }
+}
+
+object SortChecker {
+  def apply(measuredSortAlgorithm: MeasuredSortAlgorithm[Int]): SortChecker = {
+    new SortChecker(measuredSortAlgorithm)
+  }
+
+  def apply(sortAlgorithm: SortAlgorithm[Int]): SortChecker = {
+    new SortChecker(MeasuringSortAlgorithmWrapper(sortAlgorithm))
   }
 }
