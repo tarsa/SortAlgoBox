@@ -22,6 +22,10 @@
  */
 #define NDEBUG
 
+#if defined(SORT_CACHED) && defined(SORT_SIMD)
+#error Unsupported combination
+#endif
+
 #include <algorithm>
 #include <cassert>
 #include <chrono>
@@ -30,12 +34,25 @@
 #include <iostream>
 #include <utility>
 
+int64_t counter;
+
 #include "mwc64x.hpp"
 #include xstr(SORT_HEADER)
 
 using namespace tarsa;
 
+template<typename ItemType>
+bool countingComparisonOperator(ItemType leftOp, ComparisonType opType,
+        ItemType rightOp) {
+    counter++;
+    return genericComparisonOperator(leftOp, opType, rightOp);
+}
+
+#if 01
 #define ComparisonOperator genericComparisonOperator
+#else
+#define ComparisonOperator countingComparisonOperator
+#endif
 
 template<typename T>
 void checkNew(size_t n) {
@@ -57,14 +74,21 @@ int main(int argc, char** argv) {
 
     int32_t * work;
     checkZero(posix_memalign((void**) &work, 128, sizeof (int32_t) * size));
+#ifdef SORT_CACHED
+    int8_t * scratchpad;
+    checkZero(posix_memalign((void**) &scratchpad, 128,
+            sizeof (int32_t) * size));
+#endif
 
     mwc64xFill(work, size);
 
     auto startingChrono = std::chrono::system_clock::now();
-#ifndef SORT_SIMD
-    tarsa::SORT_ALGO<int32_t, ComparisonOperator>(work, size);
-#else
+#if defined(SORT_SIMD)
     tarsa::SORT_ALGO<int32_t, true>(work, size);
+#elif defined(SORT_CACHED)
+    tarsa::SORT_ALGO<int32_t, ComparisonOperator>(work, size, scratchpad);
+#else
+    tarsa::SORT_ALGO<int32_t, ComparisonOperator>(work, size);
 #endif
     auto elapsedChrono = std::chrono::system_clock::now() - startingChrono;
     uint64_t elapsedChronoNanoseconds = std::chrono::duration_cast<std::chrono

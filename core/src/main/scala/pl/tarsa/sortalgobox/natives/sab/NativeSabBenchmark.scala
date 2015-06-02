@@ -28,22 +28,25 @@ import pl.tarsa.sortalgobox.natives._
 import pl.tarsa.sortalgobox.random.NativeMwc64x
 
 class NativeSabBenchmark(sortAlgoName: String, sortHeader: String,
-  nativesCache: NativesCache = NativesCache, sortSimd: Boolean = false)
+  nativesCache: NativesCache = NativesCache,
+  sortCached: Boolean = false, sortSimd: Boolean = false)
   extends Benchmark {
 
   override def forSize(n: Int, validate: Boolean,
     buffer: Option[Array[Int]]): Long = {
 
-    val simdDefines = if (sortSimd) {
-      Seq(CompilerDefine("SORT_SIMD", None))
-    } else {
-      Seq.empty[CompilerDefine]
+
+    val sortTypeDefines = Seq(
+      ("SORT_CACHED", sortCached),
+      ("SORT_SIMD", sortSimd)
+    ).collect { case (defineName, true) =>
+      CompilerDefine(defineName, None)
     }
     val algoDefines = Seq(
       CompilerDefine("SORT_ALGO", Some(sortAlgoName)),
-      CompilerDefine("SORT_HEADER", Some(sortHeader))) ++ simdDefines
+      CompilerDefine("SORT_HEADER", Some(sortHeader))) ++ sortTypeDefines
     val compilerOptions = CompilerOptions(defines =
-      CompilerOptions.defaultDefines ++ algoDefines )
+      CompilerOptions.defaultDefines ++ algoDefines)
     val buildConfig = NativeBuildConfig(
       NativeSabBenchmark.components(sortHeader), "main.cpp",
       compilerOptions)
