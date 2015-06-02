@@ -24,26 +24,26 @@ import java.nio.{ByteBuffer, ByteOrder}
 
 import org.jocl.CL._
 import org.jocl._
-import pl.tarsa.sortalgobox.sorts.common.SortAlgorithm
+import pl.tarsa.sortalgobox.sorts.common.MeasuredSortAlgorithm
 
 import scala.Array._
 import scala.io.Source
 
-class CpuSort(sourceCodePath: String) extends SortAlgorithm[Int] {
-  override def sort(array: Array[Int]): Unit = {
+class CpuSort(sourceCodePath: String) extends MeasuredSortAlgorithm[Int] {
+  override def sort(array: Array[Int]): Long = {
     CLCache.withCpuContext(sort(array, _))
   }
 
-  def sort(array: Array[Int], deviceContext: CLDeviceContext): Unit = {
+  def sort(array: Array[Int], deviceContext: CLDeviceContext): Long = {
     sort(array, FakeTimeLine, Nil, Nil, deviceContext)
   }
 
   def sort(array: Array[Int], timeLine: TimeLine,
     additionalBuffers: List[Int], precomputedArrays: List[Array[Int]],
-    deviceContext: CLDeviceContext): Unit = {
+    deviceContext: CLDeviceContext): Long = {
 
     if (array.isEmpty || array.length == 1) {
-      return
+      return 0
     }
 
     val bytesInInt = 4
@@ -56,7 +56,8 @@ class CpuSort(sourceCodePath: String) extends SortAlgorithm[Int] {
 
     val CLDeviceContext(deviceId, context) = deviceContext
 
-    val commandQueue = clCreateCommandQueue(context, deviceId, 0, null)
+    val commandQueue = clCreateCommandQueue(context, deviceId,
+      CL_QUEUE_PROFILING_ENABLE, null)
 
     timeLine.append("Command queue set up")
 
@@ -117,8 +118,9 @@ class CpuSort(sourceCodePath: String) extends SortAlgorithm[Int] {
     val global_work_size = Array(1L)
     val local_work_size = Array(1L)
 
+    val sortEvent = new cl_event
     clEnqueueNDRangeKernel(commandQueue, kernel, 1, null, global_work_size,
-      local_work_size, 0, null, null)
+      local_work_size, 0, null, sortEvent)
 
     timeLine.append("Kernel executed")
 
@@ -128,10 +130,20 @@ class CpuSort(sourceCodePath: String) extends SortAlgorithm[Int] {
     buffer.get(array)
     timeLine.append("Array buffer retrieved")
 
+    val commandStartTimeHolder = Array(-1L)
+    clGetEventProfilingInfo(sortEvent, CL_PROFILING_COMMAND_START,
+      Sizeof.cl_ulong, Pointer.to(commandStartTimeHolder), null)
+    val commandEndTimeHolder = Array(-1L)
+    clGetEventProfilingInfo(sortEvent, CL_PROFILING_COMMAND_END,
+      Sizeof.cl_ulong, Pointer.to(commandEndTimeHolder), null)
+    val executionTime = commandEndTimeHolder(0) - commandStartTimeHolder(0)
+
     memObjects.foreach(clReleaseMemObject)
     clReleaseKernel(kernel)
     clReleaseCommandQueue(commandQueue)
 
     timeLine.append("Sorting ended")
+
+    executionTime
   }
 }

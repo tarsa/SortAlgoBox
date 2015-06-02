@@ -27,11 +27,11 @@ trait CLContextsCache {
   lazy val cpuContext = CLContextsManager.createCpuContext()
   lazy val gpuContext = CLContextsManager.createGpuContext()
 
-  def withCpuContext(f: CLDeviceContext => Unit): Unit = {
+  def withCpuContext[T](f: CLDeviceContext => T): T = {
     f(cpuContext)
   }
 
-  def withGpuContext(f: CLDeviceContext => Unit): Unit = {
+  def withGpuContext[T](f: CLDeviceContext => T): T = {
     f(gpuContext)
   }
 }

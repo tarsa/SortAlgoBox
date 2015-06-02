@@ -24,7 +24,7 @@ import pl.tarsa.sortalgobox.opencl.common._
 
 object CpuMergeSort extends CpuSort(
   "/pl/tarsa/sortalgobox/opencl/CpuMergeSort.cl") {
-  override def sort(array: Array[Int], deviceContext: CLDeviceContext): Unit = {
+  override def sort(array: Array[Int], deviceContext: CLDeviceContext): Long = {
     sort(array, FakeTimeLine, List(array.length), Nil, deviceContext)
   }
 }

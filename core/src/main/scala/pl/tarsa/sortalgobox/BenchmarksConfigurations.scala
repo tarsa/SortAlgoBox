@@ -22,20 +22,25 @@ package pl.tarsa.sortalgobox
 
 import pl.tarsa.sortalgobox.natives.NativeStdSort
 import pl.tarsa.sortalgobox.natives.sab._
-import pl.tarsa.sortalgobox.opencl.{CpuBitonicSort, CpuQuickSort, GpuBitonicSort}
+import pl.tarsa.sortalgobox.opencl._
 import pl.tarsa.sortalgobox.random.Mwc64x
 import pl.tarsa.sortalgobox.sorts.bitonic.BitonicSort
-import pl.tarsa.sortalgobox.sorts.common.SortAlgorithm
+import pl.tarsa.sortalgobox.sorts.common._
 import pl.tarsa.sortalgobox.standard.{ParallelArraysSort, SequentialArraysSort}
 
 object BenchmarksConfigurations {
-  val sorts: List[(String, SortAlgorithm[Int])] = List(
+  val plainSorts: List[(String, SortAlgorithm[Int])] = List(
     "BitonicSort" -> new BitonicSort[Int],
+    "SequentialArraysSort" -> new SequentialArraysSort,
+    "ParallelArraySort" -> new ParallelArraysSort)
+
+  val measuredSorts: List[(String, MeasuredSortAlgorithm[Int])] = List(
     "CpuBitonicSort" -> CpuBitonicSort,
     "GpuBitonicSort" -> GpuBitonicSort,
-    "SequentialArraysSort" -> new SequentialArraysSort,
-    "ParallelArraySort" -> new ParallelArraysSort,
-    "CpuQuickSort" -> CpuQuickSort)
+    "CpuQuickSort" -> CpuQuickSort) ::: plainSorts.map {
+    case (name, sortAlgorithm) =>
+      name -> MeasuringSortAlgorithmWrapper(sortAlgorithm)
+  }
 
   val nativeBenchmarks: List[(String, Benchmark)] = List(
     "NativeStdSort" ->
@@ -61,20 +66,19 @@ object BenchmarksConfigurations {
     "NativeSabHeapSimdDwordVariantC" ->
       new NativeSabHeapSimdDwordVariantC())
 
-  val benchmarks: List[(String, Benchmark)] = nativeBenchmarks ::: sorts.map {
-    case (name, sort) => (name, sortToBenchmark(sort))
-  }
+  val benchmarks: List[(String, Benchmark)] = nativeBenchmarks :::
+    measuredSorts.map {
+      case (name, sortAlgorithm) => (name, sortToBenchmark(sortAlgorithm))
+    }
 
-  def sortToBenchmark(sort: SortAlgorithm[Int]) = new Benchmark {
+  def sortToBenchmark(sort: MeasuredSortAlgorithm[Int]) = new Benchmark {
     override def forSize(n: Int, validate: Boolean,
       buffer: Option[Array[Int]]): Long = {
 
       val array = buffer.getOrElse(Array.ofDim[Int](n))
       val rng = new Mwc64x
       array.indices.foreach(array(_) = rng.nextInt())
-      val startTime = System.nanoTime()
-      sort.sort(array)
-      val totalTime = System.nanoTime() - startTime
+      val totalTime = sort.sort(array)
       if (validate) {
         assert(isSorted(array))
       }

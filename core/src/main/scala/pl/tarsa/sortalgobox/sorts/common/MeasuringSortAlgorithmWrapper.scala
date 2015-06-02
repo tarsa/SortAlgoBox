@@ -18,13 +18,14 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
-package pl.tarsa.sortalgobox.opencl
+package pl.tarsa.sortalgobox.sorts.common
 
-import pl.tarsa.sortalgobox.opencl.common._
+case class MeasuringSortAlgorithmWrapper[T](
+  plainSortAlgorithm: SortAlgorithm[T]) extends MeasuredSortAlgorithm[T] {
 
-object CpuRadixSort extends CpuSort(
-  "/pl/tarsa/sortalgobox/opencl/CpuRadixSort.cl") {
-  override def sort(array: Array[Int], deviceContext: CLDeviceContext): Long = {
-    sort(array, FakeTimeLine, List(array.length), Nil, deviceContext)
+  override def sort(array: Array[T]): Long = {
+    val startTime = System.nanoTime()
+    plainSortAlgorithm.sort(array)
+    System.nanoTime() - startTime
   }
 }

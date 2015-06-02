@@ -22,9 +22,15 @@ package pl.tarsa.sortalgobox.sorts
 
 import org.scalatest.Matchers
 import pl.tarsa.sortalgobox.random.Mwc64x
-import pl.tarsa.sortalgobox.sorts.common.SortAlgorithm
+import pl.tarsa.sortalgobox.sorts.common._
 
-case class SortChecker(sortAlgorithm: SortAlgorithm[Int]) extends Matchers {
+case class SortChecker(sortAlgorithm: MeasuredSortAlgorithm[Int]) 
+  extends Matchers {
+  
+  def this(sortAlgorithm: SortAlgorithm[Int]) {
+    this(MeasuringSortAlgorithmWrapper(sortAlgorithm))
+  }
+  
   def forEmptyArray(): Unit = {
     val array = Array.emptyIntArray
     sortAlgorithm.sort(array)

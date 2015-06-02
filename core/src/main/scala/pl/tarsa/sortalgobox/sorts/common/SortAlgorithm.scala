@@ -21,5 +21,5 @@
 package pl.tarsa.sortalgobox.sorts.common
 
 abstract class SortAlgorithm[T] {
-  def sort(array: Array[T])
+  def sort(array: Array[T]): Unit
 }
