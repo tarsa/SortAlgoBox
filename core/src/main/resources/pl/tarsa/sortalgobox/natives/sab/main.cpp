@@ -99,9 +99,11 @@ int main(int argc, char** argv) {
         int32_t * reference;
         checkZero(posix_memalign((void**) &reference, 128,
                 sizeof (int32_t) * size));
+        mwc64xFill(reference, size);
+        std::sort(reference, reference + size);
         bool valid = true;
         for (ssize_t i = 0; valid && (i < size); i++) {
-            valid &= work[i] != reference[i];
+            valid &= work[i] == reference[i];
         }
         std::cout << (valid ? "pass" : "fail") << std::endl;
     }
