@@ -91,7 +91,7 @@ namespace tarsa {
 
         template<typename ItemType, ComparisonOperator<ItemType> compOp>
         void heapify(ItemType * const a, ssize_t const count) {
-            for (ssize_t item = count / 3; item >= 1; item--) {
+            for (ssize_t item = (count + 1) / 3; item >= 1; item--) {
                 siftDown<ItemType, compOp>(a, item, count);
             }
         }
