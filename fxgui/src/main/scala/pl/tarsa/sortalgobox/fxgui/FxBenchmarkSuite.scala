@@ -22,7 +22,7 @@ package pl.tarsa.sortalgobox.fxgui
 
 import javafx.scene.chart.XYChart.Data
 
-import pl.tarsa.sortalgobox.{BenchmarkSuite, BenchmarksConfigurations}
+import pl.tarsa.sortalgobox._
 
 import scala.concurrent.Future
 import scalafx.application.{JFXApp, Platform}
@@ -57,12 +57,16 @@ object FxBenchmarkSuite extends BenchmarkSuite with JFXApp {
     this.size = size
   }
 
-  override def newData(sortId: Int, timeInMs: Double): Unit = {
-    val sizeString = size.toString
-    Platform.runLater {
-      val safeTime = Math.max(1.0, timeInMs)
-      seriesWithBuffers(sortId)._2 +=
-        XYChart.Data[String, Number](sizeString, Math.log10(safeTime))
+  override def newData(sortId: Int, result: BenchmarkResult): Unit = {
+    result match {
+      case BenchmarkSucceeded(timeInMs) =>
+        val sizeString = size.toString
+        Platform.runLater {
+          val safeTime = Math.max(1.0, timeInMs)
+          seriesWithBuffers(sortId)._2 +=
+            XYChart.Data[String, Number](sizeString, Math.log10(safeTime))
+        }
+      case _ =>
     }
   }
 

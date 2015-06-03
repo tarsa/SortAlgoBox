@@ -20,8 +20,8 @@
  */
 package pl.tarsa.sortalgobox
 
+import pl.tarsa.sortalgobox.exceptions.VerificationFailedException
 import pl.tarsa.sortalgobox.natives.NativesCache
-import pl.tarsa.sortalgobox.random.Mwc64x
 
 abstract class BenchmarkSuite {
   def benchmarks: List[(String, Benchmark)]
@@ -30,38 +30,52 @@ abstract class BenchmarkSuite {
   val nanosecondsInSecond = 1e9
 
   def run(): Unit = {
-    warmUp()
-    val generator = new Mwc64x
     val activeBenchmarks = Array.fill[Boolean](benchmarks.length)(true)
+    warmUp(activeBenchmarks)
     for (size <- Iterator.iterate(4096)(x => (x * 1.3).toInt + 5)
       .takeWhile(_ < 123456789 && activeBenchmarks.exists(identity))) {
       newSize(size)
       val buffer = Array.ofDim[Int](size)
-      for ((benchmark, sortId) <- benchmarks.map(_._2).zipWithIndex
-           if activeBenchmarks(sortId)) {
-        var totalTime = 0L
-        var iterations = 0
-        while (iterations < 20 && totalTime < nanosecondsInSecond) {
-          val currentTotalTime = benchmark.forSize(size,
-            validate = iterations == 0, Some(buffer))
-          totalTime += currentTotalTime
-          iterations += 1
+      for ((benchmark, benchmarkId) <- benchmarks.map(_._2).zipWithIndex
+           if activeBenchmarks(benchmarkId)) {
+        try {
+          var totalTime = 0L
+          var iterations = 0
+          while (iterations < 20 && totalTime < nanosecondsInSecond) {
+            val currentTotalTime = benchmark.forSize(size,
+              validate = iterations == 0, Some(buffer))
+            totalTime += currentTotalTime
+            iterations += 1
+          }
+          val timeInMs = totalTime / (iterations * nanosecondsInMillisecond)
+          if (timeInMs > 1000) {
+            activeBenchmarks(benchmarkId) = false
+          }
+          newData(benchmarkId, BenchmarkSucceeded(timeInMs))
+        } catch {
+          case e: VerificationFailedException =>
+            activeBenchmarks(benchmarkId) = false
+            newData(benchmarkId, BenchmarkFailed(0))
         }
-        val timeInMs = totalTime / (iterations * nanosecondsInMillisecond)
-        if (timeInMs > 1000) {
-          activeBenchmarks(sortId) = false
-        }
-        newData(sortId, timeInMs)
       }
     }
     NativesCache.cleanup()
   }
 
-  def warmUp(): Unit = {
-    benchmarks.foreach(_._2.forSize(1234567, validate = true))
+  def warmUp(activeBenchmarks: Array[Boolean]): Unit = {
+    benchmarks.zipWithIndex.foreach { case (benchmark, benchmarkId) =>
+      try {
+        benchmark._2.forSize(12345, validate = true)
+      } catch {
+        case e: VerificationFailedException =>
+          activeBenchmarks(benchmarkId) = false
+          Console.err.println(Console.RED + "FAILED" + Console.RESET +
+            " benchmark: " + benchmark._1)
+      }
+    }
   }
 
   def newSize(size: Int): Unit
 
-  def newData(sortId: Int, timeInMs: Double): Unit
+  def newData(benchmarkId: Int, result: BenchmarkResult): Unit
 }
