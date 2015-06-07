@@ -33,8 +33,8 @@ class NativeBuildConfigTest extends CommonUnitSpecBase {
     val sources = Seq.empty
     val buildConfig = NativeBuildConfig(sources, "file.ext", options)
 
-    val expected = Seq("compiler", "-std=standard", "level", "-Dname1",
-      "-Dname2=value", "-option", "-o", "executable", "file.ext")
+    val expected = Seq("compiler", "-std=standard", "level", "-option",
+      "-Dname1", "-Dname2=value", "-o", "executable", "file.ext")
     val actual = buildConfig.makeCommandLine
 
     assertResult(expected)(actual)
