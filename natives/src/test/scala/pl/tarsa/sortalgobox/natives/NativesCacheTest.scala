@@ -59,6 +59,7 @@ class NativesCacheTest extends NativesUnitSpecBase {
 
 object NativesCacheTest extends NativeComponentsSupport {
   val components = makeComponents(
+    ("/pl/tarsa/sortalgobox/natives/", "macros.hpp"),
     ("/pl/tarsa/sortalgobox/natives/", "source.cpp"),
     ("/pl/tarsa/sortalgobox/natives/", "source.hpp"))
 }

@@ -21,6 +21,8 @@
 #include <cstdio>
 #include <cstdlib>
 
+#include "macros.hpp"
+
 #ifndef PRINT_DEFINED
 #if defined(SOURCE)
 void print() {
