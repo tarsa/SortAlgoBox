@@ -39,24 +39,24 @@ case class CompilerOptions(
 
   private def serializeOptimizationLevel = optimizationLevelOpt.toSeq
 
-  private def serializeDefines = defines.map(_.serialize)
+  def serializeDefines = defines.map(_.serialize)
 
-  def serializeOptions = options
+  private def serializeOptions = options
 
   private def serializeExecutableFileName = Seq("-o", executableFileName)
 
-  def serialize: Seq[String] = Seq(serializeCompiler, serializeLanguageStandard,
-    serializeOptimizationLevel, serializeDefines, serializeOptions,
-    serializeExecutableFileName).flatten
+  def serializeFlags = Seq(serializeLanguageStandard,
+    serializeOptimizationLevel, serializeOptions).flatten
+
+  def serializeAll: Seq[String] = Seq(serializeCompiler, serializeFlags,
+    serializeDefines, serializeExecutableFileName).flatten
 }
 
 object CompilerOptions {
   val defaultCompiler: String = "g++"
   val defaultLanguageStandard: Option[String] = Some("c++11")
   val defaultOptimizationLevel: Option[String] = Some("-O2")
-  val defaultDefines: Seq[CompilerDefine] = Seq(
-    CompilerDefine("xstr(s)", Some("str(s)")),
-    CompilerDefine("str(s)", Some("#s")))
+  val defaultDefines: Seq[CompilerDefine] = Seq.empty[CompilerDefine]
   val defaultOptions: Seq[String] = Seq("-fopenmp", "-mavx2")
   val defaultExecutableFileName: String = "program"
 

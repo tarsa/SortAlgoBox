@@ -33,10 +33,7 @@ class NativeSabBenchmark(sortAlgoName: String, sortHeader: String,
   sortCached: Boolean = false, sortSimd: Boolean = false)
   extends Benchmark {
 
-  override def forSize(n: Int, validate: Boolean,
-    buffer: Option[Array[Int]]): Long = {
-
-
+  val buildConfig = {
     val sortTypeDefines = Seq(
       ("SORT_CACHED", sortCached),
       ("SORT_SIMD", sortSimd)
@@ -48,9 +45,13 @@ class NativeSabBenchmark(sortAlgoName: String, sortHeader: String,
       CompilerDefine("SORT_HEADER", Some(sortHeader))) ++ sortTypeDefines
     val compilerOptions = CompilerOptions(defines =
       CompilerOptions.defaultDefines ++ algoDefines)
-    val buildConfig = NativeBuildConfig(
-      NativeSabBenchmark.components(sortHeader), "main.cpp",
+    NativeBuildConfig(NativeSabBenchmark.components(sortHeader), "main.cpp",
       compilerOptions)
+  }
+
+  override def forSize(n: Int, validate: Boolean,
+    buffer: Option[Array[Int]]): Long = {
+
     val generatorProcess = nativesCache.runCachedProgram(buildConfig)
     val pipeTo = new PrintStream(generatorProcess.getOutputStream)
     pipeTo.println(if (validate) 1 else 0)
@@ -73,6 +74,7 @@ object NativeSabBenchmark extends NativeComponentsSupport {
   val namePrefix = "/pl/tarsa/sortalgobox/natives/sab/"
 
   def components(sortHeader: String) = NativeMwc64x.header ++ makeComponents(
+    (namePrefix, "macros.hpp"),
     (namePrefix, "main.cpp"),
     (namePrefix, "sortalgocommon.hpp"),
     (namePrefix, sortHeader))

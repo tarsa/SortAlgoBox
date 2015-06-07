@@ -22,6 +22,8 @@
  */
 #define NDEBUG
 
+#include "macros.hpp"
+
 #if defined(SORT_CACHED) && defined(SORT_SIMD)
 #error Unsupported combination
 #endif

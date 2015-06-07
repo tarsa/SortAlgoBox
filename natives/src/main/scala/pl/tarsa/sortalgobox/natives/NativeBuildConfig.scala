@@ -25,6 +25,6 @@ case class NativeBuildConfig(components: Seq[NativeBuildComponent],
   compilerOptions: CompilerOptions = CompilerOptions.default) {
 
   def makeCommandLine: Seq[String] = {
-    compilerOptions.serialize :+ mainSourceFile
+    compilerOptions.serializeAll :+ mainSourceFile
   }
 }
