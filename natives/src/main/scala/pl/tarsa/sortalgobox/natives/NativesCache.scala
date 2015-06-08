@@ -26,6 +26,8 @@ import java.nio.file.{Paths, Path, Files}
 import scala.io.Source
 
 class NativesCache {
+  private val programsCache = collection.mutable.Map[NativeBuildConfig, File]()
+
   def runCachedProgram(buildConfig: NativeBuildConfig): Process = synchronized {
     val workDir = programsCache.getOrElseUpdate(buildConfig,
       buildProgram(buildConfig))
@@ -33,13 +35,11 @@ class NativesCache {
       .directory(workDir).start()
   }
 
-  private val programsCache = collection.mutable.Map[NativeBuildConfig, File]()
-
   private def buildProgram(buildConfig: NativeBuildConfig): File = {
     NativesCache.rootTempDir.toFile.mkdir()
     val workDir = Files.createTempDirectory(NativesCache.rootTempDir, "native")
     val workDirFile = workDir.toFile
-    copyBuildComponents(buildConfig, workDir)
+    buildConfig.copyBuildComponents(workDir)
     val buildProcess = new ProcessBuilder(buildConfig.makeCommandLine: _*)
       .directory(workDirFile).start()
     val buildExitValue = buildProcess.waitFor()
@@ -51,16 +51,6 @@ class NativesCache {
       throw new Exception(msg)
     }
     workDirFile
-  }
-
-  private def copyBuildComponents(buildConfig: NativeBuildConfig,
-    workDir: Path): Unit = {
-
-    buildConfig.components.foreach { component =>
-      val sourcePath = workDir.resolve(component.fileName)
-      val resourceName = component.resourceNamePrefix + component.fileName
-      Files.copy(getClass.getResourceAsStream(resourceName), sourcePath)
-    }
   }
 
   def cleanup(): Unit = synchronized {

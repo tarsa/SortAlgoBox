@@ -42,80 +42,55 @@ object BenchmarksConfigurations {
       name -> MeasuringSortAlgorithmWrapper(sortAlgorithm)
   }
 
-  val nativeBenchmarks: List[(String, Benchmark)] = List(
-    "NativeSabHeapBinaryAheadSimpleVariantA" ->
-      new NativeSabHeapBinaryAheadSimpleVariantA(),
-    "NativeSabHeapBinaryAheadSimpleVariantB" ->
-      new NativeSabHeapBinaryAheadSimpleVariantB(),
-    "NativeSabHeapBinaryCached" ->
-      new NativeSabHeapBinaryCached(),
-    "NativeSabHeapBinaryCascadingVariantA" ->
-      new NativeSabHeapBinaryCascadingVariantA(),
-    "NativeSabHeapBinaryCascadingVariantB" ->
-      new NativeSabHeapBinaryCascadingVariantB(),
-    "NativeSabHeapBinaryCascadingVariantC" ->
-      new NativeSabHeapBinaryCascadingVariantC(),
-    "NativeSabHeapBinaryCascadingVariantD" ->
-      new NativeSabHeapBinaryCascadingVariantD(),
-    "NativeSabHeapBinaryClusteredVariantA" ->
-      new NativeSabHeapBinaryClusteredVariantA(),
-    "NativeSabHeapBinaryClusteredVariantB" ->
-      new NativeSabHeapBinaryClusteredVariantB(),
-    "NativeSabHeapBinaryOneBasedVariantA" ->
-      new NativeSabHeapBinaryOneBasedVariantA(),
-    "NativeSabHeapBinaryOneBasedVariantB" ->
-      new NativeSabHeapBinaryOneBasedVariantB(),
-    "NativeSabHeapHybrid" ->
-      new NativeSabHeapHybrid(),
-    "NativeSabHeapHybridCascading" ->
-      new NativeSabHeapHybridCascading(),
-    "NativeSabHeapQuaternaryCascadingVariantA" ->
-      new NativeSabHeapQuaternaryCascadingVariantA(),
-    "NativeSabHeapQuaternaryVariantA" ->
-      new NativeSabHeapQuaternaryVariantA(),
-    "NativeSabHeapQuaternaryVariantB" ->
-      new NativeSabHeapQuaternaryVariantB(),
-    "NativeSabHeapSimdDwordCascadingVariantB" ->
-      new NativeSabHeapSimdDwordCascadingVariantB(),
-    "NativeSabHeapSimdDwordCascadingVariantC" ->
-      new NativeSabHeapSimdDwordCascadingVariantC(),
-    "NativeSabHeapSimdDwordVariantB" ->
-      new NativeSabHeapSimdDwordVariantB(),
-    "NativeSabHeapSimdDwordVariantC" ->
-      new NativeSabHeapSimdDwordVariantC(),
-    "NativeSabHeapTernaryCascadingVariantA" ->
-      new NativeSabHeapTernaryCascadingVariantA(),
-    "NativeSabHeapTernaryClusteredVariantA" ->
-      new NativeSabHeapTernaryClusteredVariantA(),
-    "NativeSabHeapTernaryClusteredVariantB" ->
-      new NativeSabHeapTernaryClusteredVariantB(),
-    "NativeSabHeapTernaryOneBasedVariantA" ->
-      new NativeSabHeapTernaryOneBasedVariantA(),
-    "NativeSabHeapTernaryOneBasedVariantB" ->
-      new NativeSabHeapTernaryOneBasedVariantB(),
-    "NativeSabQuickRandomized" ->
-      new NativeSabQuickRandomized(),
-    "NativeStdSort" -> new NativeStdSort)
+  val nativeBenchmarks: List[NativeBenchmark] = List(
+    new NativeSabHeapBinaryAheadSimpleVariantA(),
+    new NativeSabHeapBinaryAheadSimpleVariantB(),
+    new NativeSabHeapBinaryCached(),
+    new NativeSabHeapBinaryCascadingVariantA(),
+    new NativeSabHeapBinaryCascadingVariantB(),
+    new NativeSabHeapBinaryCascadingVariantC(),
+    new NativeSabHeapBinaryCascadingVariantD(),
+    new NativeSabHeapBinaryClusteredVariantA(),
+    new NativeSabHeapBinaryClusteredVariantB(),
+    new NativeSabHeapBinaryOneBasedVariantA(),
+    new NativeSabHeapBinaryOneBasedVariantB(),
+    new NativeSabHeapHybrid(),
+    new NativeSabHeapHybridCascading(),
+    new NativeSabHeapQuaternaryCascadingVariantA(),
+    new NativeSabHeapQuaternaryVariantA(),
+    new NativeSabHeapQuaternaryVariantB(),
+    new NativeSabHeapSimdDwordCascadingVariantB(),
+    new NativeSabHeapSimdDwordCascadingVariantC(),
+    new NativeSabHeapSimdDwordVariantB(),
+    new NativeSabHeapSimdDwordVariantC(),
+    new NativeSabHeapTernaryCascadingVariantA(),
+    new NativeSabHeapTernaryClusteredVariantA(),
+    new NativeSabHeapTernaryClusteredVariantB(),
+    new NativeSabHeapTernaryOneBasedVariantA(),
+    new NativeSabHeapTernaryOneBasedVariantB(),
+    new NativeSabQuickRandomized(),
+    new NativeStdSort)
 
-  val benchmarks: List[(String, Benchmark)] = nativeBenchmarks :::
+  val benchmarks: List[Benchmark] = nativeBenchmarks :::
     measuredSorts.map {
-      case (name, sortAlgorithm) => (name, sortToBenchmark(sortAlgorithm))
-    }
+      case (sortName: String, sort: MeasuredSortAlgorithm[Int]) =>
+        new Benchmark {
+          override def forSize(n: Int, validate: Boolean,
+            buffer: Option[Array[Int]]): Long = {
 
-  def sortToBenchmark(sort: MeasuredSortAlgorithm[Int]) = new Benchmark {
-    override def forSize(n: Int, validate: Boolean,
-      buffer: Option[Array[Int]]): Long = {
+            val array = buffer.getOrElse(Array.ofDim[Int](n))
+            val rng = new Mwc64x
+            array.indices.foreach(array(_) = rng.nextInt())
+            val totalTime = sort.sort(array)
+            if (validate) {
+              assert(isSorted(array))
+            }
+            totalTime
+          }
 
-      val array = buffer.getOrElse(Array.ofDim[Int](n))
-      val rng = new Mwc64x
-      array.indices.foreach(array(_) = rng.nextInt())
-      val totalTime = sort.sort(array)
-      if (validate) {
-        assert(isSorted(array))
-      }
-      totalTime
+          def name = sortName
+        }
     }
-  }
 
   def isSorted(ints: Array[Int]): Boolean = {
     ints.indices.tail.forall(i => ints(i - 1) <= ints(i))

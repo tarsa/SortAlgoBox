@@ -34,10 +34,10 @@ import scalafx.scene.chart.{CategoryAxis, LineChart, NumberAxis, XYChart}
 object FxBenchmarkSuite extends BenchmarkSuite with JFXApp {
   override val benchmarks = BenchmarksConfigurations.benchmarks
 
-  val seriesWithBuffers = benchmarks.map { case (sortName, _) =>
+  val seriesWithBuffers = benchmarks.map { benchmark: Benchmark =>
     val buffer = ObservableBuffer[Data[String, Number]]()
     (new XYChart.Series[String, Number](
-      XYChart.Series(sortName, buffer)), buffer)
+      XYChart.Series(benchmark.name, buffer)), buffer)
   }
 
   stage = new JFXApp.PrimaryStage {

@@ -23,4 +23,6 @@ package pl.tarsa.sortalgobox
 trait Benchmark {
   def forSize(n: Int, validate: Boolean,
     buffer: Option[Array[Int]] = None): Long
+
+  def name: String
 }

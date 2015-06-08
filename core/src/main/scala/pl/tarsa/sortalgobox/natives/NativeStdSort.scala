@@ -23,16 +23,19 @@ package pl.tarsa.sortalgobox.natives
 import java.io.PrintStream
 import java.util.Scanner
 
-import pl.tarsa.sortalgobox.Benchmark
+import pl.tarsa.sortalgobox.NativeBenchmark
 import pl.tarsa.sortalgobox.random.NativeMwc64x
 
 class NativeStdSort(nativesCache: NativesCache = NativesCache)
-  extends Benchmark {
+  extends NativeBenchmark {
+
+  val name = getClass.getSimpleName
+
+  val buildConfig = NativeBuildConfig(NativeStdSort.components, "main.cpp")
 
   override def forSize(n: Int, validate: Boolean,
     buffer: Option[Array[Int]]): Long = {
 
-    val buildConfig = NativeBuildConfig(NativeStdSort.components, "main.cpp")
     val generatorProcess = nativesCache.runCachedProgram(buildConfig)
     val pipeTo = new PrintStream(generatorProcess.getOutputStream)
     pipeTo.println(if (validate) 1 else 0)

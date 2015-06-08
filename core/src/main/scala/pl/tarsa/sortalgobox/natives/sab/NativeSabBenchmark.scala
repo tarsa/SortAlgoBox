@@ -23,7 +23,7 @@ package pl.tarsa.sortalgobox.natives.sab
 import java.io.PrintStream
 import java.util.Scanner
 
-import pl.tarsa.sortalgobox.Benchmark
+import pl.tarsa.sortalgobox.NativeBenchmark
 import pl.tarsa.sortalgobox.exceptions.VerificationFailedException
 import pl.tarsa.sortalgobox.natives._
 import pl.tarsa.sortalgobox.random.NativeMwc64x
@@ -31,7 +31,9 @@ import pl.tarsa.sortalgobox.random.NativeMwc64x
 class NativeSabBenchmark(sortAlgoName: String, sortHeader: String,
   nativesCache: NativesCache = NativesCache,
   sortCached: Boolean = false, sortSimd: Boolean = false)
-  extends Benchmark {
+  extends NativeBenchmark {
+
+  val name = getClass.getSimpleName
 
   val buildConfig = {
     val sortTypeDefines = Seq(

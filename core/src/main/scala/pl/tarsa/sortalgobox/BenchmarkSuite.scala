@@ -24,7 +24,7 @@ import pl.tarsa.sortalgobox.exceptions.VerificationFailedException
 import pl.tarsa.sortalgobox.natives.NativesCache
 
 abstract class BenchmarkSuite {
-  def benchmarks: List[(String, Benchmark)]
+  def benchmarks: List[Benchmark]
 
   val nanosecondsInMillisecond = 1e6
   val nanosecondsInSecond = 1e9
@@ -36,7 +36,7 @@ abstract class BenchmarkSuite {
       .takeWhile(_ < 123456789 && activeBenchmarks.exists(identity))) {
       newSize(size)
       val buffer = Array.ofDim[Int](size)
-      for ((benchmark, benchmarkId) <- benchmarks.map(_._2).zipWithIndex
+      for ((benchmark, benchmarkId) <- benchmarks.zipWithIndex
            if activeBenchmarks(benchmarkId)) {
         try {
           var totalTime = 0L
@@ -65,12 +65,12 @@ abstract class BenchmarkSuite {
   def warmUp(activeBenchmarks: Array[Boolean]): Unit = {
     benchmarks.zipWithIndex.foreach { case (benchmark, benchmarkId) =>
       try {
-        benchmark._2.forSize(12345, validate = true)
+        benchmark.forSize(12345, validate = true)
       } catch {
         case e: VerificationFailedException =>
           activeBenchmarks(benchmarkId) = false
           Console.err.println(Console.RED + "FAILED" + Console.RESET +
-            " benchmark: " + benchmark._1)
+            " benchmark: " + benchmark.name)
       }
     }
   }

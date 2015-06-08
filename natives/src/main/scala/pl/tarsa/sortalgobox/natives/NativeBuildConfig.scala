@@ -20,11 +20,34 @@
  */
 package pl.tarsa.sortalgobox.natives
 
+import java.nio.file.{Files, Path}
+
 case class NativeBuildConfig(components: Seq[NativeBuildComponent],
   mainSourceFile: String,
   compilerOptions: CompilerOptions = CompilerOptions.default) {
 
   def makeCommandLine: Seq[String] = {
     compilerOptions.serializeAll :+ mainSourceFile
+  }
+
+  def makeCMakeLists: Seq[String] = {
+    val flags = compilerOptions.serializeFlags
+    val defines = compilerOptions.serializeDefines
+    Seq[String](
+      "cmake_minimum_required (VERSION 2.8)",
+      "project (SortAlgo)",
+      flags.mkString("set(PROJECT_COMPILE_FLAGS \"", " ", "\")"),
+      "set(CMAKE_CXX_FLAGS  \"${CMAKE_CXX_FLAGS} ${PROJECT_COMPILE_FLAGS}\" )",
+      defines.mkString("add_definitions(", " ", ")"),
+      s"add_executable(SortAlgo $mainSourceFile)"
+    )
+  }
+
+  def copyBuildComponents(destination: Path): Unit = {
+    components.foreach { component =>
+      val componentPath = destination.resolve(component.fileName)
+      val resourceName = component.resourceNamePrefix + component.fileName
+      Files.copy(getClass.getResourceAsStream(resourceName), componentPath)
+    }
   }
 }

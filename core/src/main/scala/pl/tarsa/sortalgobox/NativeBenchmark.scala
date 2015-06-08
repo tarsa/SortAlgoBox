@@ -20,25 +20,8 @@
  */
 package pl.tarsa.sortalgobox
 
-object CliBenchmarkSuite extends BenchmarkSuite {
-  override val benchmarks = BenchmarksConfigurations.benchmarks
+import pl.tarsa.sortalgobox.natives.NativeBuildConfig
 
-  def main(args: Array[String]) {
-    run()
-  }
-
-  override def newSize(size: Int): Unit = {
-    println(s"Size: $size")
-  }
-
-  override def newData(sortId: Int, result: BenchmarkResult): Unit = {
-    val resultDescription = result match {
-      case BenchmarkSucceeded(timeInMs) =>
-        f"time: $timeInMs%.3f ms"
-      case BenchmarkFailed(failedIteration) =>
-        Console.RED + "FAILED during iteration no: " + failedIteration +
-          Console.RESET
-    }
-    println(s"Sort name: ${benchmarks(sortId).name}, $resultDescription")
-  }
+trait NativeBenchmark extends Benchmark {
+  def buildConfig: NativeBuildConfig
 }
