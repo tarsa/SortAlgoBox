@@ -19,15 +19,16 @@ object MainBuild extends Build {
         "org.jocl" % "jocl" % "0.1.9",
         "org.scalatest" %% "scalatest" % "2.2.1" % "test",
         "org.scalamock" %% "scalamock-scalatest-support" % "3.2" % "test",
-        "org.scalafx" %% "scalafx" % "8.0.40-R8"
-      )
+        "org.scalafx" %% "scalafx" % "8.0.40-R8"),
+      dependencyOverrides ++= Set(
+        "org.scala-lang.modules" %% "scala-xml" % "1.0.4")
     )
 
   lazy val depsCp = deps % fullDep
 
-  lazy val rootDeps = Seq(core, fxgui, natives, opencl, random)
+  lazy val rootDeps = Seq(core, fxgui, natives, opencl, random, sorts)
 
-  lazy val root = Project(id = "parent", base = file("."))
+  lazy val root = Project(id = "SortingAlgorithmsToolbox", base = file("."))
     .settings(
       version := "0.1",
       name := "SortingAlgorithmsToolbox")
@@ -58,4 +59,8 @@ object MainBuild extends Build {
   lazy val random = Project(id = "random", base = file("./random"))
     .settings(commonSettings: _*)
     .dependsOn(depsCp, nativesCp, opencl)
+
+  lazy val sorts = Project(id = "sorts", base = file("./sorts"))
+    .settings(commonSettings: _*)
+    .dependsOn(depsCp, core, nativesCp)
 }
