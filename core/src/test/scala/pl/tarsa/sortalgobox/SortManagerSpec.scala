@@ -20,9 +20,7 @@
  */
 package pl.tarsa.sortalgobox
 
-import pl.tarsa.sortalgobox.sorts.common.ComparisonsSupport
-import ComparisonsSupport.Conv
-import pl.tarsa.sortalgobox.sorts.quick.{QuickSort, SinglePivotPartition}
+import pl.tarsa.sortalgobox.sorts.common.SortAlgorithm
 import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
 class SortManagerSpec extends CommonUnitSpecBase {
@@ -30,7 +28,7 @@ class SortManagerSpec extends CommonUnitSpecBase {
   typeBehavior[SortManager]
 
   it should "run sorting algorithms with correct array size" in {
-    val algorithm1 = mock[QuickSort[Int]]
+    val algorithm1 = mock[SortAlgorithm[Int]]
     val arraySize = 100
     (algorithm1.sort(_: Array[Int])).expects(where {
       (a: Array[Int]) =>
@@ -44,7 +42,7 @@ class SortManagerSpec extends CommonUnitSpecBase {
   it should "run sorting algorithms in order" in {
     val numAlgorithms = 5
     val algorithms = (0 until numAlgorithms)
-      .map(_ => mock[QuickSort[Int]])
+      .map(_ => mock[SortAlgorithm[Int]])
     inSequence(algorithms.foreach { algorithm =>
       (algorithm.sort(_: Array[Int])).expects(*).once()
     })

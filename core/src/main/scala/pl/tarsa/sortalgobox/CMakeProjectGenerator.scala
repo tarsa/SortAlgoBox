@@ -28,8 +28,8 @@ import pl.tarsa.sortalgobox.natives.{NativeBuildConfig, NativesCache}
 
 import scala.io.StdIn
 
-object CMakeProjectGenerator {
-  def main(args: Array[String]) {
+class CMakeProjectGenerator(benchmarks: Seq[NativeBenchmark]) {
+  def run(): Unit = {
     val projectDir = NativesCache.rootTempDir.resolve("project")
 
     deleteRecursively(projectDir.toFile)
@@ -47,7 +47,6 @@ object CMakeProjectGenerator {
   }
 
   def chooseBenchmark = {
-    val benchmarks = BenchmarksConfigurations.nativeBenchmarks
     println("Available benchmarks:")
     benchmarks.zipWithIndex.foreach { case (benchmark, number) =>
       println(s"$number. ${benchmark.name}")

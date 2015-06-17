@@ -18,21 +18,14 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
-package pl.tarsa.sortalgobox
+package pl.tarsa.sortalgobox.app
 
-class CliBenchmarkSuite(val benchmarks: Seq[Benchmark]) extends BenchmarkSuite {
-  override def newSize(size: Int): Unit = {
-    println(s"Size: $size")
-  }
+import pl.tarsa.sortalgobox.BenchmarksConfigurations
 
-  override def newData(sortId: Int, result: BenchmarkResult): Unit = {
-    val resultDescription = result match {
-      case BenchmarkSucceeded(timeInMs) =>
-        f"time: $timeInMs%.3f ms"
-      case BenchmarkFailed(failedIteration) =>
-        Console.RED + "FAILED during iteration no: " + failedIteration +
-          Console.RESET
-    }
-    println(s"Sort name: ${benchmarks(sortId).name}, $resultDescription")
+object CMakeProjectGenerator extends pl.tarsa.sortalgobox.CMakeProjectGenerator(
+  BenchmarksConfigurations.nativeBenchmarks) {
+
+  def main(args: Array[String]) {
+    run()
   }
 }

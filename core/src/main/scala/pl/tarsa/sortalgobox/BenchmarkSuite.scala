@@ -24,7 +24,7 @@ import pl.tarsa.sortalgobox.exceptions.VerificationFailedException
 import pl.tarsa.sortalgobox.natives.NativesCache
 
 abstract class BenchmarkSuite {
-  def benchmarks: List[Benchmark]
+  def benchmarks: Seq[Benchmark]
 
   val nanosecondsInMillisecond = 1e6
   val nanosecondsInSecond = 1e9

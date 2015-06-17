@@ -31,8 +31,8 @@ import scalafx.geometry.Side
 import scalafx.scene.Scene
 import scalafx.scene.chart.{CategoryAxis, LineChart, NumberAxis, XYChart}
 
-object FxBenchmarkSuite extends BenchmarkSuite with JFXApp {
-  override val benchmarks = BenchmarksConfigurations.benchmarks
+class FxBenchmarkSuite(val benchmarks: Seq[Benchmark])
+  extends BenchmarkSuite with JFXApp {
 
   val seriesWithBuffers = benchmarks.map { benchmark: Benchmark =>
     val buffer = ObservableBuffer[Data[String, Number]]()

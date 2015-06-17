@@ -1,3 +1,7 @@
+# typesafe activator
+
+/activator*
+
 # idea
 /.idea
 
@@ -9,3 +13,13 @@
 # modules
 /core/target
 /deps/target
+/fxgui/target
+/natives/target
+/opencl/target
+/random/target
+/sorts/target
+
+# jocl
+
+/JOCL-*.jar
+/libOpenCL.so
