@@ -22,7 +22,7 @@ package pl.tarsa.sortalgobox.fxgui
 
 import javafx.scene.chart.XYChart.Data
 
-import pl.tarsa.sortalgobox._
+import pl.tarsa.sortalgobox.core._
 
 import scala.concurrent.Future
 import scalafx.application.{JFXApp, Platform}

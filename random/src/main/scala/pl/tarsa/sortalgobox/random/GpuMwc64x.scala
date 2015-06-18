@@ -20,7 +20,7 @@
  */
 package pl.tarsa.sortalgobox.random
 
-import pl.tarsa.sortalgobox.opencl.common.{CLDeviceContext, CLCache}
+import pl.tarsa.sortalgobox.opencl.{CLDeviceContext, CLCache}
 
 import java.nio.{ByteOrder, ByteBuffer}
 
