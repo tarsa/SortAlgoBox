@@ -29,194 +29,199 @@ import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 class PureNumberCodecSpec extends CommonUnitSpecBase {
   typeBehavior[PureNumberCodec.type]
 
-  def showBuffer(buffer: ByteBuffer): Unit = {
-    println(buffer.array().deep)
+  def havingSize(size: Int)(function: ByteBuffer => Unit)
+    (contents: Byte*): Unit = {
+    val buffer = allocate(size)
+    function(buffer)
+    assert(buffer.position() == contents.length)
+    assert(buffer.flip() == wrap(contents.toArray))
+  }
+
+  def havingContents(contents: Byte*)(function: ByteBuffer => Unit)
+    (position: Int): Unit = {
+    val buffer = wrap(contents.toArray)
+    function(buffer)
+    assert(buffer.position() == position)
   }
 
   it should "fail on serializing negative int" in {
-    val buffer = allocate(0)
-    a [IllegalArgumentException] should be thrownBy {
-      serializeInt(buffer, -1)
-    }
-    assert(buffer.position() == 0)
+    havingSize(0) { buffer =>
+      a[IllegalArgumentException] should be thrownBy {
+        serializeInt(buffer, -1)
+      }
+    }()
   }
 
   it should "serialize int zero" in {
-    val buffer = allocate(1)
-    serializeInt(buffer, 0)
-    assert(buffer.position() == 1)
-    assert(buffer.flip() == wrap(Array[Byte](0)))
+    havingSize(1) { buffer =>
+      serializeInt(buffer, 0)
+    }(contents = 0)
   }
 
   it should "serialize positive int" in {
-    val buffer = allocate(9)
-    serializeInt(buffer, 1234567)
-    assert(buffer.position() == 3)
-    assert(buffer.flip() == wrap(Array[Byte](-121, -83, 75)))
+    havingSize(9) { buffer =>
+      serializeInt(buffer, 1234567)
+    }(contents = -121, -83, 75)
   }
 
   it should "serialize max int" in {
-    val buffer = allocate(9)
-    serializeInt(buffer, Int.MaxValue)
-    assert(buffer.position() == 5)
-    assert(buffer.flip() == wrap(Array[Byte](-1, -1, -1, -1, 7)))
+    havingSize(9) { buffer =>
+      serializeInt(buffer, Int.MaxValue)
+    }(contents = -1, -1, -1, -1, 7)
   }
 
   it should "fail on int serialization when not enough remaining space" in {
-    val buffer = allocate(2)
-    a [BufferOverflowException] should be thrownBy {
-      serializeInt(buffer, Int.MaxValue)
-    }
-    assert(buffer.position() == 2)
+    havingSize(2) { buffer =>
+      a[BufferOverflowException] should be thrownBy {
+        serializeInt(buffer, Int.MaxValue)
+      }
+    }(contents = -1, -1)
   }
 
   it should "fail on deserializing empty buffer for int" in {
-    val buffer = allocate(0)
-    a [BufferUnderflowException] should be thrownBy {
-      deserializeInt(buffer)
-    }
-    assert(buffer.position() == 0)
+    havingContents() { buffer =>
+      a[BufferUnderflowException] should be thrownBy {
+        deserializeInt(buffer)
+      }
+    }(position = 0)
   }
 
   it should "fail on deserializing unfinished negative sequence for int" in {
-    val buffer = wrap(Array[Byte](-1, -2, -3))
-    a [BufferUnderflowException] should be thrownBy {
-      deserializeInt(buffer)
-    }
-    assert(buffer.remaining() == 0)
+    havingContents(-1, -2, -3) { buffer =>
+      a[BufferUnderflowException] should be thrownBy {
+        deserializeInt(buffer)
+      }
+    }(position = 3)
   }
 
   it should "deserialize int zero" in {
-    val buffer = wrap(Array[Byte](0))
-    assert(deserializeInt(buffer) == 0)
-    assert(buffer.position() == 1)
+    havingContents(0) { buffer =>
+      assert(deserializeInt(buffer) == 0)
+    }(position = 1)
   }
 
   it should "fully deserialize weirdly encoded int zero" in {
-    val buffer = wrap(Array[Byte](-128, -128, -128, -128, -128, -128, -128, 0))
-    assert(deserializeInt(buffer) == 0)
-    assert(buffer.position() == 8)
+    havingContents(-128, -128, -128, -128, -128, -128, -128, 0) { buffer =>
+      assert(deserializeInt(buffer) == 0)
+    }(position = 8)
   }
 
   it should "deserialize positive int" in {
-    val buffer = wrap(Array[Byte](-121, -83, 75))
-    assert(deserializeInt(buffer) == 1234567)
-    assert(buffer.position() == 3)
+    havingContents(-121, -83, 75) { buffer =>
+      assert(deserializeInt(buffer) == 1234567)
+    }(position = 3)
   }
 
   it should "deserialize max int" in {
-    val buffer = wrap(Array[Byte](-1, -1, -1, -1, 7))
-    assert(deserializeInt(buffer) == Int.MaxValue)
-    assert(buffer.position() == 5)
+    havingContents(-1, -1, -1, -1, 7) { buffer =>
+      assert(deserializeInt(buffer) == Int.MaxValue)
+    }(position = 5)
   }
 
   it should "fail on deserialization of slightly too big number for int" in {
-    val buffer = wrap(Array[Byte](-1, -1, -1, -1, 8))
-    a [NumberCodecException] should be thrownBy {
-      deserializeInt(buffer)
-    }
-    assert(buffer.position() == 5)
+    havingContents(-1, -1, -1, -1, 8) { buffer =>
+      a[NumberCodecException] should be thrownBy {
+        deserializeInt(buffer)
+      }
+    }(position = 5)
   }
 
   it should "fail on deserialization of way too big number for int" in {
-    val buffer = wrap(Array[Byte](-1, -1, -1, -1, -1, 1))
-    a [NumberCodecException] should be thrownBy {
-      deserializeInt(buffer)
-    }
-    assert(buffer.position() == 5)
+    havingContents(-1, -1, -1, -1, -1, 1) { buffer =>
+      a[NumberCodecException] should be thrownBy {
+        deserializeInt(buffer)
+      }
+    }(position = 5)
   }
 
   it should "fail on serializing negative long" in {
-    val buffer = allocate(0)
-    a [IllegalArgumentException] should be thrownBy {
-      serializeLong(buffer, -1L)
-    }
-    assert(buffer.position() == 0)
+    havingSize(0) { buffer =>
+      a[IllegalArgumentException] should be thrownBy {
+        serializeLong(buffer, -1L)
+      }
+    }()
   }
 
   it should "serialize long zero" in {
-    val buffer = allocate(1)
-    serializeLong(buffer, 0L)
-    assert(buffer.position() == 1)
-    assert(buffer.flip() == wrap(Array[Byte](0)))
+    havingSize(1) { buffer =>
+      serializeLong(buffer, 0L)
+    }(contents = 0)
   }
 
   it should "serialize positive long" in {
-    val buffer = allocate(9)
-    serializeLong(buffer, 123456789000L)
-    assert(buffer.flip() == wrap(Array[Byte](-120, -76, -28, -12, -53, 3)))
+    havingSize(9) { buffer =>
+      serializeLong(buffer, 123456789000L)
+    }(contents = -120, -76, -28, -12, -53, 3)
   }
 
   it should "serialize max long" in {
-    val buffer = allocate(9)
-    serializeLong(buffer, Long.MaxValue)
-    assert(buffer.position() == 9)
-    assert(buffer.flip() ==
-      wrap(Array[Byte](-1, -1, -1, -1, -1, -1, -1, -1, 127)))
+    havingSize(9) { buffer =>
+      serializeLong(buffer, Long.MaxValue)
+    }(contents = -1, -1, -1, -1, -1, -1, -1, -1, 127)
   }
 
   it should "fail on long serialization when not enough remaining space" in {
-    val buffer = allocate(2)
-    a [BufferOverflowException] should be thrownBy {
-      serializeLong(buffer, Long.MaxValue)
-    }
-    assert(buffer.position() == 2)
+    havingSize(2) { buffer =>
+      a[BufferOverflowException] should be thrownBy {
+        serializeLong(buffer, Long.MaxValue)
+      }
+    }(-1, -1)
   }
 
   it should "fail on deserializing empty buffer for long" in {
-    val buffer = allocate(0)
-    a [BufferUnderflowException] should be thrownBy {
-      deserializeLong(buffer)
-    }
-    assert(buffer.position() == 0)
+    havingContents() { buffer =>
+      a[BufferUnderflowException] should be thrownBy {
+        deserializeLong(buffer)
+      }
+    }(position = 0)
   }
 
   it should "fail on deserializing unfinished negative sequence for long" in {
-    val buffer = wrap(Array[Byte](-1, -2, -3))
-    a [BufferUnderflowException] should be thrownBy {
-      deserializeLong(buffer)
-    }
-    assert(buffer.remaining() == 0)
+    havingContents(-1, -2, -3) { buffer =>
+      a[BufferUnderflowException] should be thrownBy {
+        deserializeLong(buffer)
+      }
+    }(position = 3)
   }
 
   it should "deserialize long zero" in {
-    val buffer = wrap(Array[Byte](0))
-    assert(deserializeLong(buffer) == 0L)
-    assert(buffer.position() == 1)
+    havingContents(0) { buffer =>
+      assert(deserializeLong(buffer) == 0L)
+    }(position = 1)
   }
 
   it should "fully deserialize weirdly encoded long zero" in {
-    val buffer = wrap(Array[Byte](-128, -128, -128, -128, -128, -128, -128,
-      -128, -128, -128, -128, -128, -128, -128, -128, -128, -128, -128, 0))
-    assert(deserializeLong(buffer) == 0L)
-    assert(buffer.position() == 19)
+    havingContents(-128, -128, -128, -128, -128, -128, -128, -128, -128, -128,
+      -128, -128, -128, -128, -128, -128, -128, -128, 0) { buffer =>
+      assert(deserializeLong(buffer) == 0L)
+    }(position = 19)
   }
 
   it should "deserialize positive long" in {
-    val buffer = wrap(Array[Byte](-120, -76, -28, -12, -53, 3))
-    assert(deserializeLong(buffer) == 123456789000L)
-    assert(buffer.position() == 6)
+    havingContents(-120, -76, -28, -12, -53, 3) { buffer =>
+      assert(deserializeLong(buffer) == 123456789000L)
+    }(position = 6)
   }
 
   it should "deserialize max long" in {
-    val buffer = wrap(Array[Byte](-1, -1, -1, -1, -1, -1, -1, -1, 127))
-    assert(deserializeLong(buffer) == Long.MaxValue)
-    assert(buffer.position() == 9)
+    havingContents(-1, -1, -1, -1, -1, -1, -1, -1, 127) { buffer =>
+      assert(deserializeLong(buffer) == Long.MaxValue)
+    }(position = 9)
   }
 
   it should "fail on deserialization of slightly too big number for long" in {
-    val buffer = wrap(Array[Byte](-1, -1, -1, -1, -1, -1, -1, -1, -1, 1))
-    a [NumberCodecException] should be thrownBy {
-      deserializeLong(buffer)
-    }
-    assert(buffer.position() == 10)
+    havingContents(-1, -1, -1, -1, -1, -1, -1, -1, -1, 1) { buffer =>
+      a[NumberCodecException] should be thrownBy {
+        deserializeLong(buffer)
+      }
+    }(position = 10)
   }
 
   it should "fail on deserialization of way too big number for long" in {
-    val buffer = wrap(Array[Byte](-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0))
-    a [NumberCodecException] should be thrownBy {
-      deserializeLong(buffer)
-    }
-    assert(buffer.position() == 10)
+    havingContents(-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0) { buffer =>
+      a[NumberCodecException] should be thrownBy {
+        deserializeLong(buffer)
+      }
+    }(position = 10)
   }
 }
