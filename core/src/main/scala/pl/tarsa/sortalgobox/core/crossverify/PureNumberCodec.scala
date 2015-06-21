@@ -33,7 +33,7 @@ object PureNumberCodec {
       buffer.put(value.toByte)
     } else {
       buffer.put(((value & 127) - 128).toByte)
-      serializeInt(buffer, value >>> 7)
+      serializeInt(buffer, value >> 7)
     }
   }
 
@@ -66,7 +66,7 @@ object PureNumberCodec {
       buffer.put(value.toByte)
     } else {
       buffer.put(((value & 127) - 128).toByte)
-      serializeLong(buffer, value >>> 7)
+      serializeLong(buffer, value >> 7)
     }
   }
 
