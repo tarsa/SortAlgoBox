@@ -78,7 +78,7 @@ class PureNumberCodecSpec extends CommonUnitSpecBase {
     }(contents = -1, -1)
   }
 
-  it should "fail on deserializing empty buffer for int" in {
+  it should "fail on deserialization of empty buffer for int" in {
     havingContents() { buffer =>
       a[BufferUnderflowException] should be thrownBy {
         deserializeInt(buffer)
@@ -86,7 +86,8 @@ class PureNumberCodecSpec extends CommonUnitSpecBase {
     }(position = 0)
   }
 
-  it should "fail on deserializing unfinished negative sequence for int" in {
+  it should "fail on deserialization of unfinished negative sequence for " +
+    "int" in {
     havingContents(-1, -2, -3) { buffer =>
       a[BufferUnderflowException] should be thrownBy {
         deserializeInt(buffer)
@@ -168,7 +169,7 @@ class PureNumberCodecSpec extends CommonUnitSpecBase {
     }(-1, -1)
   }
 
-  it should "fail on deserializing empty buffer for long" in {
+  it should "fail on deserialization of empty buffer for long" in {
     havingContents() { buffer =>
       a[BufferUnderflowException] should be thrownBy {
         deserializeLong(buffer)
@@ -176,7 +177,8 @@ class PureNumberCodecSpec extends CommonUnitSpecBase {
     }(position = 0)
   }
 
-  it should "fail on deserializing unfinished negative sequence for long" in {
+  it should "fail on deserialization of unfinished negative sequence for " +
+    "long" in {
     havingContents(-1, -2, -3) { buffer =>
       a[BufferUnderflowException] should be thrownBy {
         deserializeLong(buffer)
