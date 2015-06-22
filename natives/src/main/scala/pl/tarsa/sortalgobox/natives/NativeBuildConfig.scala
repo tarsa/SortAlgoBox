@@ -22,7 +22,7 @@ package pl.tarsa.sortalgobox.natives
 
 import java.nio.file.{Files, Path}
 
-case class NativeBuildConfig(components: Seq[NativeBuildComponent],
+case class NativeBuildConfig(components: Seq[_ <: NativeBuildComponent],
   mainSourceFile: String,
   compilerOptions: CompilerOptions = CompilerOptions.default) {
 
@@ -44,10 +44,14 @@ case class NativeBuildConfig(components: Seq[NativeBuildComponent],
   }
 
   def copyBuildComponents(destination: Path): Unit = {
-    components.foreach { component =>
-      val componentPath = destination.resolve(component.fileName)
-      val resourceName = component.resourceNamePrefix + component.fileName
-      Files.copy(getClass.getResourceAsStream(resourceName), componentPath)
+    components.foreach {
+      case NativeBuildComponentFromResource(resourceNamePrefix, fileName) =>
+        val componentPath = destination.resolve(fileName)
+        val resourceName = resourceNamePrefix + fileName
+        Files.copy(getClass.getResourceAsStream(resourceName), componentPath)
+      case NativeBuildComponentFromString(contents, fileName) =>
+        val componentPath = destination.resolve(fileName)
+        Files.write(componentPath, contents.getBytes("UTF-8"))
     }
   }
 }

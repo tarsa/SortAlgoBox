@@ -20,4 +20,10 @@
  */
 package pl.tarsa.sortalgobox.natives
 
-case class NativeBuildComponent(resourceNamePrefix: String, fileName: String)
+sealed trait NativeBuildComponent
+
+case class NativeBuildComponentFromResource(resourceNamePrefix: String,
+  fileName: String) extends NativeBuildComponent
+
+case class NativeBuildComponentFromString(contents: String, fileName: String)
+  extends NativeBuildComponent

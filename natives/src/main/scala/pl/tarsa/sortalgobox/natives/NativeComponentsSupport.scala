@@ -22,6 +22,6 @@ package pl.tarsa.sortalgobox.natives
 
 trait NativeComponentsSupport {
   def makeComponents(asTuples: (String, String)*): Seq[NativeBuildComponent] = {
-    asTuples.map(NativeBuildComponent.tupled)
+    asTuples.map(NativeBuildComponentFromResource.tupled)
   }
 }
