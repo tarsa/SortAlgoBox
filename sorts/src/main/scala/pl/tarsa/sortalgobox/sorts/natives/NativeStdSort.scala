@@ -32,7 +32,12 @@ class NativeStdSort(nativesCache: NativesCache = NativesCache)
 
   val name = getClass.getSimpleName
 
-  val buildConfig = NativeBuildConfig(NativeStdSort.components, "main.cpp")
+  val buildConfig = {
+    val algoDefines = Seq(CompilerDefine("SORT_MECHANICS", Some("main.hpp")))
+    val compilerOptions = CompilerOptions(defines =
+      CompilerOptions.defaultDefines ++ algoDefines)
+    NativeBuildConfig(NativeStdSort.components, "main.cpp", compilerOptions)
+  }
 
   override def forSize(n: Int, validate: Boolean,
     buffer: Option[Array[Int]]): Long = {
@@ -55,5 +60,8 @@ class NativeStdSort(nativesCache: NativesCache = NativesCache)
 
 object NativeStdSort extends NativeComponentsSupport {
   val components = NativeMwc64x.header ++ makeComponents(
-    ("/pl/tarsa/sortalgobox/sorts/natives/std__sort/", "main.cpp"))
+    ("/pl/tarsa/sortalgobox/natives/", "macros.hpp"),
+    ("/pl/tarsa/sortalgobox/natives/", "utilities.hpp"),
+    ("/pl/tarsa/sortalgobox/sorts/natives/", "main.cpp"),
+    ("/pl/tarsa/sortalgobox/sorts/natives/std__sort/", "main.hpp"))
 }

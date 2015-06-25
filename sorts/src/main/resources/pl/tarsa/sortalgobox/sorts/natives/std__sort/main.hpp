@@ -19,37 +19,27 @@
  *
  */
 #include <algorithm>
-#include <chrono>
 #include <cstdint>
-#include <cstdlib>
-#include <iomanip>
-#include <iostream>
-#include <iterator>
 
-#include "mwc64x.hpp"
+#define VALIDATE_FUNCTION
 
-int main(int argc, char** argv) {
-    bool validate;
-    std::cin >> validate;
-    uint64_t n;
-    std::cin >> n;
-    int32_t * tab = new int32_t[n];
-    mwc64xFill(tab, n);
-
-    auto startingChrono = std::chrono::system_clock::now();
-    std::sort(tab, tab + n);
-    auto elapsedChrono = std::chrono::system_clock::now() - startingChrono;
-    uint64_t elapsedChronoNanoseconds = std::chrono::duration_cast<std::chrono
-        ::nanoseconds>(elapsedChrono).count();
-    printf("%lx\n", elapsedChronoNanoseconds);
-
-    if (validate) {
-        bool sorted = true;
-        for (uint64_t i = 1; sorted && (i < n); i++) {
-            sorted &= tab[i - 1] <= tab[i];
-        }
-        puts(sorted ? "pass" : "fail");
+bool sortValidate(int32_t const * const work, ssize_t const size) {
+    bool sorted = true;
+    for (ssize_t i = 1; sorted && (i < size); i++) {
+        sorted &= work[i - 1] <= work[i];
     }
+    return sorted;
+}
 
-    return EXIT_SUCCESS;
+struct auxiliary_space_t {
+};
+
+auxiliary_space_t sortInitAuxiliary(ssize_t const size) {
+    auxiliary_space_t auxiliary;
+    return auxiliary;
+}
+
+void sortPerform(int32_t * const work, ssize_t const size,
+        auxiliary_space_t const auxiliary) {
+    std::sort(work, work + size);
 }
