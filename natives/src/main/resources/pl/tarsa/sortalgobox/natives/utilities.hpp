@@ -18,5 +18,14 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
- #define xstr(s) str(s)
- #define str(s) #s
+template<typename T>
+void checkNew(size_t n) {
+    T * const result = new T[n];
+    assert(result != nullptr);
+    return result;
+}
+
+template<typename T>
+void checkZero(T value) {
+    assert(value == 0);
+}
