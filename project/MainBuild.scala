@@ -4,9 +4,7 @@ import Keys._
 object MainBuild extends Build {
 
   lazy val commonSettings = Seq(
-    scalaVersion := "2.11.6",
-    unmanagedJars in Compile += Attributed.blank(
-      file("/usr/lib/jvm/java-8-oracle/jre/lib/ext/jfxrt.jar"))
+    scalaVersion := "2.11.7"
   )
 
   val fullDep = "compile->compile;test->test"
@@ -17,11 +15,11 @@ object MainBuild extends Build {
       libraryDependencies ++= Seq(
         "org.apache.commons" % "commons-math3" % "3.5",
         "org.jocl" % "jocl" % "0.1.9",
-        "org.scalatest" %% "scalatest" % "2.2.1" % "test",
+        "org.scalatest" %% "scalatest" % "2.2.4" % "test",
         "org.scalamock" %% "scalamock-scalatest-support" % "3.2" % "test",
         "org.scalafx" %% "scalafx" % "8.0.40-R8"),
       dependencyOverrides ++= Set(
-        "org.scala-lang.modules" %% "scala-xml" % "1.0.4")
+        "org.scala-lang.modules" %% "scala-xml" % "1.0.5")
     )
 
   lazy val depsCp = deps % fullDep
