@@ -20,13 +20,8 @@
  */
 package pl.tarsa.sortalgobox.main.app
 
-import pl.tarsa.sortalgobox.core.CliBenchmarkSuite
+import pl.tarsa.sortalgobox.fxgui.FxBenchmarkSuite
 import pl.tarsa.sortalgobox.main.BenchmarksConfigurations
 
-object CliBenchmarkSuite extends CliBenchmarkSuite(
-  BenchmarksConfigurations.benchmarks) {
-
-  def main(args: Array[String]) {
-    run()
-  }
-}
+object FxBenchmarkSuiteApp extends FxBenchmarkSuite(
+  BenchmarksConfigurations.benchmarks)

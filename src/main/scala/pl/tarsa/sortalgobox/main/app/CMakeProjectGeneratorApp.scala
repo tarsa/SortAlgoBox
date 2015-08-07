@@ -23,7 +23,7 @@ package pl.tarsa.sortalgobox.main.app
 import pl.tarsa.sortalgobox.core.CMakeProjectGenerator
 import pl.tarsa.sortalgobox.main.BenchmarksConfigurations
 
-object CMakeProjectGenerator extends CMakeProjectGenerator(
+object CMakeProjectGeneratorApp extends CMakeProjectGenerator(
   BenchmarksConfigurations.nativeBenchmarks) {
 
   def main(args: Array[String]) {
