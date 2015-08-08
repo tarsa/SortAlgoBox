@@ -21,10 +21,10 @@
 package pl.tarsa.sortalgobox.sorts.scala.merge
 
 import pl.tarsa.sortalgobox.core.common.ComparisonsSupport._
-import pl.tarsa.sortalgobox.core.common.{SortAlgorithm, ExSituAlgorithm}
+import pl.tarsa.sortalgobox.core.common.{ComparisonSortAlgorithm, ExSituAlgorithm}
 
 class MergeSort[T: Conv](implicit val makeArray: Int => Array[T])
-  extends SortAlgorithm[T] with ExSituAlgorithm[T] {
+  extends ComparisonSortAlgorithm[T] with ExSituAlgorithm[T] {
 
   override def sort(array: Array[T]): Unit = {
     val n = array.length

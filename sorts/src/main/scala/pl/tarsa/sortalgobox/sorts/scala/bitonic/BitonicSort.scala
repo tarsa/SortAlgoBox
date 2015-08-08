@@ -22,9 +22,9 @@ package pl.tarsa.sortalgobox.sorts.scala.bitonic
 
 import pl.tarsa.sortalgobox.core.common.ArrayHelpers._
 import pl.tarsa.sortalgobox.core.common.ComparisonsSupport._
-import pl.tarsa.sortalgobox.core.common.SortAlgorithm
+import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
 
-class BitonicSort[T: Conv] extends SortAlgorithm[T] {
+class BitonicSort[T: Conv] extends ComparisonSortAlgorithm[T] {
   override def sort(array: Array[T]): Unit = {
     val size = array.length
     val phasesPerBlock = Stream.iterate(1)(_ + 1)

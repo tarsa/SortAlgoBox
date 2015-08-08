@@ -22,9 +22,9 @@ package pl.tarsa.sortalgobox.sorts.scala.selection
 
 import pl.tarsa.sortalgobox.core.common.ArrayHelpers._
 import pl.tarsa.sortalgobox.core.common.ComparisonsSupport._
-import pl.tarsa.sortalgobox.core.common.SortAlgorithm
+import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
 
-class SelectionSort[T: Conv] extends SortAlgorithm[T] {
+class SelectionSort[T: Conv] extends ComparisonSortAlgorithm[T] {
   override def sort(array: Array[T]): Unit = {
     for (i <- 0 to array.length - 2) {
       val j = array.view.zipWithIndex.drop(i).minBy(_._1)._2

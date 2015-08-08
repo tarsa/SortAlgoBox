@@ -18,19 +18,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
-package pl.tarsa.sortalgobox.sorts.scala.bubble
+package pl.tarsa.sortalgobox.core.common
 
-import pl.tarsa.sortalgobox.core.common.ArrayHelpers._
 import pl.tarsa.sortalgobox.core.common.ComparisonsSupport._
-import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
 
-class BubbleSort[T: Conv] extends ComparisonSortAlgorithm[T] {
-  override def sort(array: Array[T]): Unit = {
-    for (i <- array.length - 1 to 1 by -1;
-         j <- 0 until i) {
-      if (array(j) > array(j + 1)) {
-        swap(array, j, j + 1)
-      }
-    }
-  }
-}
+abstract class ComparisonSortAlgorithm[T: Conv] extends SortAlgorithm[T]

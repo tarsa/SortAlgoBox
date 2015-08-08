@@ -21,9 +21,9 @@
 package pl.tarsa.sortalgobox.sorts.scala.heap
 
 import pl.tarsa.sortalgobox.core.common.ComparisonsSupport.Conv
-import pl.tarsa.sortalgobox.core.common.SortAlgorithm
+import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
 
-class HeapSort[T: Conv] extends SortAlgorithm[T] {
+class HeapSort[T: Conv] extends ComparisonSortAlgorithm[T] {
   override def sort(array: Array[T]): Unit = {
     val heap = BinaryHeap(array)
     while (heap.size > 0) {

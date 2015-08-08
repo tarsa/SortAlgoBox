@@ -20,8 +20,8 @@
  */
 package pl.tarsa.sortalgobox.core
 
-import pl.tarsa.sortalgobox.random.Mwc64x
 import pl.tarsa.sortalgobox.core.common.SortAlgorithm
+import pl.tarsa.sortalgobox.random.Mwc64x
 
 class SortManager(props: SortSuiteProps, algorithms: Seq[SortAlgorithm[Int]]) {
   def executeAll(): Unit = {

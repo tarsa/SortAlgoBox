@@ -22,9 +22,9 @@ package pl.tarsa.sortalgobox.sorts.scala.insertion
 
 import pl.tarsa.sortalgobox.core.common.ArrayHelpers.swap
 import pl.tarsa.sortalgobox.core.common.ComparisonsSupport.Conv
-import pl.tarsa.sortalgobox.core.common.SortAlgorithm
+import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
 
-class InsertionSort[T: Conv] extends SortAlgorithm[T] {
+class InsertionSort[T: Conv] extends ComparisonSortAlgorithm[T] {
   override def sort(array: Array[T]): Unit = {
     for (i <- 1 until array.length) {
       var j = i

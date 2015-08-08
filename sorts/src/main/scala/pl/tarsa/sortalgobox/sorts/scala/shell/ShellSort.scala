@@ -22,9 +22,11 @@ package pl.tarsa.sortalgobox.sorts.scala.shell
 
 import pl.tarsa.sortalgobox.core.common.ArrayHelpers.swap
 import pl.tarsa.sortalgobox.core.common.ComparisonsSupport._
-import pl.tarsa.sortalgobox.core.common.SortAlgorithm
+import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
 
-class ShellSort[T: Conv](gapSequence: GapSequence) extends SortAlgorithm[T] {
+class ShellSort[T: Conv](gapSequence: GapSequence)
+  extends ComparisonSortAlgorithm[T] {
+
   override def sort(array: Array[T]): Unit = {
     for (gap <- gapSequence.forSize(array.length);
          i <- gap until array.length) {
