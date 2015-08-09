@@ -20,12 +20,18 @@
  */
 package pl.tarsa.sortalgobox.sorts.scala.heap.check
 
+import pl.tarsa.sortalgobox.core.common.agents.implementations.ComparingIntArrayItemsAgent
 import pl.tarsa.sortalgobox.sorts.scala.heap.BinaryHeap
 import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
+
+import scala.language.implicitConversions
 
 class BinaryHeapCheckerSpec extends CommonUnitSpecBase {
 
   typeBehavior[BinaryHeapChecker.type]
+
+  implicit def intArrayToComparingItemsAgent(array: Array[Int]):
+  ComparingIntArrayItemsAgent = new ComparingIntArrayItemsAgent(array)
 
   it should "handle empty heap" in {
     val array = Array.emptyIntArray

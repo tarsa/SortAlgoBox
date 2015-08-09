@@ -27,5 +27,5 @@ abstract class SlicingItemsAgent[ItemType] extends ItemsAgent[ItemType] {
   def getItemSlice(v: ItemType, lowestBit: Int, length: Int): Int
 
   def getItemSlice0(i: Int, lowestBit: Int, length: Int): Int =
-    getItemSlice(storage0(i), lowestBit, length)
+    getItemSlice(get0(i), lowestBit, length)
 }

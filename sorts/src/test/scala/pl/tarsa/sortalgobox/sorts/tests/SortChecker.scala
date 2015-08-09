@@ -22,7 +22,7 @@ package pl.tarsa.sortalgobox.sorts.tests
 
 import org.scalatest.Matchers
 import pl.tarsa.sortalgobox.core.common._
-import pl.tarsa.sortalgobox.core.common.agents._
+import pl.tarsa.sortalgobox.core.common.agents.implementations._
 import pl.tarsa.sortalgobox.random.Mwc64x
 import pl.tarsa.sortalgobox.sorts.scala.merge.MergeSort
 import pl.tarsa.sortalgobox.sorts.scala.radix.RadixSort
@@ -62,11 +62,7 @@ object SortChecker {
 
   def apply(comparisonSortAlgorithm: ComparisonSortAlgorithm): SortChecker = {
     new SortChecker ({ intArray: Array[Int] =>
-      val itemsAgent = new ComparingItemsAgent[Int] {
-        override def storage0 = intArray
-
-        override def compare(a: Int, b: Int): Int = Ordering.Int.compare(a, b)
-      }
+      val itemsAgent = new ComparingIntArrayItemsAgent(intArray)
       comparisonSortAlgorithm.sort(itemsAgent)
     })
   }
@@ -74,13 +70,7 @@ object SortChecker {
   def apply(mergeSort: MergeSort): SortChecker = {
     new SortChecker ({ intArray: Array[Int] =>
       val buffer = Array.ofDim[Int](intArray.length)
-      val itemsAgent = new MergeSortItemsAgent[Int] {
-        override def storage0 = intArray
-
-        override def storage1 = buffer
-
-        override def compare(a: Int, b: Int): Int = Ordering.Int.compare(a, b)
-      }
+      val itemsAgent = new MergeSortIntArrayItemsAgent(intArray, buffer)
       mergeSort.sort(itemsAgent)
     })
   }
@@ -88,17 +78,7 @@ object SortChecker {
   def apply(radixSort: RadixSort): SortChecker = {
     new SortChecker ({ intArray: Array[Int] =>
       val buffer = Array.ofDim[Int](intArray.length)
-      val itemsAgent = new RadixSortItemsAgent[Int] {
-        override def storage0 = intArray
-
-        override def storage1 = buffer
-
-        override def keySizeInBits: Int = 32
-
-        override def getItemSlice(v: Int, lowestBit: Int, length: Int): Int = {
-          ((v ^ Int.MinValue) >>> lowestBit) & ((1 << length) - 1)
-        }
-      }
+      val itemsAgent = new RadixSortIntArrayItemsAgent(intArray, buffer)
       radixSort.sort(itemsAgent)
     })
   }

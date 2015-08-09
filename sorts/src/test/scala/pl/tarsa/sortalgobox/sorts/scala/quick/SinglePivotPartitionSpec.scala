@@ -20,11 +20,17 @@
  */
 package pl.tarsa.sortalgobox.sorts.scala.quick
 
+import pl.tarsa.sortalgobox.core.common.agents.implementations.ComparingIntArrayItemsAgent
 import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
+
+import scala.language.implicitConversions
 
 class SinglePivotPartitionSpec extends CommonUnitSpecBase {
 
   typeBehavior[SinglePivotPartition]
+
+  implicit def intArrayToComparingItemsAgent(array: Array[Int]):
+  ComparingIntArrayItemsAgent = new ComparingIntArrayItemsAgent(array)
 
   it should "handle empty arrays" in {
     val array = Array[Int]()

@@ -18,32 +18,21 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
-package pl.tarsa.sortalgobox.main
+package pl.tarsa.sortalgobox.core.common.agents.implementations
 
 import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
-import pl.tarsa.sortalgobox.core.common._
-import pl.tarsa.sortalgobox.core.common.agents.implementations.ComparingIntArrayItemsAgent
 
-object MeasuringIntSortAlgorithmWrapper {
-  def apply(plainSortAlgorithm: AnyRef): MeasuredSortAlgorithm[Int] =
-    plainSortAlgorithm match {
-      case sortAlgorithm: GenericIntSortAlgorithm =>
-        wrap(sortAlgorithm)
-      case sortAlgorithm: ComparisonSortAlgorithm =>
-        wrap { intArray: Array[Int] =>
-          val itemsAgent = new ComparingIntArrayItemsAgent(intArray)
-          val startTime = System.nanoTime()
-          sortAlgorithm.sort(itemsAgent)
-          System.nanoTime() - startTime
-        }
-    }
+class ComparingIntArrayItemsAgent(items: Array[Int])
+  extends ComparingItemsAgent[Int] {
 
-  def wrap(doSorting: (Array[Int]) => Unit): MeasuredSortAlgorithm[Int] =
-    new MeasuredSortAlgorithm[Int] {
-      override def sort(array: Array[Int]): Long = {
-        val startTime = System.nanoTime()
-        doSorting(array)
-        System.nanoTime() - startTime
-      }
-    }
+  override def size0: Int = items.length
+
+  override def get0(i: Int): Int = items(i)
+
+  override def set0(i: Int, v: Int): Unit = items(i) = v
+
+  override def copy0(i: Int, j: Int, n: Int): Unit =
+    System.arraycopy(items, i, items, j, n)
+
+  override def compare(a: Int, b: Int): Int = Ordering.Int.compare(a, b)
 }

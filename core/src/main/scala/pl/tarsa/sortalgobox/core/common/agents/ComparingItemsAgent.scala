@@ -24,15 +24,5 @@ abstract class ComparingItemsAgent[ItemType] extends ItemsAgent[ItemType] {
 
   def compare(a: ItemType, b: ItemType): Int
 
-  def compare0(i: Int, j: Int): Int = compare(storage0(i), storage0(j))
-}
-
-object ComparingItemsAgent {
-  implicit class IntArrayAsComparingItemsAgent(array: Array[Int])
-    extends ComparingItemsAgent[Int] {
-
-    override def storage0 = array
-
-    override def compare(a: Int, b: Int): Int = Ordering.Int.compare(a, b)
-  }
+  def compare0(i: Int, j: Int): Int = compare(get0(i), get0(j))
 }

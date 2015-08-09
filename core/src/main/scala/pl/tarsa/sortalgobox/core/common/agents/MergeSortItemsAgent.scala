@@ -22,25 +22,50 @@ package pl.tarsa.sortalgobox.core.common.agents
 
 abstract class MergeSortItemsAgent[ItemType]
   extends ComparingItemsAgent[ItemType] {
-  import ItemsAgent._
 
-  def storage1: Array[ItemType]
-  def size1: Int = storage1.length
-  def get1(i: Int): ItemType = storage1(i)
-  def set1(i: Int, v: ItemType): Unit = storage1(i) = v
+  def size1: Int
 
-  def swap00(i: Int, j: Int): Unit = swap0(i, j)
-  def swap01(i: Int, j: Int): Unit = swap(storage0, i, storage1, j)
-  def swap10(i: Int, j: Int): Unit = swap(storage1, i, storage0, j)
-  def swap11(i: Int, j: Int): Unit = swap(storage1, i, storage1, j)
+  def get1(i: Int): ItemType
 
-  def compare00(i: Int, j: Int): Int = compare0(i, j)
-  def compare01(i: Int, j: Int): Int = compare(storage0(i), storage1(j))
-  def compare10(i: Int, j: Int): Int = compare(storage1(i), storage0(j))
-  def compare11(i: Int, j: Int): Int = compare(storage1(i), storage1(j))
+  def set1(i: Int, v: ItemType): Unit
 
-  def copy00(i: Int, j: Int, n: Int): Unit = copy0(i, j, n)
-  def copy01(i: Int, j: Int, n: Int): Unit = copy(storage0, i, storage1, j, n)
-  def copy10(i: Int, j: Int, n: Int): Unit = copy(storage1, i, storage0, j, n)
-  def copy11(i: Int, j: Int, n: Int): Unit = copy(storage1, i, storage1, j, n)
+  def swap00(i: Int, j: Int): Unit = {
+    val temp = get0(i)
+    set0(i, get0(j))
+    set0(j, temp)
+  }
+
+  def swap01(i: Int, j: Int): Unit = {
+    val temp = get0(i)
+    set0(i, get1(j))
+    set1(j, temp)
+  }
+
+  def swap10(i: Int, j: Int): Unit = {
+    val temp = get1(i)
+    set1(i, get0(j))
+    set0(j, temp)
+  }
+
+  def swap11(i: Int, j: Int): Unit = {
+    val temp = get1(i)
+    set1(i, get1(j))
+    set1(j, temp)
+  }
+
+  def compare00(i: Int, j: Int): Int = compare(get0(i), get0(j))
+
+  def compare01(i: Int, j: Int): Int = compare(get0(i), get1(j))
+
+  def compare10(i: Int, j: Int): Int = compare(get1(i), get0(j))
+
+  def compare11(i: Int, j: Int): Int = compare(get1(i), get1(j))
+
+  def copy00(i: Int, j: Int, n: Int): Unit
+
+  def copy01(i: Int, j: Int, n: Int): Unit
+
+  def copy10(i: Int, j: Int, n: Int): Unit
+
+  def copy11(i: Int, j: Int, n: Int): Unit
 }

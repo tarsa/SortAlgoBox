@@ -21,29 +21,17 @@
 package pl.tarsa.sortalgobox.core.common.agents
 
 abstract class ItemsAgent[ItemType] {
-  import ItemsAgent._
+  def size0: Int
 
-  def storage0: Array[ItemType]
-  def size0: Int = storage0.length
-  def get0(i: Int): ItemType = storage0(i)
-  def set0(i: Int, v: ItemType): Unit = storage0(i) = v
+  def get0(i: Int): ItemType
 
-  def copy0(i: Int, j: Int, n: Int) = copy(storage0, i, storage0, j, n)
+  def set0(i: Int, v: ItemType): Unit
 
-  def swap0(i: Int, j: Int): Unit =
-    swap(storage0, i, storage0, j)
-}
+  def copy0(i: Int, j: Int, n: Int)
 
-object ItemsAgent {
-  def copy[ItemType](source: Array[ItemType], sourceStartIndex: Int,
-    target: Array[ItemType], targetStartIndex: Int, items: Int): Unit = {
-    System.arraycopy(source, sourceStartIndex, target, targetStartIndex, items)
-  }
-
-  def swap[ItemType](storageA: Array[ItemType], indexA: Int,
-    storageB: Array[ItemType], indexB: Int): Unit = {
-    val valueA = storageA(indexA)
-    storageA(indexA) = storageB(indexB)
-    storageB(indexB) = valueA
+  def swap0(i: Int, j: Int): Unit = {
+    val temp = get0(i)
+    set0(i, get0(j))
+    set0(j, temp)
   }
 }
