@@ -20,24 +20,24 @@
  */
 package pl.tarsa.sortalgobox.main
 
-import pl.tarsa.sortalgobox.core.common.agents.ComparingStorageAgent
+import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
 import pl.tarsa.sortalgobox.core.common._
 
 object MeasuringIntSortAlgorithmWrapper {
   def apply(plainSortAlgorithm: AnyRef): MeasuredSortAlgorithm[Int] =
     plainSortAlgorithm match {
-      case sortAlgorithm: IntSortAlgorithm =>
+      case sortAlgorithm: GenericIntSortAlgorithm =>
         wrap(sortAlgorithm)
       case sortAlgorithm: ComparisonSortAlgorithm =>
         wrap { intArray: Array[Int] =>
-          val storageAgent = new ComparingStorageAgent[Int] {
+          val itemsAgent = new ComparingItemsAgent[Int] {
             override def storage0 = intArray
 
             override def compare(a: Int, b: Int): Int =
               Ordering.Int.compare(a, b)
           }
           val startTime = System.nanoTime()
-          sortAlgorithm.sort(storageAgent)
+          sortAlgorithm.sort(itemsAgent)
           System.nanoTime() - startTime
         }
     }

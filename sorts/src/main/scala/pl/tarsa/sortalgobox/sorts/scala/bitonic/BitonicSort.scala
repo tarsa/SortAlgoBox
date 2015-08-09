@@ -21,12 +21,12 @@
 package pl.tarsa.sortalgobox.sorts.scala.bitonic
 
 import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
-import pl.tarsa.sortalgobox.core.common.agents.ComparingStorageAgent
+import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
 
 class BitonicSort extends ComparisonSortAlgorithm {
   override def sort[ItemType](
-    storageAgent: ComparingStorageAgent[ItemType]): Unit = {
-    import storageAgent._
+    itemsAgent: ComparingItemsAgent[ItemType]): Unit = {
+    import itemsAgent._
 
     val size = size0
     val phasesPerBlock = Stream.iterate(1)(_ + 1)

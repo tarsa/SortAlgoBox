@@ -20,12 +20,12 @@
  */
 package pl.tarsa.sortalgobox.sorts.scala.heap
 
-import pl.tarsa.sortalgobox.core.common.agents.ComparingStorageAgent
+import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
 
 import scala.annotation.tailrec
 
-class BinaryHeap[ItemType](val storageAgent: ComparingStorageAgent[ItemType]) {
-  import storageAgent._
+class BinaryHeap[ItemType](val itemsAgent: ComparingItemsAgent[ItemType]) {
+  import itemsAgent._
 
   var size = 0
 
@@ -75,10 +75,10 @@ class BinaryHeap[ItemType](val storageAgent: ComparingStorageAgent[ItemType]) {
 }
 
 object BinaryHeap {
-  def apply[ItemType](storageAgent: ComparingStorageAgent[ItemType]):
+  def apply[ItemType](itemsAgent: ComparingItemsAgent[ItemType]):
   BinaryHeap[ItemType] = {
-    val heap = new BinaryHeap[ItemType](storageAgent)
-    heap.size = storageAgent.size0
+    val heap = new BinaryHeap[ItemType](itemsAgent)
+    heap.size = itemsAgent.size0
     heapify(heap)
     heap
   }

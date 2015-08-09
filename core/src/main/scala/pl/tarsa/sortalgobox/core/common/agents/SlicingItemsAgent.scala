@@ -20,19 +20,12 @@
  */
 package pl.tarsa.sortalgobox.core.common.agents
 
-abstract class ComparingStorageAgent[ItemType] extends StorageAgent[ItemType] {
+abstract class SlicingItemsAgent[ItemType] extends ItemsAgent[ItemType] {
 
-  def compare(a: ItemType, b: ItemType): Int
+  def keySizeInBits: Int
 
-  def compare0(i: Int, j: Int): Int = compare(storage0(i), storage0(j))
-}
+  def getItemSlice(v: ItemType, lowestBit: Int, length: Int): Int
 
-object ComparingStorageAgent {
-  implicit class IntArrayAsComparingStorageAgent(array: Array[Int])
-    extends ComparingStorageAgent[Int] {
-
-    override def storage0 = array
-
-    override def compare(a: Int, b: Int): Int = Ordering.Int.compare(a, b)
-  }
+  def getItemSlice0(i: Int, lowestBit: Int, length: Int): Int =
+    getItemSlice(storage0(i), lowestBit, length)
 }

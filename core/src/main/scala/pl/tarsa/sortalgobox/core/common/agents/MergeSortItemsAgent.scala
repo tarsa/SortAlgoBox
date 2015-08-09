@@ -20,10 +20,9 @@
  */
 package pl.tarsa.sortalgobox.core.common.agents
 
-import pl.tarsa.sortalgobox.core.common.agents.StorageAgent._
-
-abstract class RadixSortStorageAgent[ItemType]
-  extends SlicingStorageAgent[ItemType] {
+abstract class MergeSortItemsAgent[ItemType]
+  extends ComparingItemsAgent[ItemType] {
+  import ItemsAgent._
 
   def storage1: Array[ItemType]
   def size1: Int = storage1.length
@@ -34,6 +33,11 @@ abstract class RadixSortStorageAgent[ItemType]
   def swap01(i: Int, j: Int): Unit = swap(storage0, i, storage1, j)
   def swap10(i: Int, j: Int): Unit = swap(storage1, i, storage0, j)
   def swap11(i: Int, j: Int): Unit = swap(storage1, i, storage1, j)
+
+  def compare00(i: Int, j: Int): Int = compare0(i, j)
+  def compare01(i: Int, j: Int): Int = compare(storage0(i), storage1(j))
+  def compare10(i: Int, j: Int): Int = compare(storage1(i), storage0(j))
+  def compare11(i: Int, j: Int): Int = compare(storage1(i), storage1(j))
 
   def copy00(i: Int, j: Int, n: Int): Unit = copy0(i, j, n)
   def copy01(i: Int, j: Int, n: Int): Unit = copy(storage0, i, storage1, j, n)

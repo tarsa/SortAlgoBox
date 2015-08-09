@@ -21,12 +21,12 @@
 package pl.tarsa.sortalgobox.sorts.scala.insertion
 
 import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
-import pl.tarsa.sortalgobox.core.common.agents.ComparingStorageAgent
+import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
 
 class InsertionSort extends ComparisonSortAlgorithm {
   override def sort[ItemType](
-    storageAgent: ComparingStorageAgent[ItemType]): Unit = {
-    import storageAgent._
+    itemsAgent: ComparingItemsAgent[ItemType]): Unit = {
+    import itemsAgent._
 
     for (i <- 1 until size0) {
       var j = i

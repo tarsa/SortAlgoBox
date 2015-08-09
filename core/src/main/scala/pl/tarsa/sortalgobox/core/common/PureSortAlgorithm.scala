@@ -20,6 +20,9 @@
  */
 package pl.tarsa.sortalgobox.core.common
 
-trait FixedSizeKeyAlgorithm[T] {
-  protected def keyProps: FixedSizeKeyProperties[T]
+import pl.tarsa.sortalgobox.core.common.agents.ItemsAgent
+
+abstract class PureSortAlgorithm[AgentType[ItemType] <: ItemsAgent[ItemType]] {
+
+  def sort[ItemType](itemsAgent: AgentType[ItemType]): Unit
 }

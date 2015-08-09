@@ -20,13 +20,13 @@
  */
 package pl.tarsa.sortalgobox.sorts.scala.merge
 
-import pl.tarsa.sortalgobox.core.common.SortAlgorithm
-import pl.tarsa.sortalgobox.core.common.agents.MergeSortStorageAgent
+import pl.tarsa.sortalgobox.core.common.PureSortAlgorithm
+import pl.tarsa.sortalgobox.core.common.agents.MergeSortItemsAgent
 
-class MergeSort extends SortAlgorithm[MergeSortStorageAgent] {
+class MergeSort extends PureSortAlgorithm[MergeSortItemsAgent] {
   override def sort[ItemType](
-    storageAgent: MergeSortStorageAgent[ItemType]): Unit = {
-    import storageAgent._
+    itemsAgent: MergeSortItemsAgent[ItemType]): Unit = {
+    import itemsAgent._
 
     val n = size0
     for (width <- Stream.iterate(1L)(_ * 2).takeWhile(_ < n)) {
@@ -34,16 +34,15 @@ class MergeSort extends SortAlgorithm[MergeSortStorageAgent] {
         val start = Math.min(i, n)
         val med = Math.min(start + width, n)
         val next = Math.min(med + width, n)
-        bottomUpMerge(storageAgent, start.toInt, med.toInt, next.toInt)
+        bottomUpMerge(itemsAgent, start.toInt, med.toInt, next.toInt)
       }
       copy10(0, 0, n)
     }
   }
 
-  private def bottomUpMerge[ItemType](
-    storageAgent: MergeSortStorageAgent[ItemType],
+  private def bottomUpMerge[ItemType](itemsAgent: MergeSortItemsAgent[ItemType],
     start: Int, med: Int, next: Int): Unit = {
-    import storageAgent._
+    import itemsAgent._
 
     var left = start
     var right = med

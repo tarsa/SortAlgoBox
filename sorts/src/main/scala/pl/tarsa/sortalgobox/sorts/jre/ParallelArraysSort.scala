@@ -22,12 +22,12 @@ package pl.tarsa.sortalgobox.sorts.jre
 
 import java.util.{Arrays => jArrays}
 
-import pl.tarsa.sortalgobox.core.common.{IntSortAlgorithm, LongSortAlgorithm}
+import pl.tarsa.sortalgobox.core.common._
 
 object ParallelArraysSort {
-  val intSort: (Array[Int] => Unit) = IntSortAlgorithm(
+  val intSort: (Array[Int] => Unit) = GenericIntSortAlgorithm(
     jArrays.parallelSort(_: Array[Int]))
 
-  val longSort: (Array[Long] => Unit) = LongSortAlgorithm(
+  val longSort: (Array[Long] => Unit) = GenericLongSortAlgorithm(
     jArrays.parallelSort(_: Array[Long]))
 }

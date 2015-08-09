@@ -20,58 +20,55 @@
  */
 package pl.tarsa.sortalgobox.sorts.scala.quick
 
-import pl.tarsa.sortalgobox.core.common.agents.ComparingStorageAgent
+import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
 
-class QuickSortWithLimitedCallDepth(
-  val partition: SinglePivotPartition) extends QuickSort {
+class QuickSortWithLimitedCallDepth(val partition: SinglePivotPartition)
+  extends QuickSort {
 
   override def sort[ItemType](
-    storageAgent: ComparingStorageAgent[ItemType]): Unit = {
-    import storageAgent._
-    sortManualTcoOuter(storageAgent, 0, size0)
+    itemsAgent: ComparingItemsAgent[ItemType]): Unit = {
+    import itemsAgent._
+    sortManualTcoOuter(itemsAgent, 0, size0)
   }
 
-  def sortManualTcoOuter[ItemType](
-    storageAgent: ComparingStorageAgent[ItemType],
+  def sortManualTcoOuter[ItemType](itemsAgent: ComparingItemsAgent[ItemType],
     start: Int, after: Int): Unit = {
     var currentStart = start
     var currentAfter = after
     while (currentAfter - currentStart > 1) {
       val (newStart, newAfter) =
-        sortManualTcoInner(storageAgent, currentAfter, currentStart)
+        sortManualTcoInner(itemsAgent, currentAfter, currentStart)
       currentStart = newStart
       currentAfter = newAfter
     }
   }
 
-  def sortManualTcoInner[ItemType](
-    storageAgent: ComparingStorageAgent[ItemType], after: Int,
-    start: Int) = {
+  def sortManualTcoInner[ItemType](itemsAgent: ComparingItemsAgent[ItemType],
+    after: Int, start: Int) = {
     val (leftAfter, rightStart) = selectPivotAndComputePartitionsBounds(
-      storageAgent, start, after)
-    spawnSmallerAndReturnBiggerPartition(storageAgent, start, after,
+      itemsAgent, start, after)
+    spawnSmallerAndReturnBiggerPartition(itemsAgent, start, after,
       leftAfter, rightStart)
   }
 
   def selectPivotAndComputePartitionsBounds[ItemType](
-    storageAgent: ComparingStorageAgent[ItemType],
-    start: Int, after: Int) = {
+    itemsAgent: ComparingItemsAgent[ItemType], start: Int, after: Int) = {
     val pivotIndex = (after - start) / 2 + start
     val (leftAfter, rightStart) = partition.partitionAndComputeBounds(
-      storageAgent, start, after, pivotIndex)
+      itemsAgent, start, after, pivotIndex)
     (leftAfter, rightStart)
   }
 
   def spawnSmallerAndReturnBiggerPartition[ItemType](
-    storageAgent: ComparingStorageAgent[ItemType],
+    itemsAgent: ComparingItemsAgent[ItemType],
     start: Int, after: Int, leftAfter: Int, rightStart: Int) = {
     val leftPartitionSize = leftAfter - start
     val rightPartitionSize = after - rightStart
     if (leftPartitionSize < rightPartitionSize) {
-      sortManualTcoOuter(storageAgent, start, leftAfter)
+      sortManualTcoOuter(itemsAgent, start, leftAfter)
       (rightStart, after)
     } else {
-      sortManualTcoOuter(storageAgent, rightStart, after)
+      sortManualTcoOuter(itemsAgent, rightStart, after)
       (start, leftAfter)
     }
   }

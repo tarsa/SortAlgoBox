@@ -21,14 +21,14 @@
 package pl.tarsa.sortalgobox.sorts.scala.heap
 
 import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
-import pl.tarsa.sortalgobox.core.common.agents.ComparingStorageAgent
+import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
 
 class HeapSort extends ComparisonSortAlgorithm {
   override def sort[ItemType](
-    storageAgent: ComparingStorageAgent[ItemType]): Unit = {
-    val heap = BinaryHeap[ItemType](storageAgent)
-    import heap.storageAgent._
+    itemsAgent: ComparingItemsAgent[ItemType]): Unit = {
+    import itemsAgent._
 
+    val heap = BinaryHeap[ItemType](itemsAgent)
     while (heap.size > 0) {
       val top = heap.extractTop
       set0(heap.size, top)

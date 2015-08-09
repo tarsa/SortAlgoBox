@@ -20,11 +20,10 @@
  */
 package pl.tarsa.sortalgobox.core.common
 
-import pl.tarsa.sortalgobox.core.common.agents.ComparingStorageAgent
+import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
 
 abstract class ComparisonSortAlgorithm
-  extends SortAlgorithm[ComparingStorageAgent] {
+  extends PureSortAlgorithm[ComparingItemsAgent] {
 
-  override def sort[ItemType](
-    storageAgent: ComparingStorageAgent[ItemType]): Unit
+  override def sort[ItemType](itemsAgent: ComparingItemsAgent[ItemType]): Unit
 }

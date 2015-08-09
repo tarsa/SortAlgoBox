@@ -20,14 +20,14 @@
  */
 package pl.tarsa.sortalgobox.sorts.scala.quick
 
-import pl.tarsa.sortalgobox.core.common.agents.ComparingStorageAgent
+import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
 
 private [sortalgobox]
 class SinglePivotPartition {
   def partitionAndComputeBounds[ItemType](
-    storageAgent: ComparingStorageAgent[ItemType],
+    itemsAgent: ComparingItemsAgent[ItemType],
     start: Int, after: Int, pivotIndex: Int): (Int, Int) = {
-    import storageAgent._
+    import itemsAgent._
 
     var notBiggerAfter: Int = start
     var notSmallerStart: Int = after

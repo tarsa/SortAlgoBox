@@ -22,7 +22,7 @@ package pl.tarsa.sortalgobox.sorts.tests
 
 import org.scalatest.Matchers
 import pl.tarsa.sortalgobox.core.common._
-import pl.tarsa.sortalgobox.core.common.agents.{RadixSortStorageAgent, MergeSortStorageAgent, ComparingStorageAgent}
+import pl.tarsa.sortalgobox.core.common.agents._
 import pl.tarsa.sortalgobox.random.Mwc64x
 import pl.tarsa.sortalgobox.sorts.scala.merge.MergeSort
 import pl.tarsa.sortalgobox.sorts.scala.radix.RadixSort
@@ -62,33 +62,33 @@ object SortChecker {
 
   def apply(comparisonSortAlgorithm: ComparisonSortAlgorithm): SortChecker = {
     new SortChecker ({ intArray: Array[Int] =>
-      val storageAgent = new ComparingStorageAgent[Int] {
+      val itemsAgent = new ComparingItemsAgent[Int] {
         override def storage0 = intArray
 
         override def compare(a: Int, b: Int): Int = Ordering.Int.compare(a, b)
       }
-      comparisonSortAlgorithm.sort(storageAgent)
+      comparisonSortAlgorithm.sort(itemsAgent)
     })
   }
 
   def apply(mergeSort: MergeSort): SortChecker = {
     new SortChecker ({ intArray: Array[Int] =>
       val buffer = Array.ofDim[Int](intArray.length)
-      val storageAgent = new MergeSortStorageAgent[Int] {
+      val itemsAgent = new MergeSortItemsAgent[Int] {
         override def storage0 = intArray
 
         override def storage1 = buffer
 
         override def compare(a: Int, b: Int): Int = Ordering.Int.compare(a, b)
       }
-      mergeSort.sort(storageAgent)
+      mergeSort.sort(itemsAgent)
     })
   }
 
   def apply(radixSort: RadixSort): SortChecker = {
     new SortChecker ({ intArray: Array[Int] =>
       val buffer = Array.ofDim[Int](intArray.length)
-      val storageAgent = new RadixSortStorageAgent[Int] {
+      val itemsAgent = new RadixSortItemsAgent[Int] {
         override def storage0 = intArray
 
         override def storage1 = buffer
@@ -99,7 +99,7 @@ object SortChecker {
           ((v ^ Int.MinValue) >>> lowestBit) & ((1 << length) - 1)
         }
       }
-      radixSort.sort(storageAgent)
+      radixSort.sort(itemsAgent)
     })
   }
 }

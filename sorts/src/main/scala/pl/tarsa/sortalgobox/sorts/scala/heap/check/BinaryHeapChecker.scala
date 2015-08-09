@@ -24,7 +24,8 @@ import pl.tarsa.sortalgobox.sorts.scala.heap.BinaryHeap
 
 object BinaryHeapChecker {
   def check[ItemType](heap: BinaryHeap[ItemType]) = {
-    import heap.storageAgent._
+    import heap.itemsAgent._
+
     val size = heap.size
     (1 until size).forall(i => compare0(heap.getParentIndex(i), i) >= 0)
   }

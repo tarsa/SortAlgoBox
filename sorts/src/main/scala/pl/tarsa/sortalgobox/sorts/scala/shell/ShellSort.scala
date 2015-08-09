@@ -21,12 +21,12 @@
 package pl.tarsa.sortalgobox.sorts.scala.shell
 
 import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
-import pl.tarsa.sortalgobox.core.common.agents.ComparingStorageAgent
+import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
 
 class ShellSort(gapSequence: GapSequence) extends ComparisonSortAlgorithm {
   override def sort[ItemType](
-    storageAgent: ComparingStorageAgent[ItemType]): Unit = {
-    import storageAgent._
+    itemsAgent: ComparingItemsAgent[ItemType]): Unit = {
+    import itemsAgent._
 
     for (gap <- gapSequence.forSize(size0);
          i <- gap until size0) {

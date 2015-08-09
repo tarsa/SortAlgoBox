@@ -21,14 +21,14 @@
 package pl.tarsa.sortalgobox.sorts.scala.radix
 
 import pl.tarsa.sortalgobox.core.common._
-import pl.tarsa.sortalgobox.core.common.agents.RadixSortStorageAgent
+import pl.tarsa.sortalgobox.core.common.agents.RadixSortItemsAgent
 
 class RadixSort(radixBits: Int = 8)
-  extends SortAlgorithm[RadixSortStorageAgent] {
+  extends PureSortAlgorithm[RadixSortItemsAgent] {
 
   override def sort[ItemType](
-    storageAgent: RadixSortStorageAgent[ItemType]): Unit = {
-    import storageAgent._
+    itemsAgent: RadixSortItemsAgent[ItemType]): Unit = {
+    import itemsAgent._
 
     val n = size0
     val radix = 1 << radixBits

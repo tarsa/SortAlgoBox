@@ -21,12 +21,12 @@
 package pl.tarsa.sortalgobox.sorts.scala.bubble
 
 import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
-import pl.tarsa.sortalgobox.core.common.agents.ComparingStorageAgent
+import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
 
 class BubbleSort extends ComparisonSortAlgorithm {
   override def sort[ItemType](
-    storageAgent: ComparingStorageAgent[ItemType]): Unit = {
-    import storageAgent._
+    itemsAgent: ComparingItemsAgent[ItemType]): Unit = {
+    import itemsAgent._
 
     for (i <- size0 - 1 to 1 by -1;
          j <- 0 until i) {

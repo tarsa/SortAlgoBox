@@ -28,8 +28,8 @@ abstract class GenericSortAlgorithm[T: ClassTag](doSorting: (Array[T] => Unit))
   override def apply(array: Array[T]): Unit = doSorting(array)
 }
 
-case class IntSortAlgorithm(doSorting: (Array[Int] => Unit))
+case class GenericIntSortAlgorithm(doSorting: (Array[Int] => Unit))
   extends GenericSortAlgorithm[Int](doSorting)
 
-case class LongSortAlgorithm(doSorting: (Array[Long] => Unit))
+case class GenericLongSortAlgorithm(doSorting: (Array[Long] => Unit))
   extends GenericSortAlgorithm[Long](doSorting)

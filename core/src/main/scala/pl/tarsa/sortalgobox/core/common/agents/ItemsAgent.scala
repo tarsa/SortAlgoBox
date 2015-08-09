@@ -18,15 +18,32 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
-package pl.tarsa.sortalgobox.core.common
+package pl.tarsa.sortalgobox.core.common.agents
 
-import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
+abstract class ItemsAgent[ItemType] {
+  import ItemsAgent._
 
-class ComparisonsSupportSpec extends CommonUnitSpecBase {
+  def storage0: Array[ItemType]
+  def size0: Int = storage0.length
+  def get0(i: Int): ItemType = storage0(i)
+  def set0(i: Int, v: ItemType): Unit = storage0(i) = v
 
-  typeBehavior[ComparisonsSupport.type]
+  def copy0(i: Int, j: Int, n: Int) = copy(storage0, i, storage0, j, n)
 
-  it should `have full code coverage` in {
-    ComparisonsSupport
+  def swap0(i: Int, j: Int): Unit =
+    swap(storage0, i, storage0, j)
+}
+
+object ItemsAgent {
+  def copy[ItemType](source: Array[ItemType], sourceStartIndex: Int,
+    target: Array[ItemType], targetStartIndex: Int, items: Int): Unit = {
+    System.arraycopy(source, sourceStartIndex, target, targetStartIndex, items)
+  }
+
+  def swap[ItemType](storageA: Array[ItemType], indexA: Int,
+    storageB: Array[ItemType], indexB: Int): Unit = {
+    val valueA = storageA(indexA)
+    storageA(indexA) = storageB(indexB)
+    storageB(indexB) = valueA
   }
 }

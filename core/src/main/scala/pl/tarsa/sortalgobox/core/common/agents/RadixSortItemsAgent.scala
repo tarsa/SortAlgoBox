@@ -20,12 +20,23 @@
  */
 package pl.tarsa.sortalgobox.core.common.agents
 
-abstract class SlicingStorageAgent[ItemType] extends StorageAgent[ItemType] {
+import pl.tarsa.sortalgobox.core.common.agents.ItemsAgent._
 
-  def keySizeInBits: Int
+abstract class RadixSortItemsAgent[ItemType]
+  extends SlicingItemsAgent[ItemType] {
 
-  def getItemSlice(v: ItemType, lowestBit: Int, length: Int): Int
+  def storage1: Array[ItemType]
+  def size1: Int = storage1.length
+  def get1(i: Int): ItemType = storage1(i)
+  def set1(i: Int, v: ItemType): Unit = storage1(i) = v
 
-  def getItemSlice0(i: Int, lowestBit: Int, length: Int): Int =
-    getItemSlice(storage0(i), lowestBit, length)
+  def swap00(i: Int, j: Int): Unit = swap0(i, j)
+  def swap01(i: Int, j: Int): Unit = swap(storage0, i, storage1, j)
+  def swap10(i: Int, j: Int): Unit = swap(storage1, i, storage0, j)
+  def swap11(i: Int, j: Int): Unit = swap(storage1, i, storage1, j)
+
+  def copy00(i: Int, j: Int, n: Int): Unit = copy0(i, j, n)
+  def copy01(i: Int, j: Int, n: Int): Unit = copy(storage0, i, storage1, j, n)
+  def copy10(i: Int, j: Int, n: Int): Unit = copy(storage1, i, storage0, j, n)
+  def copy11(i: Int, j: Int, n: Int): Unit = copy(storage1, i, storage1, j, n)
 }
