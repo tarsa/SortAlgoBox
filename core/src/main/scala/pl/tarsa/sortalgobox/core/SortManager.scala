@@ -21,12 +21,18 @@
 package pl.tarsa.sortalgobox.core
 
 import pl.tarsa.sortalgobox.core.common.SortAlgorithm
+import pl.tarsa.sortalgobox.core.common.agents.StorageAgent
 import pl.tarsa.sortalgobox.random.Mwc64x
 
-class SortManager(props: SortSuiteProps, algorithms: Seq[SortAlgorithm[Int]]) {
+class SortManager(props: SortSuiteProps,
+  algorithms: Seq[SortAlgorithm[StorageAgent]]) {
+
   def executeAll(): Unit = {
     val array = prepareArray
-    algorithms.foreach(_.sort(array.clone()))
+    val agent= new StorageAgent[Int] {
+      val storage0 = array
+    }
+    algorithms.foreach(_.sort(agent))
   }
 
   def prepareArray = {

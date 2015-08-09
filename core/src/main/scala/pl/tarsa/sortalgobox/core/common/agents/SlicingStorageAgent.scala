@@ -18,14 +18,14 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
-package pl.tarsa.sortalgobox.core.common
+package pl.tarsa.sortalgobox.core.common.agents
 
-case class MeasuringSortAlgorithmWrapper[T](
-  plainSortAlgorithm: SortAlgorithm[T]) extends MeasuredSortAlgorithm[T] {
+abstract class SlicingStorageAgent[ItemType] extends StorageAgent[ItemType] {
 
-  override def sort(array: Array[T]): Long = {
-    val startTime = System.nanoTime()
-    plainSortAlgorithm.sort(array)
-    System.nanoTime() - startTime
-  }
+  def keySizeInBits: Int
+
+  def getItemSlice(v: ItemType, lowestBit: Int, length: Int): Int
+
+  def getItemSlice0(i: Int, lowestBit: Int, length: Int): Int =
+    getItemSlice(storage0(i), lowestBit, length)
 }

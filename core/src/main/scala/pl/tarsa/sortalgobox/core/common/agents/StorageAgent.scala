@@ -18,29 +18,32 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
-package pl.tarsa.sortalgobox.sorts.scala.bubble
+package pl.tarsa.sortalgobox.core.common.agents
 
-import pl.tarsa.sortalgobox.sorts.tests.SortChecker
-import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
+abstract class StorageAgent[ItemType] {
+  import StorageAgent._
 
-class BubbleSortSpec extends CommonUnitSpecBase {
-  typeBehavior[BubbleSort]
+  def storage0: Array[ItemType]
+  def size0: Int = storage0.length
+  def get0(i: Int): ItemType = storage0(i)
+  def set0(i: Int, v: ItemType): Unit = storage0(i) = v
 
-  def sort = new BubbleSort
+  def copy0(i: Int, j: Int, n: Int) = copy(storage0, i, storage0, j, n)
 
-  it should "handle empty array" in {
-    SortChecker(sort).forEmptyArray()
+  def swap0(i: Int, j: Int): Unit =
+    swap(storage0, i, storage0, j)
+}
+
+object StorageAgent {
+  def copy[ItemType](source: Array[ItemType], sourceStartIndex: Int,
+    target: Array[ItemType], targetStartIndex: Int, items: Int): Unit = {
+    System.arraycopy(source, sourceStartIndex, target, targetStartIndex, items)
   }
 
-  it should "handle single element array" in {
-    SortChecker(sort).forSingleElementArray()
-  }
-
-  it should "sort small array" in {
-    SortChecker(sort).forFewElementsArray()
-  }
-
-  it should "sort random array" in {
-    SortChecker(sort).forArrayOfSize(100)
+  def swap[ItemType](storageA: Array[ItemType], indexA: Int,
+    storageB: Array[ItemType], indexB: Int): Unit = {
+    val valueA = storageA(indexA)
+    storageA(indexA) = storageB(indexB)
+    storageB(indexB) = valueA
   }
 }

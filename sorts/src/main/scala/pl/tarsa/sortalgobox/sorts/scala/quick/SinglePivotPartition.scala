@@ -20,74 +20,72 @@
  */
 package pl.tarsa.sortalgobox.sorts.scala.quick
 
-import pl.tarsa.sortalgobox.core.common.ArrayHelpers
-import pl.tarsa.sortalgobox.core.common.ComparisonsSupport.Conv
+import pl.tarsa.sortalgobox.core.common.agents.ComparingStorageAgent
 
 private [sortalgobox]
-class SinglePivotPartition[T: Conv] {
-  import ArrayHelpers._
+class SinglePivotPartition {
+  def partitionAndComputeBounds[ItemType](
+    storageAgent: ComparingStorageAgent[ItemType],
+    start: Int, after: Int, pivotIndex: Int): (Int, Int) = {
+    import storageAgent._
 
-  private var array: Array[T] = _
-  private var notBiggerAfter: Int = _
-  private var notSmallerStart: Int = _
+    var notBiggerAfter: Int = start
+    var notSmallerStart: Int = after
 
-  def partitionAndComputeBounds(array: Array[T], start: Int, after: Int,
-                                pivotIndex: Int): (Int, Int) = {
-    this.array = array
-    notBiggerAfter = start
-    notSmallerStart = after
+    def partitionNonEmptyArray(pivot: ItemType): Unit = {
+      while (thereIsNotPartitionedPortion) {
+        growPartitionsWithoutSwapping(pivot)
+        if (thereIsNotPartitionedPortion) {
+          growBlockedPartitionsBySwap()
+        }
+      }
+    }
+
+    def thereIsNotPartitionedPortion = notBiggerAfter < notSmallerStart
+
+    def growPartitionsWithoutSwapping(pivot: ItemType): Unit = {
+      growLeftPartitionUntilBlocked(pivot)
+      growRightPartitionUntilBlocked(pivot)
+    }
+
+    def growLeftPartitionUntilBlocked(pivot: ItemType): Unit = {
+      while (thereIsNotPartitionedPortion &&
+        compare(get0(notBiggerAfter), pivot) < 0) {
+        notBiggerAfter += 1
+      }
+    }
+
+    def growRightPartitionUntilBlocked(pivot: ItemType): Unit = {
+      while (thereIsNotPartitionedPortion &&
+        compare(get0(notSmallerStart - 1), pivot) > 0) {
+        notSmallerStart -= 1
+      }
+    }
+
+    def growBlockedPartitionsBySwap(): Unit = {
+      notSmallerStart -= 1
+      swap0(notBiggerAfter, notSmallerStart)
+      notBiggerAfter += 1
+    }
+
+    def computeOptimizedPartitionsBounds = {
+      if (partitionsOverlap) {
+        assert(partitionsOverlapMinimally,
+          s"Overlap is: ${notBiggerAfter - notSmallerStart}")
+        (notBiggerAfter - 1, notSmallerStart + 1)
+      } else {
+        (notBiggerAfter, notSmallerStart)
+      }
+    }
+
+    def partitionsOverlapMinimally = notBiggerAfter - notSmallerStart == 1
+
+    def partitionsOverlap = notBiggerAfter > notSmallerStart
+
     if (thereIsNotPartitionedPortion) {
-      val pivot = array(pivotIndex)
+      val pivot = get0(pivotIndex)
       partitionNonEmptyArray(pivot)
     }
     computeOptimizedPartitionsBounds
   }
-
-  def partitionNonEmptyArray(pivot: T): Unit = {
-    while (thereIsNotPartitionedPortion) {
-      growPartitionsWithoutSwapping(pivot)
-      if (thereIsNotPartitionedPortion) {
-        growBlockedPartitionsBySwap()
-      }
-    }
-  }
-
-  def thereIsNotPartitionedPortion = notBiggerAfter < notSmallerStart
-
-  def growPartitionsWithoutSwapping(pivot: T): Unit = {
-    growLeftPartitionUntilBlocked(pivot)
-    growRightPartitionUntilBlocked(pivot)
-  }
-
-  def growLeftPartitionUntilBlocked(pivot: T): Unit = {
-    while (thereIsNotPartitionedPortion && array(notBiggerAfter) < pivot) {
-      notBiggerAfter += 1
-    }
-  }
-
-  def growRightPartitionUntilBlocked(pivot: T): Unit = {
-    while (thereIsNotPartitionedPortion && array(notSmallerStart - 1) > pivot) {
-      notSmallerStart -= 1
-    }
-  }
-
-  def growBlockedPartitionsBySwap(): Unit = {
-    notSmallerStart -= 1
-    swap(array, notBiggerAfter, notSmallerStart)
-    notBiggerAfter += 1
-  }
-
-  def computeOptimizedPartitionsBounds = {
-    if (partitionsOverlap) {
-      assert(partitionsOverlapMinimally,
-        s"Overlap is: ${notBiggerAfter - notSmallerStart}")
-      (notBiggerAfter - 1, notSmallerStart + 1)
-    } else {
-      (notBiggerAfter, notSmallerStart)
-    }
-  }
-
-  def partitionsOverlapMinimally = notBiggerAfter - notSmallerStart == 1
-
-  def partitionsOverlap = notBiggerAfter > notSmallerStart
 }

@@ -20,19 +20,19 @@
  */
 package pl.tarsa.sortalgobox.sorts.scala.shell
 
-import pl.tarsa.sortalgobox.core.common.ArrayHelpers.swap
-import pl.tarsa.sortalgobox.core.common.ComparisonsSupport._
 import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
+import pl.tarsa.sortalgobox.core.common.agents.ComparingStorageAgent
 
-class ShellSort[T: Conv](gapSequence: GapSequence)
-  extends ComparisonSortAlgorithm[T] {
+class ShellSort(gapSequence: GapSequence) extends ComparisonSortAlgorithm {
+  override def sort[ItemType](
+    storageAgent: ComparingStorageAgent[ItemType]): Unit = {
+    import storageAgent._
 
-  override def sort(array: Array[T]): Unit = {
-    for (gap <- gapSequence.forSize(array.length);
-         i <- gap until array.length) {
+    for (gap <- gapSequence.forSize(size0);
+         i <- gap until size0) {
       var j = i
-      while (j >= gap && array(j - gap) > array(j)) {
-        swap(array, j - gap, j)
+      while (j >= gap && compare0(j - gap, j) > 0) {
+        swap0(j - gap, j)
         j -= gap
       }
     }

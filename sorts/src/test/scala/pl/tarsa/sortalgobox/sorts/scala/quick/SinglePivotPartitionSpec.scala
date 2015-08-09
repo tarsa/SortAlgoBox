@@ -24,11 +24,11 @@ import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
 class SinglePivotPartitionSpec extends CommonUnitSpecBase {
 
-  typeBehavior[SinglePivotPartition[_]]
+  typeBehavior[SinglePivotPartition]
 
   it should "handle empty arrays" in {
     val array = Array[Int]()
-    val partition = new SinglePivotPartition[Int]
+    val partition = new SinglePivotPartition
     val (leftAfter, rightStart) = partition.partitionAndComputeBounds(
       array, 0, array.length, 0)
     leftAfter shouldBe 0
@@ -37,7 +37,7 @@ class SinglePivotPartitionSpec extends CommonUnitSpecBase {
 
   it should "handle single element arrays" in {
     val array = Array(5)
-    val partition = new SinglePivotPartition[Int]
+    val partition = new SinglePivotPartition
     val (leftAfter, rightStart) = partition.partitionAndComputeBounds(
       array, 0, array.length, 0)
     leftAfter should be <= rightStart
@@ -47,7 +47,7 @@ class SinglePivotPartitionSpec extends CommonUnitSpecBase {
   it should "handle sorted arrays" in {
     def freshArray = Array(1, 2, 3, 5, 8, 13, 21)
     val array = freshArray
-    val partition = new SinglePivotPartition[Int]
+    val partition = new SinglePivotPartition
     val (leftAfter, rightStart) = partition.partitionAndComputeBounds(
       array, 0, array.length, 0)
     leftAfter shouldBe 0
@@ -59,7 +59,7 @@ class SinglePivotPartitionSpec extends CommonUnitSpecBase {
   it should "handle unsorted arrays" in {
     def freshArray = Array(1, 21, 5, 8, 3, 2, 13)
     val array = freshArray
-    val partition = new SinglePivotPartition[Int]
+    val partition = new SinglePivotPartition
     val pivotIndex = 3
     val pivot = array(pivotIndex)
     val (leftAfter, rightStart) = partition.partitionAndComputeBounds(

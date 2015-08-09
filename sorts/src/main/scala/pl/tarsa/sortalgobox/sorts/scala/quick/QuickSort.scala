@@ -20,9 +20,8 @@
  */
 package pl.tarsa.sortalgobox.sorts.scala.quick
 
-import pl.tarsa.sortalgobox.core.common.ComparisonsSupport.Conv
 import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
 
-abstract class QuickSort[T: Conv] extends ComparisonSortAlgorithm[T] {
-  def partition: SinglePivotPartition[T]
+abstract class QuickSort extends ComparisonSortAlgorithm {
+  def partition: SinglePivotPartition
 }

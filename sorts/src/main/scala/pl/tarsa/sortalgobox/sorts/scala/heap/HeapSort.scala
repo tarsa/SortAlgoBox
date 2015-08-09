@@ -20,15 +20,18 @@
  */
 package pl.tarsa.sortalgobox.sorts.scala.heap
 
-import pl.tarsa.sortalgobox.core.common.ComparisonsSupport.Conv
 import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
+import pl.tarsa.sortalgobox.core.common.agents.ComparingStorageAgent
 
-class HeapSort[T: Conv] extends ComparisonSortAlgorithm[T] {
-  override def sort(array: Array[T]): Unit = {
-    val heap = BinaryHeap(array)
+class HeapSort extends ComparisonSortAlgorithm {
+  override def sort[ItemType](
+    storageAgent: ComparingStorageAgent[ItemType]): Unit = {
+    val heap = BinaryHeap[ItemType](storageAgent)
+    import heap.storageAgent._
+
     while (heap.size > 0) {
       val top = heap.extractTop
-      array(heap.size) = top
+      set0(heap.size, top)
     }
   }
 }

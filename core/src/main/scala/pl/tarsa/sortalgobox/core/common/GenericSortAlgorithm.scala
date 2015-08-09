@@ -18,29 +18,18 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
-package pl.tarsa.sortalgobox.sorts.scala.bubble
+package pl.tarsa.sortalgobox.core.common
 
-import pl.tarsa.sortalgobox.sorts.tests.SortChecker
-import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
+import scala.reflect.ClassTag
 
-class BubbleSortSpec extends CommonUnitSpecBase {
-  typeBehavior[BubbleSort]
-
-  def sort = new BubbleSort
-
-  it should "handle empty array" in {
-    SortChecker(sort).forEmptyArray()
-  }
-
-  it should "handle single element array" in {
-    SortChecker(sort).forSingleElementArray()
-  }
-
-  it should "sort small array" in {
-    SortChecker(sort).forFewElementsArray()
-  }
-
-  it should "sort random array" in {
-    SortChecker(sort).forArrayOfSize(100)
-  }
+abstract class GenericSortAlgorithm[T: ClassTag](doSorting: (Array[T] => Unit))
+  extends (Array[T] => Unit) {
+  
+  override def apply(array: Array[T]): Unit = doSorting(array)
 }
+
+case class IntSortAlgorithm(doSorting: (Array[Int] => Unit))
+  extends GenericSortAlgorithm[Int](doSorting)
+
+case class LongSortAlgorithm(doSorting: (Array[Long] => Unit))
+  extends GenericSortAlgorithm[Long](doSorting)

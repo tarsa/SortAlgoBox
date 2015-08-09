@@ -20,42 +20,45 @@
  */
 package pl.tarsa.sortalgobox.sorts.scala.merge
 
-import pl.tarsa.sortalgobox.core.common.ComparisonsSupport._
-import pl.tarsa.sortalgobox.core.common.{ComparisonSortAlgorithm, ExSituAlgorithm}
+import pl.tarsa.sortalgobox.core.common.SortAlgorithm
+import pl.tarsa.sortalgobox.core.common.agents.MergeSortStorageAgent
 
-class MergeSort[T: Conv](implicit val makeArray: Int => Array[T])
-  extends ComparisonSortAlgorithm[T] with ExSituAlgorithm[T] {
+class MergeSort extends SortAlgorithm[MergeSortStorageAgent] {
+  override def sort[ItemType](
+    storageAgent: MergeSortStorageAgent[ItemType]): Unit = {
+    import storageAgent._
 
-  override def sort(array: Array[T]): Unit = {
-    val n = array.length
-    val buffer = makeArray(n)
+    val n = size0
     for (width <- Stream.iterate(1L)(_ * 2).takeWhile(_ < n)) {
       for (i <- 0L until n by width * 2) {
         val start = Math.min(i, n)
         val med = Math.min(start + width, n)
         val next = Math.min(med + width, n)
-        bottomUpMerge(array, buffer, start.toInt, med.toInt, next.toInt)
+        bottomUpMerge(storageAgent, start.toInt, med.toInt, next.toInt)
       }
-      Array.copy(buffer, 0, array, 0, n)
+      copy10(0, 0, n)
     }
   }
 
-  private def bottomUpMerge(array: Array[T], buffer: Array[T],
+  private def bottomUpMerge[ItemType](
+    storageAgent: MergeSortStorageAgent[ItemType],
     start: Int, med: Int, next: Int): Unit = {
+    import storageAgent._
+
     var left = start
     var right = med
     var dest = start
     while (left < med && right < next) {
-      if (array(left) <= array(right)) {
-        buffer(dest) = array(left)
+      if (compare00(left, right) <= 0) {
+        set1(dest, get0(left))
         left += 1
       } else {
-        buffer(dest) = array(right)
+        set1(dest, get0(right))
         right += 1
       }
       dest += 1
     }
-    Array.copy(array, left, buffer, dest, med - left)
-    Array.copy(array, right, buffer, dest + med - left, next - right)
+    copy01(left, dest, med - left)
+    copy01(right, dest + med - left, next - right)
   }
 }

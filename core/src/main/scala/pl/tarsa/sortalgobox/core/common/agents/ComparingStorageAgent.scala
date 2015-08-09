@@ -18,29 +18,21 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
-package pl.tarsa.sortalgobox.sorts.scala.bubble
+package pl.tarsa.sortalgobox.core.common.agents
 
-import pl.tarsa.sortalgobox.sorts.tests.SortChecker
-import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
+abstract class ComparingStorageAgent[ItemType] extends StorageAgent[ItemType] {
 
-class BubbleSortSpec extends CommonUnitSpecBase {
-  typeBehavior[BubbleSort]
+  def compare(a: ItemType, b: ItemType): Int
 
-  def sort = new BubbleSort
+  def compare0(i: Int, j: Int): Int = compare(storage0(i), storage0(j))
+}
 
-  it should "handle empty array" in {
-    SortChecker(sort).forEmptyArray()
-  }
+object ComparingStorageAgent {
+  implicit class IntArrayAsComparingStorageAgent(array: Array[Int])
+    extends ComparingStorageAgent[Int] {
 
-  it should "handle single element array" in {
-    SortChecker(sort).forSingleElementArray()
-  }
+    override def storage0 = array
 
-  it should "sort small array" in {
-    SortChecker(sort).forFewElementsArray()
-  }
-
-  it should "sort random array" in {
-    SortChecker(sort).forArrayOfSize(100)
+    override def compare(a: Int, b: Int): Int = Ordering.Int.compare(a, b)
   }
 }

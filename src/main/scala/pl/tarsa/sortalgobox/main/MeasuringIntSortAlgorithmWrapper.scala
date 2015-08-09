@@ -18,26 +18,36 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
-package pl.tarsa.sortalgobox.sorts.scala.selection
+package pl.tarsa.sortalgobox.main
 
-import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
 import pl.tarsa.sortalgobox.core.common.agents.ComparingStorageAgent
+import pl.tarsa.sortalgobox.core.common._
 
-class SelectionSort extends ComparisonSortAlgorithm {
-  override def sort[ItemType](
-    storageAgent: ComparingStorageAgent[ItemType]): Unit = {
-    import storageAgent._
+object MeasuringIntSortAlgorithmWrapper {
+  def apply(plainSortAlgorithm: AnyRef): MeasuredSortAlgorithm[Int] =
+    plainSortAlgorithm match {
+      case sortAlgorithm: IntSortAlgorithm =>
+        wrap(sortAlgorithm)
+      case sortAlgorithm: ComparisonSortAlgorithm =>
+        wrap { intArray: Array[Int] =>
+          val storageAgent = new ComparingStorageAgent[Int] {
+            override def storage0 = intArray
 
-    for (i <- 0 to size0 - 2) {
-      val j = ((i + 1) until size0).foldLeft(i) {
-        case (lastMinIndex, itemIndex) =>
-          if (compare0(lastMinIndex, itemIndex) > 0) {
-            itemIndex
-          } else {
-            lastMinIndex
+            override def compare(a: Int, b: Int): Int =
+              Ordering.Int.compare(a, b)
           }
-      }
-      swap0(i, j)
+          val startTime = System.nanoTime()
+          sortAlgorithm.sort(storageAgent)
+          System.nanoTime() - startTime
+        }
     }
-  }
+
+  def wrap(doSorting: (Array[Int]) => Unit): MeasuredSortAlgorithm[Int] =
+    new MeasuredSortAlgorithm[Int] {
+      override def sort(array: Array[Int]): Long = {
+        val startTime = System.nanoTime()
+        doSorting(array)
+        System.nanoTime() - startTime
+      }
+    }
 }

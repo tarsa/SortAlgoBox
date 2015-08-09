@@ -24,23 +24,23 @@ import pl.tarsa.sortalgobox.sorts.tests.SortChecker
 import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
 class SelectionSortSpec  extends CommonUnitSpecBase {
-  typeBehavior[SelectionSort[_]]
+  typeBehavior[SelectionSort]
 
-  def intSort = new SelectionSort[Int]
+  def sort = new SelectionSort
 
   it should "handle empty array" in {
-    SortChecker(intSort).forEmptyArray()
+    SortChecker(sort).forEmptyArray()
   }
 
   it should "handle single element array" in {
-    SortChecker(intSort).forSingleElementArray()
+    SortChecker(sort).forSingleElementArray()
   }
 
   it should "sort small array" in {
-    SortChecker(intSort).forFewElementsArray()
+    SortChecker(sort).forFewElementsArray()
   }
 
   it should "sort random array" in {
-    SortChecker(intSort).forArrayOfSize(100)
+    SortChecker(sort).forArrayOfSize(100)
   }
 }

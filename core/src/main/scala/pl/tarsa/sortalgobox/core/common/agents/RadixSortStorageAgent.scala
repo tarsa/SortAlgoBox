@@ -18,29 +18,25 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
-package pl.tarsa.sortalgobox.sorts.scala.bubble
+package pl.tarsa.sortalgobox.core.common.agents
 
-import pl.tarsa.sortalgobox.sorts.tests.SortChecker
-import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
+import pl.tarsa.sortalgobox.core.common.agents.StorageAgent._
 
-class BubbleSortSpec extends CommonUnitSpecBase {
-  typeBehavior[BubbleSort]
+abstract class RadixSortStorageAgent[ItemType]
+  extends SlicingStorageAgent[ItemType] {
 
-  def sort = new BubbleSort
+  def storage1: Array[ItemType]
+  def size1: Int = storage1.length
+  def get1(i: Int): ItemType = storage1(i)
+  def set1(i: Int, v: ItemType): Unit = storage1(i) = v
 
-  it should "handle empty array" in {
-    SortChecker(sort).forEmptyArray()
-  }
+  def swap00(i: Int, j: Int): Unit = swap0(i, j)
+  def swap01(i: Int, j: Int): Unit = swap(storage0, i, storage1, j)
+  def swap10(i: Int, j: Int): Unit = swap(storage1, i, storage0, j)
+  def swap11(i: Int, j: Int): Unit = swap(storage1, i, storage1, j)
 
-  it should "handle single element array" in {
-    SortChecker(sort).forSingleElementArray()
-  }
-
-  it should "sort small array" in {
-    SortChecker(sort).forFewElementsArray()
-  }
-
-  it should "sort random array" in {
-    SortChecker(sort).forArrayOfSize(100)
-  }
+  def copy00(i: Int, j: Int, n: Int): Unit = copy0(i, j, n)
+  def copy01(i: Int, j: Int, n: Int): Unit = copy(storage0, i, storage1, j, n)
+  def copy10(i: Int, j: Int, n: Int): Unit = copy(storage1, i, storage0, j, n)
+  def copy11(i: Int, j: Int, n: Int): Unit = copy(storage1, i, storage1, j, n)
 }

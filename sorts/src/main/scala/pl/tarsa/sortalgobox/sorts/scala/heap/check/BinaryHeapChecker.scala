@@ -20,13 +20,12 @@
  */
 package pl.tarsa.sortalgobox.sorts.scala.heap.check
 
-import pl.tarsa.sortalgobox.core.common.ComparisonsSupport.Conv
 import pl.tarsa.sortalgobox.sorts.scala.heap.BinaryHeap
 
 object BinaryHeapChecker {
-  def check[T: Conv](heap: BinaryHeap[T]) = {
+  def check[ItemType](heap: BinaryHeap[ItemType]) = {
+    import heap.storageAgent._
     val size = heap.size
-    val storage = heap.storage
-    (2 until size).forall(i => storage(heap.getParentIndex(i)) >= storage(i))
+    (1 until size).forall(i => compare0(heap.getParentIndex(i), i) >= 0)
   }
 }

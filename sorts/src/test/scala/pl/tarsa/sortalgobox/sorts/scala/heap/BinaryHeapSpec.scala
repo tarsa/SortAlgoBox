@@ -51,7 +51,7 @@ class BinaryHeapSpec extends CommonUnitSpecBase {
     val size = 100
     val storage = Array.ofDim[Int](size)
     val heap = new BinaryHeap(storage)
-    (0 until size).foreach {_ =>
+    (0 until size).foreach { _ =>
       heap.addElem(generator.nextInt())
       assert(BinaryHeapChecker.check(heap))
     }

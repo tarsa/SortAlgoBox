@@ -20,13 +20,15 @@
  */
 package pl.tarsa.sortalgobox.sorts.scala.bitonic
 
-import pl.tarsa.sortalgobox.core.common.ArrayHelpers._
-import pl.tarsa.sortalgobox.core.common.ComparisonsSupport._
 import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
+import pl.tarsa.sortalgobox.core.common.agents.ComparingStorageAgent
 
-class BitonicSort[T: Conv] extends ComparisonSortAlgorithm[T] {
-  override def sort(array: Array[T]): Unit = {
-    val size = array.length
+class BitonicSort extends ComparisonSortAlgorithm {
+  override def sort[ItemType](
+    storageAgent: ComparingStorageAgent[ItemType]): Unit = {
+    import storageAgent._
+
+    val size = size0
     val phasesPerBlock = Stream.iterate(1)(_ + 1)
       .takeWhile(phases => (1L << (phases - 1)) < size)
     for (phasesInBlock <- phasesPerBlock;
@@ -43,8 +45,8 @@ class BitonicSort[T: Conv] extends ComparisonSortAlgorithm[T] {
           val lower = upper + halfBlockSize
           (upper, lower)
         }
-        if (second < size && array(first) > array(second)) {
-          swap(array, first, second)
+        if (second < size && compare0(first, second) > 0) {
+          swap0(first, second)
         }
       }
     }

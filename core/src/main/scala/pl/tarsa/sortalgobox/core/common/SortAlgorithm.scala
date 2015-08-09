@@ -20,6 +20,8 @@
  */
 package pl.tarsa.sortalgobox.core.common
 
-abstract class SortAlgorithm[T] {
-  def sort(array: Array[T]): Unit
+import pl.tarsa.sortalgobox.core.common.agents.StorageAgent
+
+abstract class SortAlgorithm[AgentType[ItemType] <: StorageAgent[ItemType]] {
+  def sort[ItemType](storageAgent: AgentType[ItemType]): Unit
 }

@@ -21,35 +21,37 @@
 package pl.tarsa.sortalgobox.sorts.scala.radix
 
 import pl.tarsa.sortalgobox.core.common._
+import pl.tarsa.sortalgobox.core.common.agents.RadixSortStorageAgent
 
-class RadixSort[T](radixBits: Int = 8)(implicit
-  val keyProps: FixedSizeKeyProperties[T], val makeArray: Int => Array[T])
-  extends SortAlgorithm[T] with ExSituAlgorithm[T]
-  with FixedSizeKeyAlgorithm[T] {
+class RadixSort(radixBits: Int = 8)
+  extends SortAlgorithm[RadixSortStorageAgent] {
 
-  override def sort(array: Array[T]): Unit = {
-    val n = array.length
-    val buffer = makeArray(n)
+  override def sort[ItemType](
+    storageAgent: RadixSortStorageAgent[ItemType]): Unit = {
+    import storageAgent._
+
+    val n = size0
     val radix = 1 << radixBits
-    val key = keyProps
     val shiftsAndLengths = Stream.iterate(0)(_ + radixBits)
-      .takeWhile(_ < key.sizeInBits)
-      .map(shift => (shift, Math.min(radixBits, key.sizeInBits - shift)))
+      .takeWhile(_ < keySizeInBits)
+      .map(shift => (shift, Math.min(radixBits, keySizeInBits - shift)))
     for ((shift, length) <- shiftsAndLengths) {
       val counts = Array.ofDim[Int](radix)
-      for (item <- array) {
-        counts(key.normalizeRangeAndExtractBits(item, shift, length)) += 1
+      for (i <- 0 until size0) {
+        val item = get0(i)
+        counts(getItemSlice(item, shift, length)) += 1
       }
       val prefixSums = Array.ofDim[Int](radix)
       for (value <- 1 until radix) {
         prefixSums(value) = prefixSums(value - 1) + counts(value - 1)
       }
-      for (item <- array) {
-        val keyPart = key.normalizeRangeAndExtractBits(item, shift, length)
-        buffer(prefixSums(keyPart)) = item
+      for (i <- 0 until size0) {
+        val item = get0(i)
+        val keyPart = getItemSlice(item, shift, length)
+        set1(prefixSums(keyPart), item)
         prefixSums(keyPart) += 1
       }
-      Array.copy(buffer, 0, array, 0, n)
+      copy10(0, 0, n)
     }
   }
 }

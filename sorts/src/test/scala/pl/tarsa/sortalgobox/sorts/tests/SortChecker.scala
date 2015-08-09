@@ -22,25 +22,27 @@ package pl.tarsa.sortalgobox.sorts.tests
 
 import org.scalatest.Matchers
 import pl.tarsa.sortalgobox.core.common._
+import pl.tarsa.sortalgobox.core.common.agents.{RadixSortStorageAgent, MergeSortStorageAgent, ComparingStorageAgent}
 import pl.tarsa.sortalgobox.random.Mwc64x
+import pl.tarsa.sortalgobox.sorts.scala.merge.MergeSort
+import pl.tarsa.sortalgobox.sorts.scala.radix.RadixSort
 
-class SortChecker(measuredSortAlgorithm: MeasuredSortAlgorithm[Int])
-  extends Matchers {
+class SortChecker(doSorting: (Array[Int]) => Unit) extends Matchers {
   
   def forEmptyArray(): Unit = {
     val array = Array.emptyIntArray
-    measuredSortAlgorithm.sort(array)
+    doSorting(array)
   }
 
   def forSingleElementArray(): Unit = {
     val array = Array(5)
-    measuredSortAlgorithm.sort(array)
+    doSorting(array)
     array shouldBe Array(5)
   }
 
   def forFewElementsArray(): Unit = {
     val array = Array(5, 3, 2, 8)
-    measuredSortAlgorithm.sort(array)
+    doSorting(array)
     array shouldBe Array(2, 3, 5, 8)
   }
 
@@ -48,17 +50,56 @@ class SortChecker(measuredSortAlgorithm: MeasuredSortAlgorithm[Int])
     val generator = new Mwc64x
     val array = Array.fill(size)(generator.nextInt())
     val sortedArray = array.sorted
-    measuredSortAlgorithm.sort(array)
+    doSorting(array)
     array shouldBe sortedArray
   }
 }
 
 object SortChecker {
   def apply(measuredSortAlgorithm: MeasuredSortAlgorithm[Int]): SortChecker = {
-    new SortChecker(measuredSortAlgorithm)
+    new SortChecker(array => measuredSortAlgorithm.sort(array))
   }
 
-  def apply(sortAlgorithm: SortAlgorithm[Int]): SortChecker = {
-    new SortChecker(MeasuringSortAlgorithmWrapper(sortAlgorithm))
+  def apply(comparisonSortAlgorithm: ComparisonSortAlgorithm): SortChecker = {
+    new SortChecker ({ intArray: Array[Int] =>
+      val storageAgent = new ComparingStorageAgent[Int] {
+        override def storage0 = intArray
+
+        override def compare(a: Int, b: Int): Int = Ordering.Int.compare(a, b)
+      }
+      comparisonSortAlgorithm.sort(storageAgent)
+    })
+  }
+
+  def apply(mergeSort: MergeSort): SortChecker = {
+    new SortChecker ({ intArray: Array[Int] =>
+      val buffer = Array.ofDim[Int](intArray.length)
+      val storageAgent = new MergeSortStorageAgent[Int] {
+        override def storage0 = intArray
+
+        override def storage1 = buffer
+
+        override def compare(a: Int, b: Int): Int = Ordering.Int.compare(a, b)
+      }
+      mergeSort.sort(storageAgent)
+    })
+  }
+
+  def apply(radixSort: RadixSort): SortChecker = {
+    new SortChecker ({ intArray: Array[Int] =>
+      val buffer = Array.ofDim[Int](intArray.length)
+      val storageAgent = new RadixSortStorageAgent[Int] {
+        override def storage0 = intArray
+
+        override def storage1 = buffer
+
+        override def keySizeInBits: Int = 32
+
+        override def getItemSlice(v: Int, lowestBit: Int, length: Int): Int = {
+          ((v ^ Int.MinValue) >>> lowestBit) & ((1 << length) - 1)
+        }
+      }
+      radixSort.sort(storageAgent)
+    })
   }
 }

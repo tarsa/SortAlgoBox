@@ -20,23 +20,24 @@
  */
 package pl.tarsa.sortalgobox.sorts.scala.heap
 
-import pl.tarsa.sortalgobox.core.common.ArrayHelpers.swap
-import pl.tarsa.sortalgobox.core.common.ComparisonsSupport.Conv
+import pl.tarsa.sortalgobox.core.common.agents.ComparingStorageAgent
 
 import scala.annotation.tailrec
 
-class BinaryHeap[T: Conv](var storage: Array[T]) {
+class BinaryHeap[ItemType](val storageAgent: ComparingStorageAgent[ItemType]) {
+  import storageAgent._
+
   var size = 0
 
-  def addElem(a: T): Unit = {
-    storage(size) = a
+  def addElem(a: ItemType): Unit = {
+    set0(size, a)
     size += 1
     siftUp(size - 1)
   }
 
-  def extractTop: T = {
-    val result = storage(0)
-    storage(0) = storage(size - 1)
+  def extractTop: ItemType = {
+    val result = get0(0)
+    set0(0, get0(size - 1))
     size -= 1
     siftDown(0)
     result
@@ -46,8 +47,8 @@ class BinaryHeap[T: Conv](var storage: Array[T]) {
   final def siftUp(currentIndex: Int): Unit = {
     if (currentIndex > 0) {
       val parentIndex = getParentIndex(currentIndex)
-      if (storage(parentIndex) < storage(currentIndex)) {
-        swap(storage, currentIndex, parentIndex)
+      if (compare0(parentIndex, currentIndex) < 0) {
+        swap0(currentIndex, parentIndex)
         siftUp(parentIndex)
       }
     }
@@ -57,16 +58,14 @@ class BinaryHeap[T: Conv](var storage: Array[T]) {
   final def siftDown(currentIndex: Int): Unit = {
     var maxIndex = currentIndex
     val firstChildIndex = currentIndex * 2 + 1
-    if (firstChildIndex < size &&
-      storage(firstChildIndex) > storage(maxIndex)) {
+    if (firstChildIndex < size && compare0(firstChildIndex, maxIndex) > 0) {
       maxIndex = firstChildIndex
     }
     val secondChildIndex = firstChildIndex + 1
-    if (secondChildIndex < size &&
-      storage(secondChildIndex) > storage(maxIndex)) {
+    if (secondChildIndex < size && compare0(secondChildIndex, maxIndex) > 0) {
       maxIndex = secondChildIndex
     }
-    swap(storage, currentIndex, maxIndex)
+    swap0(currentIndex, maxIndex)
     if (maxIndex != currentIndex) {
       siftDown(maxIndex)
     }
@@ -76,14 +75,15 @@ class BinaryHeap[T: Conv](var storage: Array[T]) {
 }
 
 object BinaryHeap {
-  def apply[T: Conv](storage: Array[T]): BinaryHeap[T] = {
-    val heap = new BinaryHeap[T](storage)
-    heap.size = storage.length
+  def apply[ItemType](storageAgent: ComparingStorageAgent[ItemType]):
+  BinaryHeap[ItemType] = {
+    val heap = new BinaryHeap[ItemType](storageAgent)
+    heap.size = storageAgent.size0
     heapify(heap)
     heap
   }
 
-  def heapify[T: Conv](heap: BinaryHeap[T]): Unit = {
-    heap.storage.indices.foreach(heap.siftUp)
+  def heapify[ItemType](heap: BinaryHeap[ItemType]): Unit = {
+    (0 until heap.size).foreach(heap.siftUp)
   }
 }

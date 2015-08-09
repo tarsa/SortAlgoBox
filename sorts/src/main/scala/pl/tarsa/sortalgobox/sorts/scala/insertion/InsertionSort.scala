@@ -20,16 +20,18 @@
  */
 package pl.tarsa.sortalgobox.sorts.scala.insertion
 
-import pl.tarsa.sortalgobox.core.common.ArrayHelpers.swap
-import pl.tarsa.sortalgobox.core.common.ComparisonsSupport.Conv
 import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
+import pl.tarsa.sortalgobox.core.common.agents.ComparingStorageAgent
 
-class InsertionSort[T: Conv] extends ComparisonSortAlgorithm[T] {
-  override def sort(array: Array[T]): Unit = {
-    for (i <- 1 until array.length) {
+class InsertionSort extends ComparisonSortAlgorithm {
+  override def sort[ItemType](
+    storageAgent: ComparingStorageAgent[ItemType]): Unit = {
+    import storageAgent._
+
+    for (i <- 1 until size0) {
       var j = i
-      while (j > 0 && array(j - 1) > array(j)) {
-        swap(array, j - 1, j)
+      while (j > 0 && compare0(j - 1, j) > 0) {
+        swap0(j - 1, j)
         j -= 1
       }
     }

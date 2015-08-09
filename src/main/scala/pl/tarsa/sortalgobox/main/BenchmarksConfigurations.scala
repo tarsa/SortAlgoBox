@@ -30,17 +30,17 @@ import pl.tarsa.sortalgobox.sorts.opencl._
 import pl.tarsa.sortalgobox.sorts.scala.bitonic.BitonicSort
 
 object BenchmarksConfigurations {
-  val plainSorts: List[(String, SortAlgorithm[Int])] = List(
-    "BitonicSort" -> new BitonicSort[Int],
-    "SequentialArraysSort" -> new SequentialArraysSort,
-    "ParallelArraySort" -> new ParallelArraysSort)
+  val plainSorts = List[(String, AnyRef)](
+    "BitonicSort" -> new BitonicSort,
+    "SequentialArraysSort" -> SequentialArraysSort.intSort,
+    "ParallelArraySort" -> ParallelArraysSort.intSort)
 
   val measuredSorts: List[(String, MeasuredSortAlgorithm[Int])] = List(
     "CpuBitonicSort" -> CpuBitonicSort,
     "GpuBitonicSort" -> GpuBitonicSort,
     "CpuQuickSort" -> CpuQuickSort) ::: plainSorts.map {
     case (name, sortAlgorithm) =>
-      name -> MeasuringSortAlgorithmWrapper(sortAlgorithm)
+      name -> MeasuringIntSortAlgorithmWrapper(sortAlgorithm)
   }
 
   val nativeBenchmarks: List[NativeBenchmark] = List(

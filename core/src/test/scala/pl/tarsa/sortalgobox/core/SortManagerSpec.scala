@@ -21,6 +21,7 @@
 package pl.tarsa.sortalgobox.core
 
 import pl.tarsa.sortalgobox.core.common.SortAlgorithm
+import pl.tarsa.sortalgobox.core.common.agents.StorageAgent
 import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
 class SortManagerSpec extends CommonUnitSpecBase {
@@ -28,11 +29,11 @@ class SortManagerSpec extends CommonUnitSpecBase {
   typeBehavior[SortManager]
 
   it should "run sorting algorithms with correct array size" in {
-    val algorithm1 = mock[SortAlgorithm[Int]]
+    val algorithm1 = mock[SortAlgorithm[StorageAgent]]
     val arraySize = 100
-    (algorithm1.sort(_: Array[Int])).expects(where {
-      (a: Array[Int]) =>
-        a.length == arraySize
+    (algorithm1.sort(_: StorageAgent[Int])).expects(where {
+      (a: StorageAgent[Int]) =>
+        a.size0 == arraySize
     }).once()
     val props = SortSuiteProps(arraySize)
     val algorithms = Seq(algorithm1)
@@ -42,9 +43,9 @@ class SortManagerSpec extends CommonUnitSpecBase {
   it should "run sorting algorithms in order" in {
     val numAlgorithms = 5
     val algorithms = (0 until numAlgorithms)
-      .map(_ => mock[SortAlgorithm[Int]])
+      .map(_ => mock[SortAlgorithm[StorageAgent]])
     inSequence(algorithms.foreach { algorithm =>
-      (algorithm.sort(_: Array[Int])).expects(*).once()
+      (algorithm.sort(_: StorageAgent[Int])).expects(*).once()
     })
     val props = SortSuiteProps(5)
     new SortManager(props, algorithms).executeAll()
