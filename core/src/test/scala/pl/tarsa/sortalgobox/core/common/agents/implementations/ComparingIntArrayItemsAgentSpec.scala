@@ -20,9 +20,8 @@
  */
 package pl.tarsa.sortalgobox.core.common.agents.implementations
 
-import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
-
-class ComparingIntArrayItemsAgentSpec extends CommonUnitSpecBase {
+class ComparingIntArrayItemsAgentSpec extends BaseIntArrayItemsAgentSpec(
+  new ComparingIntArrayItemsAgent(_)) {
   typeBehavior[ComparingIntArrayItemsAgent]
 
   it should "return correct size for empty array" in {
@@ -76,26 +75,5 @@ class ComparingIntArrayItemsAgentSpec extends CommonUnitSpecBase {
       a => assert(a.compare0(2, 3) == -1),
       a => assert(a.compare0(0, 4) == 0)
     )
-  }
-
-
-  def readTest(inputItems: Int*)
-    (operations: (ComparingIntArrayItemsAgent => Unit)*) {
-    val agent = new ComparingIntArrayItemsAgent(inputItems.toArray)
-    operations.foreach(_(agent))
-  }
-
-  def writeTest(inputItems: Int*)
-    (operations: (ComparingIntArrayItemsAgent => Unit)*)
-    (outputItems: Int*) {
-    val array = inputItems.toArray
-    val agent = new ComparingIntArrayItemsAgent(array)
-    operations.foreach(_(agent))
-    assert(array.toSeq == outputItems)
-  }
-
-  def pureTest(operations: (ComparingIntArrayItemsAgent => Unit)*): Unit = {
-    val agent = new ComparingIntArrayItemsAgent(null)
-    operations.foreach(_(agent))
   }
 }
