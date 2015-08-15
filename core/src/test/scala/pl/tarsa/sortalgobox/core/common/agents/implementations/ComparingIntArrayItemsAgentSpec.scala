@@ -20,7 +20,7 @@
  */
 package pl.tarsa.sortalgobox.core.common.agents.implementations
 
-class ComparingIntArrayItemsAgentSpec extends BaseIntArrayItemsAgentSpec(
+class ComparingIntArrayItemsAgentSpec extends BaseSingleIntArrayItemsAgentSpec(
   new ComparingIntArrayItemsAgent(_)) {
   typeBehavior[ComparingIntArrayItemsAgent]
 

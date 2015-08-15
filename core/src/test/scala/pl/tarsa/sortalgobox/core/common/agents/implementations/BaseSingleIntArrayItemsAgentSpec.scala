@@ -23,8 +23,8 @@ package pl.tarsa.sortalgobox.core.common.agents.implementations
 import pl.tarsa.sortalgobox.core.common.agents.ItemsAgent
 import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
-class BaseIntArrayItemsAgentSpec[AgentType <: ItemsAgent[_]](
-  builder: (Array[Int] => AgentType)) extends CommonUnitSpecBase {
+class BaseSingleIntArrayItemsAgentSpec[AgentType <: ItemsAgent[_]](
+  builder: Array[Int] => AgentType) extends CommonUnitSpecBase {
 
   def readTest(inputItems: Int*)
     (operations: (AgentType => Unit)*) {
