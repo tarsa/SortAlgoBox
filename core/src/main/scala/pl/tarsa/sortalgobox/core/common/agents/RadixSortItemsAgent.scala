@@ -60,4 +60,7 @@ abstract class RadixSortItemsAgent[ItemType]
   def copy10(i: Int, j: Int, n: Int): Unit
 
   def copy11(i: Int, j: Int, n: Int): Unit
+
+  def getItemSlice1(i: Int, lowestBit: Int, length: Int): Int =
+    getItemSlice(get1(i), lowestBit, length)
 }
