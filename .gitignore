@@ -23,3 +23,7 @@
 
 /JOCL-*.jar
 /libOpenCL.so
+
+# CMake files
+
+/CMakeFiles
