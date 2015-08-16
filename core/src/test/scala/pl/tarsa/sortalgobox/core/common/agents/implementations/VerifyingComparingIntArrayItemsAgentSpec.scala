@@ -20,8 +20,9 @@
  */
 package pl.tarsa.sortalgobox.core.common.agents.implementations
 
-import java.nio.ByteBuffer
+import java.nio.{BufferUnderflowException, ByteBuffer}
 
+import org.scalatest.exceptions.TestFailedException
 import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
 import pl.tarsa.sortalgobox.core.crossverify.PureNumberCodec
 import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
@@ -31,6 +32,23 @@ class VerifyingComparingIntArrayItemsAgentSpec extends CommonUnitSpecBase {
 
   import TrackingComparingItemsAgent.ActionTypes._
 
+  it should "fail for some operations and no recorded bytes" in {
+    a[BufferUnderflowException] should be thrownBy {
+      readTest(1, 2, 3)(_.compare0(1, 2))()
+    }
+  }
+
+  it should "fail for no operations and some recorded bytes" in {
+    a[TestFailedException] should be thrownBy {
+      readTest(1, 2, 3)()(Get0.id, 2)
+    }
+  }
+
+  it should "fail for mismatched operations and recorded bytes" in {
+    a[TestFailedException] should be thrownBy {
+      readTest(1, 2, 3)(_.swap0(1, 0))(Compare0.id, 3)
+    }
+  }
 
   it should "return correct size for empty array" in {
     readTest()(
