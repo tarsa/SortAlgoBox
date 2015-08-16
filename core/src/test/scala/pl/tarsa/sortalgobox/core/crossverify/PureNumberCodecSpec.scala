@@ -20,209 +20,210 @@
  */
 package pl.tarsa.sortalgobox.core.crossverify
 
-import java.nio.{BufferUnderflowException, BufferOverflowException, ByteBuffer}
 import java.nio.ByteBuffer._
+import java.nio.{BufferOverflowException, BufferUnderflowException}
 
-import pl.tarsa.sortalgobox.core.crossverify.PureNumberCodec._
 import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
 class PureNumberCodecSpec extends CommonUnitSpecBase {
-  typeBehavior[PureNumberCodec.type]
+  typeBehavior[PureNumberCodec]
 
-  def havingSize(size: Int)(function: ByteBuffer => Unit)
+  def havingSize(size: Int)(function: PureNumberCodec => Unit)
     (contents: Byte*): Unit = {
     val buffer = allocate(size)
-    function(buffer)
+    val codec = new PureNumberCodec(buffer)
+    function(codec)
     assert(buffer.position() == contents.length)
     assert(buffer.flip() == wrap(contents.toArray))
   }
 
-  def havingContents(contents: Byte*)(function: ByteBuffer => Unit)
+  def havingContents(contents: Byte*)(function: PureNumberCodec => Unit)
     (position: Int): Unit = {
     val buffer = wrap(contents.toArray)
-    function(buffer)
+    val codec = new PureNumberCodec(buffer)
+    function(codec)
     assert(buffer.position() == position)
   }
 
   it should "fail on serializing negative int" in {
-    havingSize(0) { buffer =>
+    havingSize(0) { codec =>
       a[IllegalArgumentException] should be thrownBy {
-        serializeInt(buffer, -1)
+        codec.serializeInt(-1)
       }
     }()
   }
 
   it should "serialize int zero" in {
-    havingSize(1) { buffer =>
-      serializeInt(buffer, 0)
+    havingSize(1) { codec =>
+      codec.serializeInt(0)
     }(contents = 0)
   }
 
   it should "serialize positive int" in {
-    havingSize(9) { buffer =>
-      serializeInt(buffer, 1234567)
+    havingSize(9) { codec =>
+      codec.serializeInt(1234567)
     }(contents = -121, -83, 75)
   }
 
   it should "serialize max int" in {
-    havingSize(9) { buffer =>
-      serializeInt(buffer, Int.MaxValue)
+    havingSize(9) { codec =>
+      codec.serializeInt(Int.MaxValue)
     }(contents = -1, -1, -1, -1, 7)
   }
 
   it should "fail on int serialization when not enough remaining space" in {
-    havingSize(2) { buffer =>
+    havingSize(2) { codec =>
       a[BufferOverflowException] should be thrownBy {
-        serializeInt(buffer, Int.MaxValue)
+        codec.serializeInt(Int.MaxValue)
       }
     }(contents = -1, -1)
   }
 
   it should "fail on deserialization of empty buffer for int" in {
-    havingContents() { buffer =>
+    havingContents() { codec =>
       a[BufferUnderflowException] should be thrownBy {
-        deserializeInt(buffer)
+        codec.deserializeInt()
       }
     }(position = 0)
   }
 
   it should "fail on deserialization of unfinished negative sequence for " +
     "int" in {
-    havingContents(-1, -2, -3) { buffer =>
+    havingContents(-1, -2, -3) { codec =>
       a[BufferUnderflowException] should be thrownBy {
-        deserializeInt(buffer)
+        codec.deserializeInt()
       }
     }(position = 3)
   }
 
   it should "deserialize int zero" in {
-    havingContents(0) { buffer =>
-      assert(deserializeInt(buffer) == 0)
+    havingContents(0) { codec =>
+      assert(codec.deserializeInt() == 0)
     }(position = 1)
   }
 
   it should "fully deserialize weirdly encoded int zero" in {
-    havingContents(-128, -128, -128, -128, -128, -128, -128, 0) { buffer =>
-      assert(deserializeInt(buffer) == 0)
+    havingContents(-128, -128, -128, -128, -128, -128, -128, 0) { codec =>
+      assert(codec.deserializeInt() == 0)
     }(position = 8)
   }
 
   it should "deserialize positive int" in {
-    havingContents(-121, -83, 75) { buffer =>
-      assert(deserializeInt(buffer) == 1234567)
+    havingContents(-121, -83, 75) { codec =>
+      assert(codec.deserializeInt() == 1234567)
     }(position = 3)
   }
 
   it should "deserialize max int" in {
-    havingContents(-1, -1, -1, -1, 7) { buffer =>
-      assert(deserializeInt(buffer) == Int.MaxValue)
+    havingContents(-1, -1, -1, -1, 7) { codec =>
+      assert(codec.deserializeInt() == Int.MaxValue)
     }(position = 5)
   }
 
   it should "fail on deserialization of slightly too big number for int" in {
-    havingContents(-1, -1, -1, -1, 8) { buffer =>
+    havingContents(-1, -1, -1, -1, 8) { codec =>
       a[NumberCodecException] should be thrownBy {
-        deserializeInt(buffer)
+        codec.deserializeInt()
       }
     }(position = 5)
   }
 
   it should "fail on deserialization of way too big number for int" in {
-    havingContents(-1, -1, -1, -1, -1, 1) { buffer =>
+    havingContents(-1, -1, -1, -1, -1, 1) { codec =>
       a[NumberCodecException] should be thrownBy {
-        deserializeInt(buffer)
+        codec.deserializeInt()
       }
     }(position = 5)
   }
 
   it should "fail on serializing negative long" in {
-    havingSize(0) { buffer =>
+    havingSize(0) { codec =>
       a[IllegalArgumentException] should be thrownBy {
-        serializeLong(buffer, -1L)
+        codec.serializeLong(-1L)
       }
     }()
   }
 
   it should "serialize long zero" in {
-    havingSize(1) { buffer =>
-      serializeLong(buffer, 0L)
+    havingSize(1) { codec =>
+      codec.serializeLong(0L)
     }(contents = 0)
   }
 
   it should "serialize positive long" in {
-    havingSize(9) { buffer =>
-      serializeLong(buffer, 123456789000L)
+    havingSize(9) { codec =>
+      codec.serializeLong(123456789000L)
     }(contents = -120, -76, -28, -12, -53, 3)
   }
 
   it should "serialize max long" in {
-    havingSize(9) { buffer =>
-      serializeLong(buffer, Long.MaxValue)
+    havingSize(9) { codec =>
+      codec.serializeLong(Long.MaxValue)
     }(contents = -1, -1, -1, -1, -1, -1, -1, -1, 127)
   }
 
   it should "fail on long serialization when not enough remaining space" in {
-    havingSize(2) { buffer =>
+    havingSize(2) { codec =>
       a[BufferOverflowException] should be thrownBy {
-        serializeLong(buffer, Long.MaxValue)
+        codec.serializeLong(Long.MaxValue)
       }
     }(-1, -1)
   }
 
   it should "fail on deserialization of empty buffer for long" in {
-    havingContents() { buffer =>
+    havingContents() { codec =>
       a[BufferUnderflowException] should be thrownBy {
-        deserializeLong(buffer)
+        codec.deserializeLong()
       }
     }(position = 0)
   }
 
   it should "fail on deserialization of unfinished negative sequence for " +
     "long" in {
-    havingContents(-1, -2, -3) { buffer =>
+    havingContents(-1, -2, -3) { codec =>
       a[BufferUnderflowException] should be thrownBy {
-        deserializeLong(buffer)
+        codec.deserializeLong()
       }
     }(position = 3)
   }
 
   it should "deserialize long zero" in {
-    havingContents(0) { buffer =>
-      assert(deserializeLong(buffer) == 0L)
+    havingContents(0) { codec =>
+      assert(codec.deserializeLong() == 0L)
     }(position = 1)
   }
 
   it should "fully deserialize weirdly encoded long zero" in {
     havingContents(-128, -128, -128, -128, -128, -128, -128, -128, -128, -128,
-      -128, -128, -128, -128, -128, -128, -128, -128, 0) { buffer =>
-      assert(deserializeLong(buffer) == 0L)
+      -128, -128, -128, -128, -128, -128, -128, -128, 0) { codec =>
+      assert(codec.deserializeLong() == 0L)
     }(position = 19)
   }
 
   it should "deserialize positive long" in {
-    havingContents(-120, -76, -28, -12, -53, 3) { buffer =>
-      assert(deserializeLong(buffer) == 123456789000L)
+    havingContents(-120, -76, -28, -12, -53, 3) { codec =>
+      assert(codec.deserializeLong() == 123456789000L)
     }(position = 6)
   }
 
   it should "deserialize max long" in {
-    havingContents(-1, -1, -1, -1, -1, -1, -1, -1, 127) { buffer =>
-      assert(deserializeLong(buffer) == Long.MaxValue)
+    havingContents(-1, -1, -1, -1, -1, -1, -1, -1, 127) { codec =>
+      assert(codec.deserializeLong() == Long.MaxValue)
     }(position = 9)
   }
 
   it should "fail on deserialization of slightly too big number for long" in {
-    havingContents(-1, -1, -1, -1, -1, -1, -1, -1, -1, 1) { buffer =>
+    havingContents(-1, -1, -1, -1, -1, -1, -1, -1, -1, 1) { codec =>
       a[NumberCodecException] should be thrownBy {
-        deserializeLong(buffer)
+        codec.deserializeLong()
       }
     }(position = 10)
   }
 
   it should "fail on deserialization of way too big number for long" in {
-    havingContents(-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0) { buffer =>
+    havingContents(-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0) { codec =>
       a[NumberCodecException] should be thrownBy {
-        deserializeLong(buffer)
+        codec.deserializeLong()
       }
     }(position = 10)
   }

@@ -24,20 +24,23 @@ import java.nio.ByteBuffer
 
 import scala.annotation.tailrec
 
-object PureNumberCodec {
-  @tailrec
-  def serializeInt(buffer: ByteBuffer, value: Int): Unit = {
-    if (value < 0) {
-      throw new IllegalArgumentException
-    } else if (value <= Byte.MaxValue) {
-      buffer.put(value.toByte)
-    } else {
-      buffer.put(((value & 127) - 128).toByte)
-      serializeInt(buffer, value >> 7)
+class PureNumberCodec(buffer: ByteBuffer) {
+  def serializeInt(value: Int): Unit = {
+    @tailrec
+    def serialize(value: Int): Unit = {
+      if (value < 0) {
+        throw new IllegalArgumentException
+      } else if (value <= Byte.MaxValue) {
+        buffer.put(value.toByte)
+      } else {
+        buffer.put(((value & 127) - 128).toByte)
+        serialize(value >> 7)
+      }
     }
+    serialize(value)
   }
 
-  def deserializeInt(buffer: ByteBuffer): Int = {
+  def deserializeInt(): Int = {
     @tailrec
     def deserialize(current: Int, shift: Int): Int = {
       val input = buffer.get()
@@ -58,19 +61,22 @@ object PureNumberCodec {
     deserialize(0, 0)
   }
 
-  @tailrec
-  def serializeLong(buffer: ByteBuffer, value: Long): Unit = {
-    if (value < 0) {
-      throw new IllegalArgumentException
-    } else if (value <= Byte.MaxValue) {
-      buffer.put(value.toByte)
-    } else {
-      buffer.put(((value & 127) - 128).toByte)
-      serializeLong(buffer, value >> 7)
+  def serializeLong(value: Long): Unit = {
+    @tailrec
+    def serialize(value: Long): Unit = {
+      if (value < 0) {
+        throw new IllegalArgumentException
+      } else if (value <= Byte.MaxValue) {
+        buffer.put(value.toByte)
+      } else {
+        buffer.put(((value & 127) - 128).toByte)
+        serialize(value >> 7)
+      }
     }
+    serialize(value)
   }
 
-  def deserializeLong(buffer: ByteBuffer): Long = {
+  def deserializeLong(): Long = {
     @tailrec
     def deserialize(current: Long, shift: Int): Long = {
       val input = buffer.get()

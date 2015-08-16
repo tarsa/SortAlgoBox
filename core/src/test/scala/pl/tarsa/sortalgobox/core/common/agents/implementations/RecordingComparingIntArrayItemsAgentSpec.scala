@@ -23,6 +23,7 @@ package pl.tarsa.sortalgobox.core.common.agents.implementations
 import java.nio.ByteBuffer
 
 import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
+import pl.tarsa.sortalgobox.core.crossverify.PureNumberCodec
 import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
 class RecordingComparingIntArrayItemsAgentSpec extends CommonUnitSpecBase {
@@ -95,9 +96,10 @@ class RecordingComparingIntArrayItemsAgentSpec extends CommonUnitSpecBase {
   def buildRecordingAgent(inputItems: Array[Int]): (ByteBuffer,
     ComparingItemsAgent[Int]) = {
     val recordingBuffer = ByteBuffer.allocate(100)
+    val recorder = new PureNumberCodec(recordingBuffer)
     val underlying = new ComparingIntArrayItemsAgent(inputItems)
     val recordingAgent = new RecordingComparingIntArrayItemsAgent(
-      recordingBuffer, underlying)
+      recorder, underlying)
     (recordingBuffer, recordingAgent)
   }
   

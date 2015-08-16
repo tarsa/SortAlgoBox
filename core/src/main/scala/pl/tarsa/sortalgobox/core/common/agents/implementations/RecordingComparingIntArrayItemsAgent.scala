@@ -20,15 +20,14 @@
  */
 package pl.tarsa.sortalgobox.core.common.agents.implementations
 
-import java.nio.ByteBuffer
-
 import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
-import pl.tarsa.sortalgobox.core.crossverify.PureNumberCodec.serializeInt
+import pl.tarsa.sortalgobox.core.crossverify.PureNumberCodec
 
-class RecordingComparingIntArrayItemsAgent(recordingBuffer: ByteBuffer,
+class RecordingComparingIntArrayItemsAgent(recorder: PureNumberCodec,
   underlying: ComparingIntArrayItemsAgent) extends ComparingItemsAgent[Int] {
   
   import RecordingComparingIntArrayItemsAgent.ActionTypes._
+  import recorder._
 
   override def size0: Int =
     recordedF(Size0, _.size0)
@@ -55,8 +54,8 @@ class RecordingComparingIntArrayItemsAgent(recordingBuffer: ByteBuffer,
   private def recordedP(actionType: ActionType,
     action: ComparingIntArrayItemsAgent => Unit,
     parameters: Int*): Unit = {
-    serializeInt(recordingBuffer, actionType.id)
-    parameters.foreach(serializeInt(recordingBuffer, _))
+    serializeInt(actionType.id)
+    parameters.foreach(serializeInt)
     action(underlying)
   }
 
@@ -64,8 +63,8 @@ class RecordingComparingIntArrayItemsAgent(recordingBuffer: ByteBuffer,
   private def recordedF(actionType: ActionType,
     action: ComparingIntArrayItemsAgent => Int,
     parameters: Int*): Int = {
-    serializeInt(recordingBuffer, actionType.id)
-    parameters.foreach(serializeInt(recordingBuffer, _))
+    serializeInt(actionType.id)
+    parameters.foreach(serializeInt)
     action(underlying)
   }
 }
