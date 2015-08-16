@@ -23,9 +23,10 @@ package pl.tarsa.sortalgobox.core.common.agents.implementations
 import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
 import pl.tarsa.sortalgobox.core.crossverify.PureNumberCodec
 
-class RecordingComparingIntArrayItemsAgent(recorder: PureNumberCodec,
-  underlying: ComparingIntArrayItemsAgent) extends ComparingItemsAgent[Int] {
-  
+class VerifyingComparingIntArrayItemsAgent(recorder: PureNumberCodec,
+  underlying: ComparingIntArrayItemsAgent, verify: Boolean => Unit)
+  extends ComparingItemsAgent[Int] {
+
   import TrackingComparingItemsAgent.ActionTypes._
   import recorder._
 
@@ -54,8 +55,8 @@ class RecordingComparingIntArrayItemsAgent(recorder: PureNumberCodec,
   private def recordedP(actionType: ActionType,
     action: ComparingIntArrayItemsAgent => Unit,
     parameters: Int*): Unit = {
-    serializeInt(actionType.id)
-    parameters.foreach(serializeInt)
+    verify(deserializeInt() == actionType.id)
+    parameters.foreach(parameter => verify(deserializeInt() == parameter))
     action(underlying)
   }
 
@@ -63,8 +64,8 @@ class RecordingComparingIntArrayItemsAgent(recorder: PureNumberCodec,
   private def recordedF(actionType: ActionType,
     action: ComparingIntArrayItemsAgent => Int,
     parameters: Int*): Int = {
-    serializeInt(actionType.id)
-    parameters.foreach(serializeInt)
+    verify(deserializeInt() == actionType.id)
+    parameters.foreach(parameter => verify(deserializeInt() == parameter))
     action(underlying)
   }
 }

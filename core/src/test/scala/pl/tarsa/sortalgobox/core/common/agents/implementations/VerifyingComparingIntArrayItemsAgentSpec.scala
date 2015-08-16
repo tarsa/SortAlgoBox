@@ -26,10 +26,11 @@ import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
 import pl.tarsa.sortalgobox.core.crossverify.PureNumberCodec
 import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
-class RecordingComparingIntArrayItemsAgentSpec extends CommonUnitSpecBase {
-  typeBehavior[RecordingComparingIntArrayItemsAgent]
+class VerifyingComparingIntArrayItemsAgentSpec extends CommonUnitSpecBase {
+  typeBehavior[VerifyingComparingIntArrayItemsAgent]
 
   import TrackingComparingItemsAgent.ActionTypes._
+
 
   it should "return correct size for empty array" in {
     readTest()(
@@ -92,47 +93,47 @@ class RecordingComparingIntArrayItemsAgentSpec extends CommonUnitSpecBase {
         Compare0.id, 0, 1, Compare0.id, 2, 3, Compare0.id, 0, 4)
   }
 
-  def buildRecordingAgent(inputItems: Array[Int]): (ByteBuffer,
-    ComparingItemsAgent[Int]) = {
-    val recordingBuffer = ByteBuffer.allocate(100)
-    val recorder = new PureNumberCodec(recordingBuffer)
-    val underlying = new ComparingIntArrayItemsAgent(inputItems)
-    val recordingAgent = new RecordingComparingIntArrayItemsAgent(
-      recorder, underlying)
-    (recordingBuffer, recordingAgent)
+  def verify(condition: Boolean) = {
+    if (!condition) {
+      fail()
+    }
   }
 
-  def assertRecordedBytes(recordingBuffer: ByteBuffer,
-    expectedRecordedBytes: Seq[Int]): Unit = {
+  def buildRecordingAgent(inputItems: Array[Int], recordedBytes: Seq[Int]):
+  (ByteBuffer, ComparingItemsAgent[Int]) = {
+    val recordingBuffer = ByteBuffer.allocate(recordedBytes.length)
+    recordedBytes.map(_.toByte).foreach(recordingBuffer.put)
     recordingBuffer.flip()
-    assert(recordingBuffer.remaining() == expectedRecordedBytes.length)
-    for (expectedValue <- expectedRecordedBytes) {
-      assert(expectedValue == (recordingBuffer.get().toInt & 0xFF))
-    }
+    val recorder = new PureNumberCodec(recordingBuffer)
+    val underlying = new ComparingIntArrayItemsAgent(inputItems)
+    val recordingAgent = new VerifyingComparingIntArrayItemsAgent(
+      recorder, underlying, verify)
+    (recordingBuffer, recordingAgent)
   }
 
   def readTest(inputItems: Int*)
     (operations: (ComparingItemsAgent[Int] => Unit)*)
-    (expectedRecordedBytes: Int*): Unit = {
-    val (buffer, agent) = buildRecordingAgent(inputItems.toArray)
+    (recordedBytes: Int*): Unit = {
+    val (buffer, agent) = buildRecordingAgent(inputItems.toArray, recordedBytes)
     operations.foreach(_(agent))
-    assertRecordedBytes(buffer, expectedRecordedBytes)
+    assert(!buffer.hasRemaining)
+
   }
 
   def writeTest(inputItems: Int*)
     (operations: (ComparingItemsAgent[Int] => Unit)*)
-    (outputItems: Int*)(expectedRecordedBytes: Int*): Unit = {
+    (outputItems: Int*)(recordedBytes: Int*): Unit = {
     val array = inputItems.toArray
-    val (buffer, agent) = buildRecordingAgent(array)
+    val (buffer, agent) = buildRecordingAgent(array, recordedBytes)
     operations.foreach(_(agent))
     assert(array.toSeq == outputItems)
-    assertRecordedBytes(buffer, expectedRecordedBytes)
+    assert(!buffer.hasRemaining)
   }
 
   def pureTest(operations: (ComparingItemsAgent[Int] => Unit)*)
-    (expectedRecordedBytes: Int*): Unit = {
-    val (buffer, agent) = buildRecordingAgent(null)
+    (recordedBytes: Int*): Unit = {
+    val (buffer, agent) = buildRecordingAgent(null, recordedBytes)
     operations.foreach(_(agent))
-    assertRecordedBytes(buffer, expectedRecordedBytes)
+    assert(!buffer.hasRemaining)
   }
 }
