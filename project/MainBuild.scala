@@ -3,8 +3,15 @@ import Keys._
 
 object MainBuild extends Build {
 
+  val theScalaVersion = "2.11.7"
+
   lazy val commonSettings = Seq(
-    scalaVersion := "2.11.7"
+    scalaVersion := theScalaVersion,
+    conflictManager := ConflictManager.strict,
+    dependencyOverrides ++= Set(
+      "org.scala-lang" % "scala-library" % theScalaVersion,
+      "org.scala-lang" % "scala-reflect" % theScalaVersion,
+      "org.scala-lang.modules" %% "scala-xml" % "1.0.5")
   )
 
   val fullDep = "compile->compile;test->test"
@@ -16,10 +23,8 @@ object MainBuild extends Build {
         "org.apache.commons" % "commons-math3" % "3.5",
         "org.jocl" % "jocl" % "0.1.9",
         "org.scalatest" %% "scalatest" % "2.2.4" % "test",
-        "org.scalamock" %% "scalamock-scalatest-support" % "3.2" % "test",
-        "org.scalafx" %% "scalafx" % "8.0.40-R8"),
-      dependencyOverrides ++= Set(
-        "org.scala-lang.modules" %% "scala-xml" % "1.0.5")
+        "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test",
+        "org.scalafx" %% "scalafx" % "8.0.40-R8")
     )
 
   lazy val depsCp = deps % fullDep
