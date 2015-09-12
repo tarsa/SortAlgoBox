@@ -18,7 +18,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
-package pl.tarsa.sortalgobox.core.crossverify
+package pl.tarsa.sortalgobox.natives.crossverify
 
 import java.io.PrintStream
 import java.util.Scanner
@@ -236,7 +236,7 @@ $cases
 
   val mainSourceFile = "spec.cpp"
   val numberCodecComponent = NativeBuildComponentFromResource(
-    "/pl/tarsa/sortalgobox/core/crossverify/", "numbercodec.hpp")
+    "/pl/tarsa/sortalgobox/natives/crossverify/", "numbercodec.hpp")
   val specBuildComponent = NativeBuildComponentFromString(sourceCode,
     mainSourceFile)
   val buildConfig = NativeBuildConfig(Seq(numberCodecComponent,
