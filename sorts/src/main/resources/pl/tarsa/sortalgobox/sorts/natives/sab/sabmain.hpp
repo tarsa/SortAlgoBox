@@ -18,6 +18,9 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
+#ifndef SABMAIN_HPP
+#define SABMAIN_HPP
+
 #if defined(SORT_CACHED) && defined(SORT_SIMD)
 #error Unsupported combination
 #endif
@@ -70,3 +73,5 @@ void sortPerform(int32_t * const work, ssize_t const size,
     tarsa::SORT_ALGO<int32_t, ComparisonOperator>(work, size);
 #endif
 }
+
+#endif /* SABMAIN_HPP */

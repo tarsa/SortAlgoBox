@@ -18,5 +18,10 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
- #define xstr(s) str(s)
- #define str(s) #s
+#ifndef MACROS_HPP
+#define MACROS_HPP
+
+#define xstr(s) str(s)
+#define str(s) #s
+
+#endif /* MACROS_HPP */

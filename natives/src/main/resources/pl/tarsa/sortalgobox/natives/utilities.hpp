@@ -18,6 +18,9 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
+#ifndef UTILITIES_HPP
+#define UTILITIES_HPP
+
 template<typename T>
 void checkNew(size_t n) {
     T * const result = new T[n];
@@ -29,3 +32,5 @@ template<typename T>
 void checkZero(T value) {
     assert(value == 0);
 }
+
+#endif /* UTILITIES_HPP */

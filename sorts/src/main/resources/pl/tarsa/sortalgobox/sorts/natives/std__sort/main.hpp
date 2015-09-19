@@ -18,6 +18,9 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  */
+#ifndef MAIN_HPP
+#define MAIN_HPP
+
 #include <algorithm>
 #include <cstdint>
 
@@ -43,3 +46,5 @@ void sortPerform(int32_t * const work, ssize_t const size,
         auxiliary_space_t const auxiliary) {
     std::sort(work, work + size);
 }
+
+#endif /* MAIN_HPP */
