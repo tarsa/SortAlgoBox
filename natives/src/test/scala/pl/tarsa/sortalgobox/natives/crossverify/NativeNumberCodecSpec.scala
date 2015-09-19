@@ -23,7 +23,7 @@ package pl.tarsa.sortalgobox.natives.crossverify
 import java.io.PrintStream
 import java.util.Scanner
 
-import pl.tarsa.sortalgobox.natives._
+import pl.tarsa.sortalgobox.natives.build._
 import pl.tarsa.sortalgobox.tests.NativesUnitSpecBase
 
 import scala.io.Source
@@ -42,7 +42,7 @@ class NativeNumberCodecSpec extends NativesUnitSpecBase {
         pipeTo.flush()
         val pipeFrom = new Scanner(specProcess.getInputStream)
         val Array(a, b, c) = Array.fill[Boolean](3)(pipeFrom.nextInt() != 0)
-        import SpecMode._
+        import TestMode._
         testMode match {
           case SerializeInt | SerializeLong =>
             assert(a, ", buffer position")
@@ -62,16 +62,16 @@ class NativeNumberCodecSpec extends NativesUnitSpecBase {
 
 object NativeNumberCodecSpec {
 
-  object SpecMode extends Enumeration {
-    type SpecType = Value
+  object TestMode extends Enumeration {
+    type TestMode = Value
     val SerializeInt, DeserializeInt, SerializeLong, DeserializeLong = Value
   }
 
-  import SpecMode._
+  import TestMode._
 
-  case class Test(name: String, mode: SpecType, params: String)
+  case class Test(name: String, mode: TestMode, params: String)
 
-  val tests: List[Test] = List[(String, SpecType, String)](
+  val tests: List[Test] = List[(String, TestMode, String)](
     ("fail on serializing negative int", SerializeInt,
       "0, -1, nullptr, 0, NumberCodec::NegativeValue"),
     ("serialize int zero", SerializeInt,

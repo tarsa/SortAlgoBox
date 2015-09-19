@@ -20,7 +20,7 @@
  */
 package pl.tarsa.sortalgobox.sorts.natives.sab
 
-import pl.tarsa.sortalgobox.natives.NativesCache
+import pl.tarsa.sortalgobox.natives.build.NativesCache
 
 class NativeSabHeapBinaryCascadingVariantC(
   nativesCache: NativesCache = NativesCache)

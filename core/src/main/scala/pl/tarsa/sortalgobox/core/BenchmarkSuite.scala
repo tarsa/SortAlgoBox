@@ -21,7 +21,7 @@
 package pl.tarsa.sortalgobox.core
 
 import pl.tarsa.sortalgobox.core.exceptions.VerificationFailedException
-import pl.tarsa.sortalgobox.natives.NativesCache
+import pl.tarsa.sortalgobox.natives.build.NativesCache
 
 abstract class BenchmarkSuite {
   def benchmarks: Seq[Benchmark]

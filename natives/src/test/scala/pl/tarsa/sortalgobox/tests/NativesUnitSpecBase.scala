@@ -21,7 +21,7 @@
 package pl.tarsa.sortalgobox.tests
 
 import org.scalatest.BeforeAndAfterAll
-import pl.tarsa.sortalgobox.natives.NativesCache
+import pl.tarsa.sortalgobox.natives.build.NativesCache
 
 abstract class NativesUnitSpecBase
   extends CommonUnitSpecBase with BeforeAndAfterAll {

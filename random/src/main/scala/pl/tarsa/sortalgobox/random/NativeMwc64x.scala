@@ -23,7 +23,7 @@ package pl.tarsa.sortalgobox.random
 import java.io.PrintStream
 import java.util.Scanner
 
-import pl.tarsa.sortalgobox.natives._
+import pl.tarsa.sortalgobox.natives.build._
 
 class NativeMwc64x(nativesCache: NativesCache = NativesCache) {
   def generate(n: Int): Array[Int] = {

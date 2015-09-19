@@ -24,7 +24,7 @@ import java.io._
 import java.nio.file.{Files, Path}
 import java.util
 
-import pl.tarsa.sortalgobox.natives.{NativeBuildConfig, NativesCache}
+import pl.tarsa.sortalgobox.natives.build.{NativeBuildConfig, NativesCache}
 
 import scala.io.StdIn
 

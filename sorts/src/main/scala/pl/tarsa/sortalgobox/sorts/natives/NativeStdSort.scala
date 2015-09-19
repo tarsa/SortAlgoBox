@@ -24,7 +24,7 @@ import java.io.PrintStream
 import java.util.Scanner
 
 import pl.tarsa.sortalgobox.core.NativeBenchmark
-import pl.tarsa.sortalgobox.natives._
+import pl.tarsa.sortalgobox.natives.build._
 import pl.tarsa.sortalgobox.random.NativeMwc64x
 
 class NativeStdSort(nativesCache: NativesCache = NativesCache)

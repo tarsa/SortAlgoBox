@@ -20,7 +20,7 @@
  */
 package pl.tarsa.sortalgobox.core
 
-import pl.tarsa.sortalgobox.natives.NativeBuildConfig
+import pl.tarsa.sortalgobox.natives.build.NativeBuildConfig
 
 trait NativeBenchmark extends Benchmark {
   def buildConfig: NativeBuildConfig
