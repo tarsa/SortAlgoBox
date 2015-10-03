@@ -24,9 +24,12 @@
 #include <algorithm>
 #include <cstdint>
 
+EMPTY_AUXILIARY_SPACE
+
 #define VALIDATE_FUNCTION
 
-bool sortValidate(int32_t const * const work, ssize_t const size) {
+bool sortValidate(int32_t const * const work, ssize_t const size,
+        auxiliary_space_t const * const auxiliary) {
     bool sorted = true;
     for (ssize_t i = 1; sorted && (i < size); i++) {
         sorted &= work[i - 1] <= work[i];
@@ -34,10 +37,8 @@ bool sortValidate(int32_t const * const work, ssize_t const size) {
     return sorted;
 }
 
-EMPTY_AUXILIARY_SPACE
-
 void sortPerform(int32_t * const work, ssize_t const size,
-        auxiliary_space_t const auxiliary) {
+        auxiliary_space_t const * const auxiliary) {
     std::sort(work, work + size);
 }
 

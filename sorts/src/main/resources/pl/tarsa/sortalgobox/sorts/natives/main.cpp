@@ -47,7 +47,8 @@ auxiliary_space_t sortInitAuxiliary(ssize_t const size) { \
 #ifndef VALIDATE_FUNCTION
 #define VALIDATE_FUNCTION
 
-bool sortValidate(int32_t const * const work, ssize_t const size) {
+bool sortValidate(int32_t const * const work, ssize_t const size,
+        auxiliary_space_t const * const auxiliary) {
     int32_t * reference;
     checkZero(posix_memalign((void**) &reference, 128,
             sizeof (int32_t) * size));
@@ -75,14 +76,14 @@ int main(int argc, char** argv) {
     mwc64xFill(work, size);
 
     auto startingChrono = std::chrono::system_clock::now();
-    sortPerform(work, size, auxiliary);
+    sortPerform(work, size, &auxiliary);
     auto elapsedChrono = std::chrono::system_clock::now() - startingChrono;
     uint64_t elapsedChronoNanoseconds = std::chrono::duration_cast<std::chrono
         ::nanoseconds>(elapsedChrono).count();
     printf("%lx\n", elapsedChronoNanoseconds);
 
     if (shouldValidate) {
-        bool const valid = sortValidate(work, size);
+        bool const valid = sortValidate(work, size, &auxiliary);
         std::cout << (valid ? "pass" : "fail") << std::endl;
     }
 

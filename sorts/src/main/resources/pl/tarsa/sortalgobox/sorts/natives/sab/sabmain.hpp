@@ -63,12 +63,12 @@ auxiliary_space_t sortInitAuxiliary(ssize_t const size) {
 }
 
 void sortPerform(int32_t * const work, ssize_t const size,
-        auxiliary_space_t const auxiliary) {
+        auxiliary_space_t * const auxiliary) {
 #if defined(SORT_SIMD)
     tarsa::SORT_ALGO<int32_t, true>(work, size);
 #elif defined(SORT_CACHED)
     tarsa::SORT_ALGO<int32_t, ComparisonOperator>(work, size,
-        auxiliary.scratchpad);
+        auxiliary->scratchpad);
 #else
     tarsa::SORT_ALGO<int32_t, ComparisonOperator>(work, size);
 #endif
