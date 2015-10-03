@@ -34,13 +34,7 @@ bool sortValidate(int32_t const * const work, ssize_t const size) {
     return sorted;
 }
 
-struct auxiliary_space_t {
-};
-
-auxiliary_space_t sortInitAuxiliary(ssize_t const size) {
-    auxiliary_space_t auxiliary;
-    return auxiliary;
-}
+EMPTY_AUXILIARY_SPACE
 
 void sortPerform(int32_t * const work, ssize_t const size,
         auxiliary_space_t const auxiliary) {

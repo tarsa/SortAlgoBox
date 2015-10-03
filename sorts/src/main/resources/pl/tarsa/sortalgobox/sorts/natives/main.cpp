@@ -33,6 +33,15 @@
 
 #include "mwc64x.hpp"
 
+#define EMPTY_AUXILIARY_SPACE struct auxiliary_space_t { \
+}; \
+\
+auxiliary_space_t sortInitAuxiliary(ssize_t const size) { \
+    auxiliary_space_t auxiliary; \
+    return auxiliary; \
+}
+
+
 #include xstr(SORT_MECHANICS)
 
 #ifndef VALIDATE_FUNCTION
