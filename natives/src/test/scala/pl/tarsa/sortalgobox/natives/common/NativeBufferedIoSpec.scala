@@ -124,7 +124,7 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
     writer.write(60);
     writer.write(70);
 
-    writer.flush();
+    writer.flush(true);
 
     std::cout << true << std::endl;
 }"""

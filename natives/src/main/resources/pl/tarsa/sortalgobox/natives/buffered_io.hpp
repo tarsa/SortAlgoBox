@@ -101,7 +101,7 @@ namespace tarsa {
             buffer = nullptr;
         }
 
-        void flush() {
+        void flush(bool const flushFile = false) {
             if (bufferPosition > 0) {
                 if (!fileOpened) {
                     targetFile = fopen(targetFilename.c_str(), "wb");
@@ -115,6 +115,9 @@ namespace tarsa {
                         != bufferPosition) {
                     fputs("Error while writing to output.\n", stderr);
                     exit(EXIT_FAILURE);
+                }
+                if (flushFile) {
+                    fflush(targetFile);
                 }
             }
             bufferPosition = 0;
