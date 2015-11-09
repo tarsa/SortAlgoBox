@@ -3,6 +3,26 @@
 Project goal:
 
  * provide a foundation for easy creation of new sorting algorithms
+ 
+Implemented features:
+
+ * executing sorting algorithms written in Java, Scala, 
+   OpenCL (on both CPU and GPGPU) and C++
+ * printing (to standard output) and graphing (using ScalaFX) benchmark results
+ * generation of CMake projects for native C++ sorts
+ * portable PRNG implementation (Mwc64x) in Scala, OpenCL (both CPU and GPGPU)
+   and C++
+ 
+Implemented sorting algorithms:
+
+ * wrappers for standard Java sorts: Arrays.sort and Arrays.parallelSort
+ * Scala sorts: Bitonic Sort, Bubble Sort, Heap Sort, Insertion Sort, 
+   Merge Sort, Quick Sort, Radix Sort, Selection Sort, Shell Sort
+ * OpenCL sorts for CPU: Bitonic Sort, Bubble Sort, Heap Sort, Insertion Sort,
+   Merge Sort, Quick Sort, Radix Sort, Selection Sort, Shell Sort
+ * OpenCL Bitonic Sort for GPGPU
+ * native C++ sorts: Bubble Sort, wrapper for std::sort, 
+   25 variants of Heap Sort, Quick Sort
 
 Things to do after project checkout:
 
