@@ -25,6 +25,20 @@ import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 class Mwc64xSpec extends CommonUnitSpecBase {
   typeBehavior[Mwc64x]
 
+  it should "support changing the seed" in {
+    def getFirstInt(preparation: Mwc64x => Unit) = {
+      val rng = new Mwc64x
+      preparation(rng)
+      rng.nextInt()
+    }
+    val rn = getFirstInt(_ => ())
+    val rn1 = getFirstInt(_.setSeed(Array(1)))
+    val rn2 = getFirstInt(_.setSeed(2L))
+    val rn3 = getFirstInt(_.setSeed(3))
+    val allNumbersDifferent = Set(rn, rn1, rn2, rn3).size == 4
+    assert(allNumbersDifferent)
+  }
+
   it should "have hashCode and equals working" in {
     val rng1 = new Mwc64x
     val rng2 = new Mwc64x

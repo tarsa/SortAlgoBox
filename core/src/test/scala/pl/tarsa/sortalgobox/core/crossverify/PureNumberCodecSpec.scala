@@ -47,7 +47,7 @@ class PureNumberCodecSpec extends CommonUnitSpecBase {
 
   it should "fail on serializing negative int" in {
     havingSize(0) { codec =>
-      a[IllegalArgumentException] should be thrownBy {
+      an[IllegalArgumentException] should be thrownBy {
         codec.serializeInt(-1)
       }
     }()
@@ -138,7 +138,7 @@ class PureNumberCodecSpec extends CommonUnitSpecBase {
 
   it should "fail on serializing negative long" in {
     havingSize(0) { codec =>
-      a[IllegalArgumentException] should be thrownBy {
+      an[IllegalArgumentException] should be thrownBy {
         codec.serializeLong(-1L)
       }
     }()

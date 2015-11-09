@@ -27,7 +27,7 @@ import pl.tarsa.sortalgobox.random.Mwc64x
 import pl.tarsa.sortalgobox.sorts.scala.merge.MergeSort
 import pl.tarsa.sortalgobox.sorts.scala.radix.RadixSort
 
-class SortChecker(doSorting: (Array[Int]) => Unit) extends Matchers {
+class SortCheckerInt(doSorting: (Array[Int]) => Unit) extends Matchers {
   
   def forEmptyArray(): Unit = {
     val array = Array.emptyIntArray
@@ -55,31 +55,55 @@ class SortChecker(doSorting: (Array[Int]) => Unit) extends Matchers {
   }
 }
 
-object SortChecker {
-  def apply(measuredSortAlgorithm: MeasuredSortAlgorithm[Int]): SortChecker = {
-    new SortChecker(array => measuredSortAlgorithm.sort(array))
+class SortCheckerLong(doSorting: (Array[Long]) => Unit) extends Matchers {
+
+  def forEmptyArray(): Unit = {
+    val array = Array.emptyLongArray
+    doSorting(array)
   }
 
-  def apply(comparisonSortAlgorithm: ComparisonSortAlgorithm): SortChecker = {
-    new SortChecker ({ intArray: Array[Int] =>
+  def forSingleElementArray(): Unit = {
+    val array = Array(5L)
+    doSorting(array)
+    array shouldBe Array(5L)
+  }
+
+  def forFewElementsArray(): Unit = {
+    val array = Array(5L, 3L, 2L, 8L)
+    doSorting(array)
+    array shouldBe Array(2L, 3L, 5L, 8L)
+  }
+
+  def forArrayOfSize(size: Int): Unit = {
+    val generator = new Mwc64x
+    val array = Array.fill(size)(generator.nextLong())
+    val sortedArray = array.sorted
+    doSorting(array)
+    array shouldBe sortedArray
+  }
+}
+
+object SortChecker {
+  def apply(measuredSortAlgorithm: MeasuredSortAlgorithm[Int]): SortCheckerInt =
+    new SortCheckerInt(array => measuredSortAlgorithm.sort(array))
+
+  def apply(comparisonSortAlgorithm: ComparisonSortAlgorithm): SortCheckerInt =
+    new SortCheckerInt(intArray => {
       val itemsAgent = new ComparingIntArrayItemsAgent(intArray)
       comparisonSortAlgorithm.sort(itemsAgent)
     })
-  }
 
-  def apply(mergeSort: MergeSort): SortChecker = {
-    new SortChecker ({ intArray: Array[Int] =>
+  def apply(mergeSort: MergeSort): SortCheckerInt =
+    new SortCheckerInt(intArray => {
       val buffer = Array.ofDim[Int](intArray.length)
       val itemsAgent = new MergeSortIntArrayItemsAgent(intArray, buffer)
       mergeSort.sort(itemsAgent)
     })
-  }
 
-  def apply(radixSort: RadixSort): SortChecker = {
-    new SortChecker ({ intArray: Array[Int] =>
+  def apply(radixSort: RadixSort): SortCheckerInt =
+    new SortCheckerInt(intArray => {
       val buffer = Array.ofDim[Int](intArray.length)
       val itemsAgent = new RadixSortIntArrayItemsAgent(intArray, buffer)
       radixSort.sort(itemsAgent)
     })
-  }
 }

@@ -41,6 +41,9 @@ class GpuMwc64x {
   val allowedVectorLengths = Set(1, 2, 4, 8)
 
   def generate(n: Int, workItems: Int, vectorLength: Int = 1): Array[Int] = {
+    if (workItems <= 0) {
+      throw new IllegalArgumentException("Wrong work items number")
+    }
     if (!allowedVectorLengths.contains(vectorLength)) {
       throw new IllegalArgumentException("Wrong vector length")
     }
