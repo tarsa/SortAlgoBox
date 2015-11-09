@@ -22,6 +22,8 @@ package pl.tarsa.sortalgobox.core.common
 
 import pl.tarsa.sortalgobox.core.common.agents.ItemsAgent
 
+import scala.language.higherKinds
+
 abstract class PureSortAlgorithm[AgentType[ItemType] <: ItemsAgent[ItemType]] {
 
   def sort[ItemType](itemsAgent: AgentType[ItemType]): Unit
