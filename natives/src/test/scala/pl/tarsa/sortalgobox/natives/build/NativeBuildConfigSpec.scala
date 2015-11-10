@@ -39,4 +39,8 @@ class NativeBuildConfigSpec extends CommonUnitSpecBase {
 
     assertResult(expected)(actual)
   }
+
+  it should "make proper CMakeLists" in pending
+
+  it should "copy build components" in pending
 }
