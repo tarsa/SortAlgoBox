@@ -21,10 +21,12 @@
 package pl.tarsa.sortalgobox.natives.build
 
 import java.io.File
-import java.nio.file.{Files, Paths}
+import java.nio.file.Files
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.{Lock, ReentrantLock}
+
+import pl.tarsa.sortalgobox.common.SortAlgoBoxConfiguration.rootTempDir
 
 import scala.io.Source
 
@@ -79,8 +81,7 @@ class NativesCache {
 
   private def buildProgram(buildConfig: NativeBuildConfig):
   Either[String, File] = {
-    NativesCache.rootTempDir.toFile.mkdir()
-    val workDir = Files.createTempDirectory(NativesCache.rootTempDir, "native")
+    val workDir = Files.createTempDirectory(rootTempDir, "native")
     val workDirFile = workDir.toFile
     buildConfig.copyBuildComponents(workDir)
     val buildProcess = new ProcessBuilder(buildConfig.makeCommandLine: _*)
@@ -114,7 +115,4 @@ class NativesCache {
   }
 }
 
-object NativesCache extends NativesCache {
-  val rootTempDir = Paths.get(System.getProperty("java.io.tmpdir"),
-    "SortAlgoBox")
-}
+object NativesCache extends NativesCache

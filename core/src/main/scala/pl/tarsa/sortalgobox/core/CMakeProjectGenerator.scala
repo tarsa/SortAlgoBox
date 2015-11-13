@@ -23,14 +23,14 @@ package pl.tarsa.sortalgobox.core
 import java.io._
 import java.nio.file.{Files, Path}
 import java.util
-
-import pl.tarsa.sortalgobox.natives.build.{NativeBuildConfig, NativesCache}
+import pl.tarsa.sortalgobox.common.SortAlgoBoxConfiguration
+import pl.tarsa.sortalgobox.natives.build.NativeBuildConfig
 
 import scala.io.StdIn
 
 class CMakeProjectGenerator(benchmarks: Seq[NativeBenchmark]) {
   def run(): Unit = {
-    val projectDir = NativesCache.rootTempDir.resolve("project")
+    val projectDir = SortAlgoBoxConfiguration.rootTempDir.resolve("project")
 
     deleteRecursively(projectDir.toFile)
 

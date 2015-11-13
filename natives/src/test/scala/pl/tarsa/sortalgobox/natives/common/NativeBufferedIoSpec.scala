@@ -21,10 +21,10 @@
 package pl.tarsa.sortalgobox.natives.common
 
 import java.io.PrintStream
-import java.nio.charset.Charset
-import java.nio.file.{Files, Paths, Path}
+import java.nio.file.{Files, Path}
 import java.util.Scanner
 
+import pl.tarsa.sortalgobox.common.SortAlgoBoxConfiguration.rootTempDir
 import pl.tarsa.sortalgobox.natives.build._
 import pl.tarsa.sortalgobox.tests.NativesUnitSpecBase
 
@@ -39,8 +39,8 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
     type T = Path
 
     def before() = {
-      val path = Files.createTempFile(NativesCache.rootTempDir, "SortAlgoBox",
-        "")
+      // TODO create file in "test" subdirectory
+      val path = Files.createTempFile(rootTempDir, "SortAlgoBox", "")
       val source = Iterator.iterate(5)(state => (state * 131) + 33)
       val content = source.take(100).map(_.toByte).toArray
       Files.write(path, content)
@@ -75,7 +75,7 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
     type T = Path
 
     def before() = {
-      val dir = Files.createTempDirectory(NativesCache.rootTempDir, "test")
+      val dir = Files.createTempDirectory(rootTempDir, "test")
       val path = dir.resolve("output")
       (dir, List(path.toString))
     }
@@ -105,7 +105,7 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
     type T = Path
 
     def before() = {
-      val dir = Files.createTempDirectory(NativesCache.rootTempDir, "test")
+      val dir = Files.createTempDirectory(rootTempDir, "test")
       val path = dir.resolve("output")
       (dir, List(path.toString))
     }
@@ -142,8 +142,6 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
   val tests = List[Test](testReadFromFile, testDelayedWriteWorks,
     testWriteToFile)
   val buildConfig = makeBuildConfig(tests)
-
-  NativesCache.rootTempDir.toFile.mkdir()
 
   for ((test, testIndex) <- tests.zipWithIndex) {
     it should test.name in {
