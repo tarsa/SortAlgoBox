@@ -141,8 +141,9 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
 
   val tests = List[Test](testReadFromFile, testDelayedWriteWorks,
     testWriteToFile)
-
   val buildConfig = makeBuildConfig(tests)
+
+  NativesCache.rootTempDir.toFile.mkdir()
 
   for ((test, testIndex) <- tests.zipWithIndex) {
     it should test.name in {
