@@ -45,7 +45,7 @@ object MainBuild extends Build {
         "org.jocl" % "jocl" % "0.1.9",
         "org.scalatest" %% "scalatest" % "2.2.4" % "test",
         "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test",
-        "org.scalafx" %% "scalafx" % "8.0.40-R8")
+        "org.scalafx" %% "scalafx" % "8.0.60-R9")
     )
 
   lazy val rootDeps = Seq(common, core, fxgui, natives, opencl, random, sorts)
