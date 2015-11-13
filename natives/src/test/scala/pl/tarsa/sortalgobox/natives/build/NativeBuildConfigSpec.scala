@@ -40,7 +40,34 @@ class NativeBuildConfigSpec extends CommonUnitSpecBase {
     assertResult(expected)(actual)
   }
 
-  it should "make proper CMakeLists" in pending
+  it should "make proper CMakeLists" in {
+    val components = Seq(
+      NativeBuildComponentFromResource("/some/package/", "file.ext1"),
+      NativeBuildComponentFromString("someContents", "aFileName.ext2"))
+    val mainSourceFile = "abc.xyz"
+    val compilerOptions = CompilerOptions(
+      compiler = "aCompiler",
+      languageStandardOpt = Some("standard"),
+      optimizationLevelOpt = Some("level"),
+      defines = Seq(CompilerDefine("name1", None),
+        CompilerDefine("name2", Some("value"))),
+      options = Seq("-option1", "-option2"),
+      executableFileName = "abc.xxx")
+
+
+    val expected = Seq(
+      "cmake_minimum_required (VERSION 2.8)",
+      "project (SortAlgo)",
+      """set(PROJECT_COMPILE_FLAGS "-std=standard level -option1 -option2")""",
+      """set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} """ +
+        """${PROJECT_COMPILE_FLAGS}" )""",
+      "add_definitions(-Dname1 -Dname2=value)",
+      "add_executable(SortAlgo abc.xyz)")
+    val actual = NativeBuildConfig(components, mainSourceFile, compilerOptions)
+      .makeCMakeLists
+
+    assertResult(expected)(actual)
+  }
 
   it should "copy build components" in pending
 }
