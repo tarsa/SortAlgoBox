@@ -20,6 +20,9 @@
  */
 package pl.tarsa.sortalgobox.natives.build
 
+import java.nio.file.Files
+
+import pl.tarsa.sortalgobox.common.SortAlgoBoxConfiguration
 import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
 class NativeBuildConfigSpec extends CommonUnitSpecBase {
@@ -30,8 +33,7 @@ class NativeBuildConfigSpec extends CommonUnitSpecBase {
       CompilerDefine("name2", Some("value")))
     val options = CompilerOptions("compiler", Some("standard"), Some("level"),
       defines, Seq("-option"), "executable")
-    val sources = Seq.empty
-    val buildConfig = NativeBuildConfig(sources, "file.ext", options)
+    val buildConfig = NativeBuildConfig(null, "file.ext", options)
 
     val expected = Seq("compiler", "-std=standard", "level", "-option",
       "-Dname1", "-Dname2=value", "-o", "executable", "file.ext")
@@ -41,9 +43,7 @@ class NativeBuildConfigSpec extends CommonUnitSpecBase {
   }
 
   it should "make proper CMakeLists" in {
-    val components = Seq(
-      NativeBuildComponentFromResource("/some/package/", "file.ext1"),
-      NativeBuildComponentFromString("someContents", "aFileName.ext2"))
+    val components = null
     val mainSourceFile = "abc.xyz"
     val compilerOptions = CompilerOptions(
       compiler = "aCompiler",
@@ -69,5 +69,30 @@ class NativeBuildConfigSpec extends CommonUnitSpecBase {
     assertResult(expected)(actual)
   }
 
-  it should "copy build components" in pending
+  it should "copy build components" in {
+    val fileName1 = "test_file"
+    val fileName2 = "aFileName.ext"
+
+    val contents = "someContents"
+
+    val components = Seq(
+      NativeBuildComponentFromResource("/pl/tarsa/sortalgobox/build/",
+        fileName1),
+      NativeBuildComponentFromString(contents, fileName2))
+
+    val destination = Files.createTempDirectory(
+      SortAlgoBoxConfiguration.rootTempDir, "test")
+    val file1 = destination.resolve(fileName1)
+    val file2 = destination.resolve(fileName2)
+
+    NativeBuildConfig(components, null, null).copyBuildComponents(destination)
+
+    assert(Files.readAllBytes(file1) ===
+      "Lorem ipsum dolor sit amet.\n".getBytes("UTF-8"))
+    assert(Files.readAllBytes(file2) === contents.getBytes("UTF-8"))
+
+    assert(Files.deleteIfExists(file1))
+    assert(Files.deleteIfExists(file2))
+    assert(Files.deleteIfExists(destination))
+  }
 }
