@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
