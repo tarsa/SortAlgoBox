@@ -55,6 +55,12 @@ class NativesCacheSpec extends NativesUnitSpecBase {
     val pipeFrom = new Scanner(process.getInputStream)
     assertResult("Hello from test!")(pipeFrom.nextLine())
   }
+
+  it should "compile only once when build is successful" in pending
+
+  it should "compile only once when build failed" in pending
+
+  it should "allow for multiple builds happening at the same time" in pending
 }
 
 object NativesCacheSpec extends NativeComponentsSupport {
