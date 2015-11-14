@@ -39,12 +39,12 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
     type T = Path
 
     def before() = {
-      // TODO create file in "test" subdirectory
-      val path = Files.createTempFile(rootTempDir, "SortAlgoBox", "")
+      val dir = Files.createTempDirectory(rootTempDir, "test")
+      val path = dir.resolve("input")
       val source = Iterator.iterate(5)(state => (state * 131) + 33)
       val content = source.take(100).map(_.toByte).toArray
       Files.write(path, content)
-      (path, List(path.toString))
+      (dir, List(path.toString))
     }
 
     def body = s"""void $functionName() {
@@ -67,7 +67,10 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
 }"""
 
     def after(path: Path) = {
-      path.toFile.delete()
+      val dir = path
+      val input = dir.resolve("input")
+      Files.delete(input)
+      Files.delete(dir)
     }
   }
 
