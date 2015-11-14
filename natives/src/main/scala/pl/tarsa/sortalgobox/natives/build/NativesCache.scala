@@ -26,6 +26,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.{Lock, ReentrantLock}
 
+import org.apache.commons.io.FileUtils
 import pl.tarsa.sortalgobox.common.SortAlgoBoxConfiguration.rootTempDir
 
 import scala.io.Source
@@ -90,7 +91,7 @@ class NativesCache {
     if (buildExitValue != 0) {
       val output = Source.fromInputStream(buildProcess.getErrorStream, "UTF-8")
         .mkString
-      removeDir(workDirFile)
+      FileUtils.deleteDirectory(workDirFile)
       val msg = s"Build process exit value: $buildExitValue, output:\n$output"
       Left(msg)
     } else {
@@ -102,16 +103,11 @@ class NativesCache {
     withProgramsCacheLock {
       programsCache.values.foreach {
         case NativeBuildSucceeded(directory) =>
-          removeDir(directory)
+          FileUtils.deleteDirectory(directory)
         case _ =>
       }
       programsCache.clear()
     }
-  }
-
-  private def removeDir(dir: File): Unit = {
-    Option(dir.listFiles()).foreach(_.foreach(removeDir))
-    dir.delete()
   }
 }
 

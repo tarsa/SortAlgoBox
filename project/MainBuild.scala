@@ -41,6 +41,7 @@ object MainBuild extends Build {
     .settings(commonSettings: _*)
     .settings(
       libraryDependencies ++= Seq(
+        "commons-io" % "commons-io" % "2.4",
         "org.apache.commons" % "commons-math3" % "3.5",
         "org.jocl" % "jocl" % "0.1.9",
         "org.scalatest" %% "scalatest" % "2.2.4" % "test",

@@ -20,9 +20,10 @@
  */
 package pl.tarsa.sortalgobox.core
 
-import java.io._
 import java.nio.file.{Files, Path}
 import java.util
+
+import org.apache.commons.io.FileUtils
 import pl.tarsa.sortalgobox.common.SortAlgoBoxConfiguration
 import pl.tarsa.sortalgobox.natives.build.NativeBuildConfig
 
@@ -32,7 +33,7 @@ class CMakeProjectGenerator(benchmarks: Seq[NativeBenchmark]) {
   def run(): Unit = {
     val projectDir = SortAlgoBoxConfiguration.rootTempDir.resolve("project")
 
-    deleteRecursively(projectDir.toFile)
+    FileUtils.deleteDirectory(projectDir.toFile)
 
     val benchmark = chooseBenchmark
 
@@ -59,10 +60,5 @@ class CMakeProjectGenerator(benchmarks: Seq[NativeBenchmark]) {
     val cmakeFile = projectDir.resolve("CMakeLists.txt")
     val cmakeLines = buildConfig.makeCMakeLists
     Files.write(cmakeFile, util.Arrays.asList(cmakeLines: _*))
-  }
-
-  def deleteRecursively(file: File): Unit = {
-    Option(file.listFiles()).foreach(_.foreach(deleteRecursively))
-    file.delete()
   }
 }
