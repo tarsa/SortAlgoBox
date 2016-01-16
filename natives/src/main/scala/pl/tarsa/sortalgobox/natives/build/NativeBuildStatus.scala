@@ -25,7 +25,7 @@ import java.util.concurrent.CountDownLatch
 
 sealed trait NativeBuildStatus
 
-case class NativeBuildStarting(buildId: Long, latch: CountDownLatch)
+case class NativeBuildPending(buildId: Long, latch: CountDownLatch)
   extends NativeBuildStatus
 
 case class NativeBuildSucceeded(directory: File) extends NativeBuildStatus

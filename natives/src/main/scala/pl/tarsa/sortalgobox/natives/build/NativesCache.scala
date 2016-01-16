@@ -49,26 +49,7 @@ class NativesCache {
   }
 
   def runCachedProgram(buildConfig: NativeBuildConfig): Process = {
-    val nextBuildId = buildIdGenerator.incrementAndGet()
-    val cachedBuildStatus = withProgramsCacheLock {
-      programsCache.getOrElseUpdate(buildConfig, {
-        NativeBuildStarting(nextBuildId, new CountDownLatch(1))
-      })
-    }
-    cachedBuildStatus match {
-      case NativeBuildStarting(buildId, latch) if buildId == nextBuildId =>
-        val newBuildStatus = buildProgram(buildConfig).fold[NativeBuildStatus](
-          NativeBuildFailed, NativeBuildSucceeded)
-        withProgramsCacheLock {
-          programsCache.update(buildConfig, newBuildStatus)
-        }
-        latch.countDown()
-      case NativeBuildStarting(_, latch) =>
-        latch.await()
-      case _ =>
-    }
-    val buildStatus = withProgramsCacheLock(programsCache(buildConfig))
-    buildStatus match {
+    buildCachedProgram(buildConfig) match {
       case NativeBuildSucceeded(workDir) =>
         new ProcessBuilder(
           s"./${buildConfig.compilerOptions.executableFileName}")
@@ -80,7 +61,32 @@ class NativesCache {
     }
   }
 
-  private def buildProgram(buildConfig: NativeBuildConfig):
+  def buildCachedProgram(buildConfig: NativeBuildConfig):
+  NativeBuildStatus = {
+    val nextBuildId = buildIdGenerator.incrementAndGet()
+    val cachedBuildStatus = withProgramsCacheLock {
+      programsCache.getOrElseUpdate(buildConfig, {
+        NativeBuildPending(nextBuildId, new CountDownLatch(1))
+      })
+    }
+    cachedBuildStatus match {
+      case NativeBuildPending(buildId, latch) if buildId == nextBuildId =>
+        val newBuildStatus = buildProgram(buildConfig).fold[NativeBuildStatus](
+          NativeBuildFailed, NativeBuildSucceeded)
+        withProgramsCacheLock {
+          programsCache.update(buildConfig, newBuildStatus)
+        }
+        latch.countDown()
+        newBuildStatus
+      case NativeBuildPending(_, latch) =>
+        latch.await()
+        withProgramsCacheLock(programsCache(buildConfig))
+      case _ =>
+        cachedBuildStatus
+    }
+  }
+
+  protected def buildProgram(buildConfig: NativeBuildConfig):
   Either[String, File] = {
     val workDir = Files.createTempDirectory(rootTempDir, "native")
     val workDirFile = workDir.toFile
