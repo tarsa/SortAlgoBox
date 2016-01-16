@@ -32,7 +32,8 @@ object MainBuild extends Build {
     dependencyOverrides ++= Set(
       "org.scala-lang" % "scala-library" % theScalaVersion,
       "org.scala-lang" % "scala-reflect" % theScalaVersion,
-      "org.scala-lang.modules" %% "scala-xml" % "1.0.5")
+      "org.scala-lang.modules" %% "scala-xml" % "1.0.5",
+      "org.scalatest" %% "scalatest" % "2.2.6" % "test")
   )
 
   val fullDep = "compile->compile;test->test"
