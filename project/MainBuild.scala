@@ -42,9 +42,9 @@ object MainBuild extends Build {
     .settings(
       libraryDependencies ++= Seq(
         "commons-io" % "commons-io" % "2.4",
-        "org.apache.commons" % "commons-math3" % "3.5",
+        "org.apache.commons" % "commons-math3" % "3.6",
         "org.jocl" % "jocl" % "0.1.9",
-        "org.scalatest" %% "scalatest" % "2.2.4" % "test",
+        "org.scalatest" %% "scalatest" % "2.2.6" % "test",
         "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test",
         "org.scalafx" %% "scalafx" % "8.0.60-R9")
     )
