@@ -25,10 +25,9 @@ import java.nio.file.Paths
 import pl.tarsa.sortalgobox.common.exceptions.InitializationException
 
 object SortAlgoBoxConfiguration {
-  val rootTempDir = Paths.get(System.getProperty("java.io.tmpdir"),
-    "SortAlgoBox")
-
-  if (!rootTempDir.toFile.isDirectory && !rootTempDir.toFile.mkdir()) {
-    throw new InitializationException("Cannot initialize temporary directory")
-  }
+  val rootTempDir = Seq("/dev/shm", System.getProperty("java.io.tmpdir"))
+    .map(dir => Paths.get(dir, "SortAlgoBox"))
+    .find(path => path.toFile.isDirectory || path.toFile.mkdir())
+    .getOrElse(throw new InitializationException(
+      "Cannot initialize temporary directory"))
 }
