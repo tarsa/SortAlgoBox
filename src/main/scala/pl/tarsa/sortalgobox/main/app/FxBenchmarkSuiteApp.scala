@@ -22,6 +22,9 @@ package pl.tarsa.sortalgobox.main.app
 
 import pl.tarsa.sortalgobox.fxgui.FxBenchmarkSuite
 import pl.tarsa.sortalgobox.main.BenchmarksConfigurations
+import pl.tarsa.sortalgobox.opencl.CLContextsManager
 
-object FxBenchmarkSuiteApp extends FxBenchmarkSuite(
-  BenchmarksConfigurations.benchmarks)
+object FxBenchmarkSuiteApp extends FxBenchmarkSuite({
+  CLContextsManager.contextsDescriptions // initialize OpenCL early (workaround)
+  BenchmarksConfigurations.benchmarks
+})
