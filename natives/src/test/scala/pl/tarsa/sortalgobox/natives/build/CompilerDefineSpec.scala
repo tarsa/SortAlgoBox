@@ -25,13 +25,13 @@ import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 class CompilerDefineSpec extends CommonUnitSpecBase {
   typeBehavior[CompilerDefine]
 
-  it should "serialze empty" in {
+  it must "serialze empty" in {
     val expected = "-DaName"
     val actual = CompilerDefine("aName", None).serialize
     assertResult(expected)(actual)
   }
 
-  it should "serialize some" in {
+  it must "serialize some" in {
     val expected = "-DaName=aValue"
     val actual = CompilerDefine("aName", Some("aValue")).serialize
     assertResult(expected)(actual)

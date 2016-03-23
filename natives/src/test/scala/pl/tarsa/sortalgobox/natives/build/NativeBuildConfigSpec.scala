@@ -28,7 +28,7 @@ import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 class NativeBuildConfigSpec extends CommonUnitSpecBase {
   typeBehavior[NativeBuildConfig]
 
-  it should "make proper command line" in {
+  it must "make proper command line" in {
     val defines = Seq(CompilerDefine("name1", None),
       CompilerDefine("name2", Some("value")))
     val options = CompilerOptions("compiler", Some("standard"), Some("level"),
@@ -42,7 +42,7 @@ class NativeBuildConfigSpec extends CommonUnitSpecBase {
     assertResult(expected)(actual)
   }
 
-  it should "make proper CMakeLists" in {
+  it must "make proper CMakeLists" in {
     val components = null
     val mainSourceFile = "abc.xyz"
     val compilerOptions = CompilerOptions(
@@ -69,7 +69,7 @@ class NativeBuildConfigSpec extends CommonUnitSpecBase {
     assertResult(expected)(actual)
   }
 
-  it should "copy build components" in {
+  it must "copy build components" in {
     val fileName1 = "test_file"
     val fileName2 = "aFileName.ext"
 

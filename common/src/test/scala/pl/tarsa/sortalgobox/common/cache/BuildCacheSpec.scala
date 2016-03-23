@@ -28,7 +28,7 @@ import scala.concurrent.Future
 class BuildCacheSpec extends CommonUnitSpecBase {
   typeBehavior[BuildCache]
 
-  it should "build only once on success" in new TestCache {
+  it must "build only once on success" in new TestCache {
     var counter = 0
 
     override def build(key: Char): Either[String, Double] = {
@@ -36,12 +36,12 @@ class BuildCacheSpec extends CommonUnitSpecBase {
       Right(5.0)
     }
 
-    cachedBuild('a') shouldEqual BuildSucceeded(5.0)
-    cachedBuild('a') shouldEqual BuildSucceeded(5.0)
-    counter shouldEqual 1
+    cachedBuild('a') mustBe BuildSucceeded(5.0)
+    cachedBuild('a') mustBe BuildSucceeded(5.0)
+    counter mustBe 1
   }
 
-  it should "build only once on failure" in new TestCache {
+  it must "build only once on failure" in new TestCache {
     var counter = 0
 
     override def build(key: Char): Either[String, Double] = {
@@ -49,12 +49,12 @@ class BuildCacheSpec extends CommonUnitSpecBase {
       Left("oops")
     }
 
-    cachedBuild('x') shouldEqual BuildFailed("oops")
-    cachedBuild('x') shouldEqual BuildFailed("oops")
-    counter shouldEqual 1
+    cachedBuild('x') mustBe BuildFailed("oops")
+    cachedBuild('x') mustBe BuildFailed("oops")
+    counter mustBe 1
   }
 
-  it should "block if another thread is doing the desired build" in
+  it must "block if another thread is doing the desired build" in
     new TestCache {
       val phaseGuard = new CountDownLatch(1)
       var result = 2.0
@@ -77,7 +77,7 @@ class BuildCacheSpec extends CommonUnitSpecBase {
       }
     }
 
-  it should "allow for different builds going in parallel" in new TestCache {
+  it must "allow for different builds going in parallel" in new TestCache {
     val phaseGuard1 = new CountDownLatch(4)
     val phaseGuard2 = new CountDownLatch(1)
 
@@ -97,7 +97,7 @@ class BuildCacheSpec extends CommonUnitSpecBase {
     }
   }
 
-  it should "clean whole cache on request" in new TestCache {
+  it must "clean whole cache on request" in new TestCache {
     override def build(key: Char): Either[String, Double] =
       Right(key.toDouble)
 

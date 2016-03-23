@@ -30,19 +30,19 @@ class QuickSortWithLimitedCallDepthSpec extends CommonUnitSpecBase {
   def sort = new QuickSortWithLimitedCallDepth(
     new SinglePivotPartition)
 
-  it should "handle empty array" in {
+  it must "handle empty array" in {
     SortChecker(sort).forEmptyArray()
   }
 
-  it should "handle single element array" in {
+  it must "handle single element array" in {
     SortChecker(sort).forSingleElementArray()
   }
 
-  it should "sort small array" in {
+  it must "sort small array" in {
     SortChecker(sort).forFewElementsArray()
   }
 
-  it should "sort random array" in {
+  it must "sort random array" in {
     SortChecker(sort).forArrayOfSize(100)
   }
 }

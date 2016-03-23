@@ -25,7 +25,7 @@ import pl.tarsa.sortalgobox.tests.NativesUnitSpecBase
 class NativeSabHeapQuaternaryCascadingVariantASpec extends NativesUnitSpecBase {
   typeBehavior[NativeSabHeapQuaternaryCascadingVariantA]
 
-  it should "sort and validate" in {
+  it must "sort and validate" in {
     val sort = new NativeSabHeapQuaternaryCascadingVariantA(testNativesCache)
     sort.forSize(12345, validate = true)
   }

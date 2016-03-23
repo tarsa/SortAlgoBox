@@ -25,7 +25,7 @@ import pl.tarsa.sortalgobox.tests.NativesUnitSpecBase
 class NativeSabQuickRandomizedSpec extends NativesUnitSpecBase {
   typeBehavior[NativeSabQuickRandomized]
 
-  it should "sort and validate" in {
+  it must "sort and validate" in {
     val sort = new NativeSabQuickRandomized(testNativesCache)
     sort.forSize(12345, validate = true)
   }

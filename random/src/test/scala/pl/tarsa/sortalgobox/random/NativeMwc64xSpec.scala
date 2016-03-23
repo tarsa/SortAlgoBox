@@ -25,7 +25,7 @@ import pl.tarsa.sortalgobox.tests.NativesUnitSpecBase
 class NativeMwc64xSpec extends NativesUnitSpecBase {
   typeBehavior[NativeMwc64x]
 
-  it should "generate the same results as Scala version" in {
+  it must "generate the same results as Scala version" in {
     val result = new NativeMwc64x(testNativesCache).generate(12345)
     val scalaRng = new Mwc64x
     assert(result.forall(_ == scalaRng.nextInt()))

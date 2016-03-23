@@ -25,7 +25,7 @@ import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 class HibbardGapSequenceSpec extends CommonUnitSpecBase {
   typeBehavior[HibbardGapSequence.type]
 
-  it should "generate full sequence" in {
+  it must "generate full sequence" in {
     val expected = Array(1073741823, 536870911, 268435455,
       134217727, 67108863, 33554431, 16777215, 8388607, 4194303, 2097151,
       1048575, 524287, 262143, 131071, 65535, 32767, 16383, 8191, 4095, 2047,
@@ -35,7 +35,7 @@ class HibbardGapSequenceSpec extends CommonUnitSpecBase {
     assertResult(expected)(actual)
   }
 
-  it should "generate small subsequence" in {
+  it must "generate small subsequence" in {
     val expected = Array(127, 63, 31, 15, 7, 3, 1)
     val actual = HibbardGapSequence.forSize(128)
 

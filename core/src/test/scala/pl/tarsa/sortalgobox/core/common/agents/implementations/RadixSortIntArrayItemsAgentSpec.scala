@@ -24,19 +24,19 @@ class RadixSortIntArrayItemsAgentSpec extends BaseDoubleIntArrayItemsAgentSpec(
   new RadixSortIntArrayItemsAgent(_, _)) {
   typeBehavior[RadixSortIntArrayItemsAgent]
 
-  it should "return correct size for empty array" in {
+  it must "return correct size for empty array" in {
     readTest()()(
       a => assert(a.size0 == 0),
       a => assert(a.size1 == 0))
   }
 
-  it should "return correct size for non-empty items array" in {
+  it must "return correct size for non-empty items array" in {
     readTest(1, 2, 3)(4, 5, 6, 7)(
       a => assert(a.size0 == 3),
       a => assert(a.size1 == 4))
   }
 
-  it should "get proper values" in {
+  it must "get proper values" in {
     readTest(5, 3, 2, 8)(4, 9, 2, 1)(
       a => assert(a.get0(0) == 5),
       a => assert(a.get0(1) == 3),
@@ -48,7 +48,7 @@ class RadixSortIntArrayItemsAgentSpec extends BaseDoubleIntArrayItemsAgentSpec(
       a => assert(a.get1(3) == 1))
   }
 
-  it should "set proper cells" in {
+  it must "set proper cells" in {
     writeTest(5, 3, 2, 8)(4, 9, 2, 1)(
       _.set0(3, 1),
       _.set1(3, 5),
@@ -61,79 +61,79 @@ class RadixSortIntArrayItemsAgentSpec extends BaseDoubleIntArrayItemsAgentSpec(
     )(9, 2, 2, 7)(4, 0, 2, 2)
   }
 
-  it should "copy proper cells within items (copy0)" in {
+  it must "copy proper cells within items (copy0)" in {
     writeTest(5, 3, 2, 8)(4, 9, 2, 1)(
       _.copy0(1, 0, 2)
     )(3, 2, 2, 8)(4, 9, 2, 1)
   }
 
-  it should "copy proper cells within items (copy00)" in {
+  it must "copy proper cells within items (copy00)" in {
     writeTest(5, 3, 2, 8)(4, 9, 2, 1)(
       _.copy00(1, 0, 2)
     )(3, 2, 2, 8)(4, 9, 2, 1)
   }
 
-  it should "copy proper cells within buffer" in {
+  it must "copy proper cells within buffer" in {
     writeTest(5, 3, 2, 8)(4, 9, 2, 1)(
       _.copy11(1, 0, 2)
     )(5, 3, 2, 8)(9, 2, 2, 1)
   }
 
-  it should "copy proper cells from items to buffer" in {
+  it must "copy proper cells from items to buffer" in {
     writeTest(5, 3, 2, 8)(4, 9, 2, 1)(
       _.copy01(1, 0, 2)
     )(5, 3, 2, 8)(3, 2, 2, 1)
   }
 
-  it should "copy proper cells from buffer to items" in {
+  it must "copy proper cells from buffer to items" in {
     writeTest(5, 3, 2, 8)(4, 9, 2, 1)(
       _.copy10(1, 0, 2)
     )(9, 2, 2, 8)(4, 9, 2, 1)
   }
 
-  it should "swap proper cells within items (swap0)" in {
+  it must "swap proper cells within items (swap0)" in {
     writeTest(5, 3, 2, 8)(4, 9, 2, 1)(
       _.swap0(3, 0)
     )(8, 3, 2, 5)(4, 9, 2, 1)
   }
 
-  it should "swap proper cells within items (swap00)" in {
+  it must "swap proper cells within items (swap00)" in {
     writeTest(5, 3, 2, 8)(4, 9, 2, 1)(
       _.swap00(3, 0)
     )(8, 3, 2, 5)(4, 9, 2, 1)
   }
 
-  it should "swap proper cells within buffer" in {
+  it must "swap proper cells within buffer" in {
     writeTest(5, 3, 2, 8)(4, 9, 2, 1)(
       _.swap11(3, 0)
     )(5, 3, 2, 8)(1, 9, 2, 4)
   }
 
-  it should "swap proper cells between items and buffer" in {
+  it must "swap proper cells between items and buffer" in {
     writeTest(5, 3, 2, 8)(4, 9, 2, 1)(
       _.swap01(3, 0)
     )(5, 3, 2, 4)(8, 9, 2, 1)
   }
 
-  it should "swap proper cells between buffer and items" in {
+  it must "swap proper cells between buffer and items" in {
     writeTest(5, 3, 2, 8)(4, 9, 2, 1)(
       _.swap10(3, 0)
     )(1, 3, 2, 8)(4, 9, 2, 5)
   }
 
-  it should "return proper key size" in {
+  it must "return proper key size" in {
     pureTest(
       a => assert(a.keySizeInBits == 32))
   }
 
-  it should "extract slices properly from values" in {
+  it must "extract slices properly from values" in {
     pureTest(
       a => assert(a.getItemSlice(123, 1, 3) == 5),
       a => assert(a.getItemSlice(1234, 0, 5) == 18),
       a => assert(a.getItemSlice(12345, 1, 3) == 4))
   }
 
-  it should "extract slices properly from cells" in {
+  it must "extract slices properly from cells" in {
     readTest(123, 1234, 12345)(234, 2345, 23456)(
       a => assert(a.getItemSlice0(0, 1, 3) == 5),
       a => assert(a.getItemSlice0(1, 0, 5) == 18),

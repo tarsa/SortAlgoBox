@@ -23,14 +23,14 @@ package pl.tarsa.sortalgobox.tests
 import java.util.concurrent.{Executors, TimeUnit}
 
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{FlatSpec, MustMatchers}
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.reflect.runtime.universe._
 
 abstract class CommonUnitSpecBase
-  extends FlatSpec with MockFactory with Matchers {
+  extends FlatSpec with MockFactory with MustMatchers {
 
   val `have full code coverage` = "have full code coverage"
 

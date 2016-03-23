@@ -20,14 +20,14 @@
  */
 package pl.tarsa.sortalgobox.sorts.tests
 
-import org.scalatest.Matchers
+import org.scalatest.MustMatchers
 import pl.tarsa.sortalgobox.core.common._
 import pl.tarsa.sortalgobox.core.common.agents.implementations._
 import pl.tarsa.sortalgobox.random.Mwc64x
 import pl.tarsa.sortalgobox.sorts.scala.merge.MergeSort
 import pl.tarsa.sortalgobox.sorts.scala.radix.RadixSort
 
-class SortCheckerInt(doSorting: (Array[Int]) => Unit) extends Matchers {
+class SortCheckerInt(doSorting: (Array[Int]) => Unit) extends MustMatchers {
   
   def forEmptyArray(): Unit = {
     val array = Array.emptyIntArray
@@ -37,13 +37,13 @@ class SortCheckerInt(doSorting: (Array[Int]) => Unit) extends Matchers {
   def forSingleElementArray(): Unit = {
     val array = Array(5)
     doSorting(array)
-    array shouldBe Array(5)
+    array mustBe Array(5)
   }
 
   def forFewElementsArray(): Unit = {
     val array = Array(5, 3, 2, 8)
     doSorting(array)
-    array shouldBe Array(2, 3, 5, 8)
+    array mustBe Array(2, 3, 5, 8)
   }
 
   def forArrayOfSize(size: Int): Unit = {
@@ -51,11 +51,11 @@ class SortCheckerInt(doSorting: (Array[Int]) => Unit) extends Matchers {
     val array = Array.fill(size)(generator.nextInt())
     val sortedArray = array.sorted
     doSorting(array)
-    array shouldBe sortedArray
+    array mustBe sortedArray
   }
 }
 
-class SortCheckerLong(doSorting: (Array[Long]) => Unit) extends Matchers {
+class SortCheckerLong(doSorting: (Array[Long]) => Unit) extends MustMatchers {
 
   def forEmptyArray(): Unit = {
     val array = Array.emptyLongArray
@@ -65,13 +65,13 @@ class SortCheckerLong(doSorting: (Array[Long]) => Unit) extends Matchers {
   def forSingleElementArray(): Unit = {
     val array = Array(5L)
     doSorting(array)
-    array shouldBe Array(5L)
+    array mustBe Array(5L)
   }
 
   def forFewElementsArray(): Unit = {
     val array = Array(5L, 3L, 2L, 8L)
     doSorting(array)
-    array shouldBe Array(2L, 3L, 5L, 8L)
+    array mustBe Array(2L, 3L, 5L, 8L)
   }
 
   def forArrayOfSize(size: Int): Unit = {
@@ -79,7 +79,7 @@ class SortCheckerLong(doSorting: (Array[Long]) => Unit) extends Matchers {
     val array = Array.fill(size)(generator.nextLong())
     val sortedArray = array.sorted
     doSorting(array)
-    array shouldBe sortedArray
+    array mustBe sortedArray
   }
 }
 

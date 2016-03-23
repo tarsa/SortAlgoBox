@@ -33,7 +33,7 @@ class BinaryHeapCheckerSpec extends CommonUnitSpecBase {
   implicit def intArrayToComparingItemsAgent(array: Array[Int]):
   ComparingIntArrayItemsAgent = new ComparingIntArrayItemsAgent(array)
 
-  it should "handle empty heap" in {
+  it must "handle empty heap" in {
     val array = Array.emptyIntArray
     val heap = new BinaryHeap(array) {
       size = array.length
@@ -41,7 +41,7 @@ class BinaryHeapCheckerSpec extends CommonUnitSpecBase {
     assert(BinaryHeapChecker.check(heap))
   }
 
-  it should "handle single element heap" in {
+  it must "handle single element heap" in {
     val array = Array(5)
     val heap = new BinaryHeap(array) {
       size = array.length
@@ -49,7 +49,7 @@ class BinaryHeapCheckerSpec extends CommonUnitSpecBase {
     assert(BinaryHeapChecker.check(heap))
   }
 
-  it should "handle multiple element heap" in {
+  it must "handle multiple element heap" in {
     val array = Array(5, 3, 4, 3, 2, 4)
     val heap = new BinaryHeap(array) {
       size = array.length
@@ -57,7 +57,7 @@ class BinaryHeapCheckerSpec extends CommonUnitSpecBase {
     assert(BinaryHeapChecker.check(heap))
   }
 
-  it should "detect violations of heap property" in {
+  it must "detect violations of heap property" in {
     val array = Array(3, 3, 5, 2, 3)
     val heap = new BinaryHeap(array) {
       size = array.length

@@ -24,15 +24,15 @@ class ComparingIntArrayItemsAgentSpec extends BaseSingleIntArrayItemsAgentSpec(
   new ComparingIntArrayItemsAgent(_)) {
   typeBehavior[ComparingIntArrayItemsAgent]
 
-  it should "return correct size for empty array" in {
+  it must "return correct size for empty array" in {
     readTest()(a => assert(a.size0 == 0))
   }
 
-  it should "return correct size for non-empty array" in {
+  it must "return correct size for non-empty array" in {
     readTest(1, 2, 3)(a => assert(a.size0 == 3))
   }
 
-  it should "get proper values" in {
+  it must "get proper values" in {
     readTest(5, 3, 2, 8)(
       a => assert(a.get0(0) == 5),
       a => assert(a.get0(1) == 3),
@@ -40,7 +40,7 @@ class ComparingIntArrayItemsAgentSpec extends BaseSingleIntArrayItemsAgentSpec(
       a => assert(a.get0(3) == 8))
   }
 
-  it should "set proper cells" in {
+  it must "set proper cells" in {
     writeTest(5, 3, 2, 8)(
       _.set0(3, 1),
       _.set0(1, 2),
@@ -49,19 +49,19 @@ class ComparingIntArrayItemsAgentSpec extends BaseSingleIntArrayItemsAgentSpec(
     )(9, 2, 2, 7)
   }
 
-  it should "copy proper cells" in {
+  it must "copy proper cells" in {
     writeTest(5, 3, 2, 8)(
       _.copy0(1, 0, 2)
     )(3, 2, 2, 8)
   }
 
-  it should "swap proper cells" in {
+  it must "swap proper cells" in {
     writeTest(5, 3, 2, 8)(
       _.swap0(3, 0)
     )(8, 3, 2, 5)
   }
 
-  it should "compare values properly" in {
+  it must "compare values properly" in {
     pureTest(
       a => assert(a.compare(1, 2) == -1),
       a => assert(a.compare(2, 1) == 1),
@@ -69,7 +69,7 @@ class ComparingIntArrayItemsAgentSpec extends BaseSingleIntArrayItemsAgentSpec(
     )
   }
 
-  it should "compare cells properly" in {
+  it must "compare cells properly" in {
     readTest(5, 3, 2, 8, 5)(
       a => assert(a.compare0(0, 1) == 1),
       a => assert(a.compare0(2, 3) == -1),

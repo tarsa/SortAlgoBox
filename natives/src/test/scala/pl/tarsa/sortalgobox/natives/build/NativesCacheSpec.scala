@@ -28,14 +28,14 @@ import pl.tarsa.sortalgobox.tests.NativesUnitSpecBase
 class NativesCacheSpec extends NativesUnitSpecBase {
   typeBehavior[NativesCache]
 
-  it should "compile file without defines" in {
+  it must "compile file without defines" in {
     val buildConfig = NativeBuildConfig(components, "source.cpp")
     val process = testNativesCache.runCachedProgram(buildConfig)
     val pipeFrom = new Scanner(process.getInputStream)
     assertResult("Hello.")(pipeFrom.nextLine())
   }
 
-  it should "compile file with header" in {
+  it must "compile file with header" in {
     val buildConfig = NativeBuildConfig(components, "source.cpp",
       CompilerOptions(options = CompilerOptions.defaultOptions ++
         Seq("-include", "source.hpp")))
@@ -44,7 +44,7 @@ class NativesCacheSpec extends NativesUnitSpecBase {
     assertResult("Hello from main.hpp")(pipeFrom.nextLine())
   }
 
-  it should "compile file with define" in {
+  it must "compile file with define" in {
     val buildConfig = NativeBuildConfig(components, "source.cpp",
       CompilerOptions(defines = CompilerOptions.defaultDefines ++
         Seq(CompilerDefine("SOURCE", Some("test")))))
@@ -53,9 +53,9 @@ class NativesCacheSpec extends NativesUnitSpecBase {
     assertResult("Hello from test!")(pipeFrom.nextLine())
   }
 
-  it should "fail when compilation is unsuccessful" in {
+  it must "fail when compilation is unsuccessful" in {
     val buildConfig = NativeBuildConfig(Nil, "non_existing.cpp")
-    an[Exception] shouldBe thrownBy {
+    an[Exception] mustBe thrownBy {
       testNativesCache.runCachedProgram(buildConfig)
     }
   }

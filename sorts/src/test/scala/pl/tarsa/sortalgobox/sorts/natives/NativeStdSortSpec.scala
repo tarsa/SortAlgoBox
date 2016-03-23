@@ -25,7 +25,7 @@ import pl.tarsa.sortalgobox.tests.NativesUnitSpecBase
 class NativeStdSortSpec extends NativesUnitSpecBase {
   typeBehavior[NativeStdSort]
 
-  it should "sort and validate" in {
+  it must "sort and validate" in {
     val sort = new NativeStdSort(testNativesCache)
     sort.forSize(12345, validate = true)
   }

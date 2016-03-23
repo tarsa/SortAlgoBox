@@ -32,37 +32,37 @@ class VerifyingComparingIntArrayItemsAgentSpec extends CommonUnitSpecBase {
 
   import TrackingComparingItemsAgent.ActionTypes._
 
-  it should "fail for some operations and no recorded bytes" in {
-    a[BufferUnderflowException] should be thrownBy {
+  it must "fail for some operations and no recorded bytes" in {
+    a[BufferUnderflowException] mustBe thrownBy {
       readTest(1, 2, 3)(_.compare0(1, 2))()
     }
   }
 
-  it should "fail for no operations and some recorded bytes" in {
-    a[TestFailedException] should be thrownBy {
+  it must "fail for no operations and some recorded bytes" in {
+    a[TestFailedException] mustBe thrownBy {
       readTest(1, 2, 3)()(Get0.id, 2)
     }
   }
 
-  it should "fail for mismatched operations and recorded bytes" in {
-    a[TestFailedException] should be thrownBy {
+  it must "fail for mismatched operations and recorded bytes" in {
+    a[TestFailedException] mustBe thrownBy {
       readTest(1, 2, 3)(_.swap0(1, 0))(Compare0.id, 3)
     }
   }
 
-  it should "return correct size for empty array" in {
+  it must "return correct size for empty array" in {
     readTest()(
       a => assert(a.size0 == 0))(
         Size0.id)
   }
 
-  it should "return correct size for non-empty array" in {
+  it must "return correct size for non-empty array" in {
     readTest(1, 2, 3)(
       a => assert(a.size0 == 3))(
         Size0.id)
   }
 
-  it should "get proper values" in {
+  it must "get proper values" in {
     readTest(5, 3, 2, 8)(
       a => assert(a.get0(0) == 5),
       a => assert(a.get0(1) == 3),
@@ -71,7 +71,7 @@ class VerifyingComparingIntArrayItemsAgentSpec extends CommonUnitSpecBase {
         Get0.id, 0, Get0.id, 1, Get0.id, 2, Get0.id, 3)
   }
 
-  it should "set proper cells" in {
+  it must "set proper cells" in {
     writeTest(5, 3, 2, 8)(
       _.set0(3, 1),
       _.set0(1, 2),
@@ -81,21 +81,21 @@ class VerifyingComparingIntArrayItemsAgentSpec extends CommonUnitSpecBase {
         Set0.id, 3, Set0.id, 1, Set0.id, 0, Set0.id, 3)
   }
 
-  it should "copy proper cells" in {
+  it must "copy proper cells" in {
     writeTest(5, 3, 2, 8)(
       _.copy0(1, 0, 2)
     )(3, 2, 2, 8)(
         Copy0.id, 1, 0, 2)
   }
 
-  it should "swap proper cells" in {
+  it must "swap proper cells" in {
     writeTest(5, 3, 2, 8)(
       _.swap0(3, 0)
     )(8, 3, 2, 5)(
         Swap0.id, 3, 0)
   }
 
-  it should "compare values properly" in {
+  it must "compare values properly" in {
     pureTest(
       a => assert(a.compare(1, 2) == -1),
       a => assert(a.compare(2, 1) == 1),
@@ -103,7 +103,7 @@ class VerifyingComparingIntArrayItemsAgentSpec extends CommonUnitSpecBase {
         Compare.id, Compare.id, Compare.id)
   }
 
-  it should "compare cells properly" in {
+  it must "compare cells properly" in {
     readTest(5, 3, 2, 8, 5)(
       a => assert(a.compare0(0, 1) == 1),
       a => assert(a.compare0(2, 3) == -1),

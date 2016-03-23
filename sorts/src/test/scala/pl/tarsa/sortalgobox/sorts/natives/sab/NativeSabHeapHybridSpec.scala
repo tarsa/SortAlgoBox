@@ -25,7 +25,7 @@ import pl.tarsa.sortalgobox.tests.NativesUnitSpecBase
 class NativeSabHeapHybridSpec extends NativesUnitSpecBase {
   typeBehavior[NativeSabHeapHybrid]
 
-  it should "sort and validate" in {
+  it must "sort and validate" in {
     val sort = new NativeSabHeapHybrid(testNativesCache)
     sort.forSize(12345, validate = true)
   }

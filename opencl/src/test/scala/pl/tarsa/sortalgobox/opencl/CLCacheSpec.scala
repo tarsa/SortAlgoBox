@@ -29,7 +29,7 @@ class CLCacheSpec extends CommonUnitSpecBase with BeforeAndAfterAll {
   override protected def beforeAll(): Unit =
     CL.setExceptionsEnabled(true)
 
-  it should "compile fine when input is correct" in {
+  it must "compile fine when input is correct" in {
     val example = getClass.getResource("example.cl")
     val sources = List(io.Source.fromURL(example).mkString)
     val program = CLCache.withCpuContext(ctx =>
@@ -37,8 +37,8 @@ class CLCacheSpec extends CommonUnitSpecBase with BeforeAndAfterAll {
     assert(program ne null)
   }
 
-  it should "fail when compilation is unsuccessful" in guardedOpenCLTest {
-    an[Exception] shouldBe thrownBy {
+  it must "fail when compilation is unsuccessful" in guardedOpenCLTest {
+    an[Exception] mustBe thrownBy {
       CLCache.withCpuContext(ctx => CLCache.getCachedProgram(ctx, List("bad")))
     }
   }

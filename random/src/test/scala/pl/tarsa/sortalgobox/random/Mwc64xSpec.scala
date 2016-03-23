@@ -25,7 +25,7 @@ import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 class Mwc64xSpec extends CommonUnitSpecBase {
   typeBehavior[Mwc64x]
 
-  it should "support changing the seed" in {
+  it must "support changing the seed" in {
     def getFirstInt(preparation: Mwc64x => Unit) = {
       val rng = new Mwc64x
       preparation(rng)
@@ -39,7 +39,7 @@ class Mwc64xSpec extends CommonUnitSpecBase {
     assert(allNumbersDifferent)
   }
 
-  it should "have hashCode and equals working" in {
+  it must "have hashCode and equals working" in {
     val rng1 = new Mwc64x
     val rng2 = new Mwc64x
     assert(rng1 == rng2)
@@ -52,7 +52,7 @@ class Mwc64xSpec extends CommonUnitSpecBase {
     assert(rng1.hashCode() == rng2.hashCode())
   }
 
-  it should "generate the same numbers as in test vector" in {
+  it must "generate the same numbers as in test vector" in {
     val source = io.Source.fromInputStream(getClass.getResourceAsStream(
       "/pl/tarsa/sortalgobox/random/mwc64x/test_vector.txt"))
     val testVector = source.getLines().map(Integer.parseUnsignedInt(_, 16))
@@ -65,7 +65,7 @@ class Mwc64xSpec extends CommonUnitSpecBase {
     assertResult(12345)(i)
   }
 
-  it should "have working skipping" in {
+  it must "have working skipping" in {
     val rng1 = new Mwc64x
     val rng2 = new Mwc64x
     rng1.skip(0)
@@ -78,7 +78,7 @@ class Mwc64xSpec extends CommonUnitSpecBase {
     assertResult(rng2)(rng1)
   }
 
-  it should "have reliable skipping" in {
+  it must "have reliable skipping" in {
     val segmentLength = 8192L
     for (i <- 0L until 123L) {
       val rngStep = new Mwc64x
@@ -92,7 +92,7 @@ class Mwc64xSpec extends CommonUnitSpecBase {
     }
   }
 
-  it should "have additive skipping" in {
+  it must "have additive skipping" in {
     val segmentLength = 8192L
     for (i <- 1 until 20) {
       for (j <- 0 until i) {

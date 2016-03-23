@@ -25,7 +25,7 @@ import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 class TokudaGapSequenceSpec extends CommonUnitSpecBase {
   typeBehavior[TokudaGapSequence.type]
 
-  it should "generate full sequence" in {
+  it must "generate full sequence" in {
     val expected = Array(1147718699, 510097199, 226709865, 100759939, 44782195,
       19903197, 8845865, 3931495, 1747330, 776590, 345151, 153400, 68177, 30300,
       13466, 5984, 2659, 1181, 524, 232, 102, 45, 19, 8, 3, 1)
@@ -35,7 +35,7 @@ class TokudaGapSequenceSpec extends CommonUnitSpecBase {
     assertResult(expected)(actual)
   }
 
-  it should "generate small subsequence" in {
+  it must "generate small subsequence" in {
     val expected = Array(102, 45, 19, 8, 3, 1)
     val actual = TokudaGapSequence.forSize(128)
 

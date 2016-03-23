@@ -32,37 +32,37 @@ class SinglePivotPartitionSpec extends CommonUnitSpecBase {
   implicit def intArrayToComparingItemsAgent(array: Array[Int]):
   ComparingIntArrayItemsAgent = new ComparingIntArrayItemsAgent(array)
 
-  it should "handle empty arrays" in {
+  it must "handle empty arrays" in {
     val array = Array[Int]()
     val partition = new SinglePivotPartition
     val (leftAfter, rightStart) = partition.partitionAndComputeBounds(
       array, 0, array.length, 0)
-    leftAfter shouldBe 0
-    rightStart shouldBe 0
+    leftAfter mustBe 0
+    rightStart mustBe 0
   }
 
-  it should "handle single element arrays" in {
+  it must "handle single element arrays" in {
     val array = Array(5)
     val partition = new SinglePivotPartition
     val (leftAfter, rightStart) = partition.partitionAndComputeBounds(
       array, 0, array.length, 0)
-    leftAfter should be <= rightStart
-    array shouldBe Array(5)
+    leftAfter must be <= rightStart
+    array mustBe Array(5)
   }
 
-  it should "handle sorted arrays" in {
+  it must "handle sorted arrays" in {
     def freshArray = Array(1, 2, 3, 5, 8, 13, 21)
     val array = freshArray
     val partition = new SinglePivotPartition
     val (leftAfter, rightStart) = partition.partitionAndComputeBounds(
       array, 0, array.length, 0)
-    leftAfter shouldBe 0
-    rightStart shouldBe 1
-    array(0) shouldBe 1
-    array.sorted shouldBe freshArray
+    leftAfter mustBe 0
+    rightStart mustBe 1
+    array(0) mustBe 1
+    array.sorted mustBe freshArray
   }
 
-  it should "handle unsorted arrays" in {
+  it must "handle unsorted arrays" in {
     def freshArray = Array(1, 21, 5, 8, 3, 2, 13)
     val array = freshArray
     val partition = new SinglePivotPartition
@@ -70,8 +70,8 @@ class SinglePivotPartitionSpec extends CommonUnitSpecBase {
     val pivot = array(pivotIndex)
     val (leftAfter, rightStart) = partition.partitionAndComputeBounds(
       array, 0, array.length, pivotIndex)
-    all (array.slice(0, leftAfter)) should be <= pivot
-    all (array.slice(rightStart, array.length)) should be >= pivot
-    array.sorted shouldBe freshArray.sorted
+    all (array.slice(0, leftAfter)) must be <= pivot
+    all (array.slice(rightStart, array.length)) must be >= pivot
+    array.sorted mustBe freshArray.sorted
   }
 }

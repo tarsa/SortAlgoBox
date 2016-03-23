@@ -25,21 +25,21 @@ import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 class CompilerOptionsSpec extends CommonUnitSpecBase {
   typeBehavior[CompilerOptions]
 
-  it should "serialize default compiler options" in {
+  it must "serialize default compiler options" in {
     val expected = Seq(
       "g++", "-std=c++11", "-O2", "-fopenmp", "-mavx2", "-o", "program")
     val actual = CompilerOptions.default.serializeAll
     assertResult(expected)(actual)
   }
 
-  it should "serialize empty options" in {
+  it must "serialize empty options" in {
     val expected = Seq("aCompiler", "-o", "aProgram")
     val actual = CompilerOptions(
       "aCompiler", None, None, Nil, Nil, "aProgram").serializeAll
     assertResult(expected)(actual)
   }
 
-  it should "serialize custom options" in {
+  it must "serialize custom options" in {
     val expected = Seq("aCompiler", "-std=abc34", "-O7", "-option1", "-option2",
       "-Dname1", "-Dname2=value", "-o", "anExecutable")
     val actual = CompilerOptions("aCompiler", Some("abc34"), Some("-O7"), Seq(

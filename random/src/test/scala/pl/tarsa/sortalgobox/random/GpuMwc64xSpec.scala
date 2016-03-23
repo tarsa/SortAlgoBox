@@ -25,30 +25,30 @@ import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 class GpuMwc64xSpec extends CommonUnitSpecBase {
   typeBehavior[GpuMwc64x]
 
-  it should "work for empty arrays" in guardedOpenCLTest {
+  it must "work for empty arrays" in guardedOpenCLTest {
     val gpuRng = new GpuMwc64x
     val array = gpuRng.generate(0, 1)
     assert(array.length == 0)
   }
 
-  it should "fail for non positive work items number" in guardedOpenCLTest {
+  it must "fail for non positive work items number" in guardedOpenCLTest {
     val gpuRng = new GpuMwc64x
-    an[IllegalArgumentException] should be thrownBy {
+    an[IllegalArgumentException] mustBe thrownBy {
       gpuRng.generate(1 << 16, 0)
     }
-    an[IllegalArgumentException] should be thrownBy {
+    an[IllegalArgumentException] mustBe thrownBy {
       gpuRng.generate(1 << 16, -1)
     }
   }
 
-  it should "fail for invalid vector length" in guardedOpenCLTest {
+  it must "fail for invalid vector length" in guardedOpenCLTest {
     val gpuRng = new GpuMwc64x
-    an[IllegalArgumentException] should be thrownBy {
+    an[IllegalArgumentException] mustBe thrownBy {
       gpuRng.generate(1 << 16, 1, 7)
     }
   }
 
-  it should "give identical results as Scala version" in guardedOpenCLTest {
+  it must "give identical results as Scala version" in guardedOpenCLTest {
     val gpuRng = new GpuMwc64x
     for (workItems <- List(1, 2, 4, 8, 16, 32, 64, 512);
          vectorLength <- List(1, 2, 4, 8)) {

@@ -138,7 +138,7 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
       val content = Files.readAllBytes(output)
       Files.delete(output)
       Files.delete(dir)
-      content shouldEqual Array[Byte](10, 20, 30, 40, 50, 60, 70)
+      content mustBe Array[Byte](10, 20, 30, 40, 50, 60, 70)
     }
   }
 
@@ -147,7 +147,7 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
   val buildConfig = makeBuildConfig(tests)
 
   for ((test, testIndex) <- tests.zipWithIndex) {
-    it should test.name in {
+    it must test.name in {
       val (state, params) = test.before()
       val specProcess = testNativesCache.runCachedProgram(buildConfig)
       try {

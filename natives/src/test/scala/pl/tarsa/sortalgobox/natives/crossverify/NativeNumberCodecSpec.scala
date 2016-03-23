@@ -34,7 +34,7 @@ class NativeNumberCodecSpec extends NativesUnitSpecBase {
   import NativeNumberCodecSpec._
 
   for ((Test(testName, testMode, _), testIndex) <- tests.zipWithIndex) {
-    it should testName in {
+    it must testName in {
       val specProcess = testNativesCache.runCachedProgram(buildConfig)
       try {
         val pipeTo = new PrintStream(specProcess.getOutputStream)
