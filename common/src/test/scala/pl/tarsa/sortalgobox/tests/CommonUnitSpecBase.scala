@@ -20,9 +20,13 @@
  */
 package pl.tarsa.sortalgobox.tests
 
+import java.util.concurrent.{Executors, TimeUnit}
+
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FlatSpec, Matchers}
 
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.reflect.runtime.universe._
 
 abstract class CommonUnitSpecBase
@@ -34,12 +38,30 @@ abstract class CommonUnitSpecBase
     behavior of typeOf[T].typeSymbol.toString
   }
 
+  implicit class InstantFuture[T](future: Future[T]) {
+    def readyNow(): Future[T] = Await.ready(future, Duration.Inf)
+
+    def resultNow(): T = Await.result(future, Duration.Inf)
+  }
+
   def guardedOpenCLTest(body: => Unit): Unit = {
     val skip = System.getProperty("skip_opencl_tests") != null
     if (skip) {
       pending
     } else {
       body
+    }
+  }
+
+  def withFixedExecutor(threadsNumber: Int)
+    (body: ExecutionContextExecutorService => Unit): Unit = {
+    val execCtx = ExecutionContext.fromExecutorService(
+      Executors.newFixedThreadPool(threadsNumber))
+    try {
+      body(execCtx)
+    } finally {
+      execCtx.shutdown()
+      execCtx.awaitTermination(Int.MaxValue, TimeUnit.DAYS)
     }
   }
 }

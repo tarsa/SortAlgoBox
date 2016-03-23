@@ -20,18 +20,10 @@
  */
 package pl.tarsa.sortalgobox.natives.build
 
-import java.nio.file.Files
 import java.util.Scanner
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 
-import pl.tarsa.sortalgobox.common.SortAlgoBoxConfiguration._
 import pl.tarsa.sortalgobox.natives.build.NativesCacheSpec._
 import pl.tarsa.sortalgobox.tests.NativesUnitSpecBase
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
 
 class NativesCacheSpec extends NativesUnitSpecBase {
   typeBehavior[NativesCache]
@@ -61,66 +53,11 @@ class NativesCacheSpec extends NativesUnitSpecBase {
     assertResult("Hello from test!")(pipeFrom.nextLine())
   }
 
-  it should "compile only once when build is successful" in {
-    val buildConfig = NativeBuildConfig(components, "source.cpp")
-    val counter = new AtomicInteger(0)
-    val nativesCache = new NativesCache {
-      override protected def buildProgram(buildConfig: NativeBuildConfig) = {
-        counter.incrementAndGet()
-        Right(Files.createTempDirectory(rootTempDir, "native").toFile)
-      }
-
+  it should "fail when compilation is unsuccessful" in {
+    val buildConfig = NativeBuildConfig(Nil, "non_existing.cpp")
+    an[Exception] shouldBe thrownBy {
+      testNativesCache.runCachedProgram(buildConfig)
     }
-    val futures = (1 to 2).map(_ => Future(
-      nativesCache.buildCachedProgram(buildConfig)))
-    val results@Seq(result1, result2) =
-      Await.result(Future.sequence(futures), 5.seconds)
-    assert(result1 == result2)
-    assert(results.forall(_.isInstanceOf[NativeBuildSucceeded]))
-    assertResult(1)(counter.get)
-  }
-
-  it should "compile only once when build failed" in {
-    val buildConfig = NativeBuildConfig(Seq.empty, "filename.bad")
-    val counter = new AtomicInteger(0)
-    val nativesCache = new NativesCache {
-      override protected def buildProgram(buildConfig: NativeBuildConfig) = {
-          counter.incrementAndGet()
-          Left("Cannot find file: filename.bad")
-        }
-    }
-    val futures = (1 to 2).map(_ => Future(
-      nativesCache.buildCachedProgram(buildConfig)))
-    val results@Seq(result1, result2) =
-      Await.result(Future.sequence(futures), 5.seconds)
-    assert(result1 == result2)
-    assert(results.forall(_.isInstanceOf[NativeBuildFailed]))
-    assertResult(1)(counter.get)
-  }
-
-  it should "allow for multiple different builds happening in parallel" in {
-    val currentCount = new AtomicInteger(0)
-    val wasMoreThanOne = new AtomicBoolean(false)
-    val latch = new CountDownLatch(2)
-    val nativesCache = new NativesCache {
-      override protected def buildProgram(
-        buildConfig: NativeBuildConfig) = {
-        if (currentCount.incrementAndGet() > 1) {
-          wasMoreThanOne.set(true)
-        }
-        latch.countDown()
-        latch.await()
-        currentCount.decrementAndGet()
-        Left("")
-      }
-    }
-    val futures = Seq("source1.cpp", "source2.cpp").map(fileName => Future(
-      nativesCache.buildCachedProgram(NativeBuildConfig(Seq.empty, fileName))))
-    val results@Seq(result1, result2) =
-      Await.result(Future.sequence(futures), 5.seconds)
-    assert(result1 == result2)
-    assert(results.forall(_.isInstanceOf[NativeBuildFailed]))
-    assert(wasMoreThanOne.get)
   }
 }
 

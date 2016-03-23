@@ -20,77 +20,30 @@
  */
 package pl.tarsa.sortalgobox.opencl
 
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.locks.{ReentrantLock, Lock}
-
 import org.jocl.CL._
 import org.jocl._
+import pl.tarsa.sortalgobox.common.cache.BuildCache
 
-trait CLContextsCache {
-  lazy val cpuContext = CLContextsManager.createCpuContext()
-  lazy val gpuContext = CLContextsManager.createGpuContext()
-
-  def withCpuContext[T](f: CLDeviceContext => T): T = {
-    f(cpuContext)
-  }
-
-  def withGpuContext[T](f: CLDeviceContext => T): T = {
-    f(gpuContext)
-  }
-}
-
-trait CLProgramsCache {
-  private val programsCacheLock: Lock = new ReentrantLock(true)
-
-  private val programsCache = collection.mutable.Map[(CLDeviceContext,
-    List[String]), CLBuildStatus]()
-
-  private val buildIdGenerator = new AtomicLong
-
-  private def withProgramsCacheLock[T](body: => T): T = {
-    programsCacheLock.lockInterruptibly()
-    try {
-      body
-    } finally {
-      programsCacheLock.unlock()
-    }
-  }
+class CLCache extends BuildCache {
+  override type BuildKey = (CLDeviceContext, List[String])
+  override type BuildValue = cl_program
+  override type BuildError = String
 
   def getCachedProgram(deviceContext: CLDeviceContext,
     programSources: List[String]): cl_program = {
-    val buildConfig = (deviceContext, programSources)
-    val nextBuildId = buildIdGenerator.incrementAndGet()
-    val cachedBuildStatus = withProgramsCacheLock {
-      programsCache.getOrElseUpdate(buildConfig, {
-        CLBuildStarting(nextBuildId, new CountDownLatch(1))
-      })
-    }
-    cachedBuildStatus match {
-      case CLBuildStarting(buildId, latch) if buildId == nextBuildId =>
-        val newBuildStatus = buildProgram(deviceContext, programSources)
-          .fold[CLBuildStatus](CLBuildFailed, CLBuildSucceeded)
-        withProgramsCacheLock {
-          programsCache.update(buildConfig, newBuildStatus)
-        }
-        latch.countDown()
-      case CLBuildStarting(_, latch) =>
-        latch.await()
-      case _ =>
-    }
-    val buildStatus = withProgramsCacheLock(programsCache(buildConfig))
-    buildStatus match {
-      case CLBuildSucceeded(clProgram) =>
+    cachedBuild((deviceContext, programSources)) match {
+      case BuildSucceeded(clProgram) =>
         clProgram
-      case CLBuildFailed(message) =>
+      case BuildFailed(message) =>
         throw new Exception(message)
       case _ =>
         throw new Exception("OpenCL cache in wrong state")
     }
   }
 
-  private def buildProgram(deviceContext: CLDeviceContext,
-    programSources: List[String]): Either[String, cl_program] = {
+  override protected def build(key: (CLDeviceContext, List[String])):
+  Either[String, cl_program] = {
+    val (deviceContext, programSources) = key
     try {
       val program = clCreateProgramWithSource(deviceContext.context,
         programSources.size, programSources.toArray, null, null)
@@ -105,4 +58,15 @@ trait CLProgramsCache {
   }
 }
 
-object CLCache extends CLContextsCache with CLProgramsCache
+object CLCache extends CLCache {
+  lazy val cpuContext = CLContextsManager.createCpuContext()
+  lazy val gpuContext = CLContextsManager.createGpuContext()
+
+  def withCpuContext[T](f: CLDeviceContext => T): T = {
+    f(cpuContext)
+  }
+
+  def withGpuContext[T](f: CLDeviceContext => T): T = {
+    f(gpuContext)
+  }
+}

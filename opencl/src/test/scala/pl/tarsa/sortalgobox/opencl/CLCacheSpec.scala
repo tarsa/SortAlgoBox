@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,19 +16,30 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.opencl
 
-import java.util.concurrent.CountDownLatch
+import org.jocl.CL
+import org.scalatest.BeforeAndAfterAll
+import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
-import org.jocl.cl_program
+class CLCacheSpec extends CommonUnitSpecBase with BeforeAndAfterAll {
+  typeBehavior[CLCache]
 
-sealed trait CLBuildStatus
+  override protected def beforeAll(): Unit =
+    CL.setExceptionsEnabled(true)
 
-case class CLBuildStarting(buildId: Long, latch: CountDownLatch)
-  extends CLBuildStatus
+  it should "compile fine when input is correct" in {
+    val example = getClass.getResource("example.cl")
+    val sources = List(io.Source.fromURL(example).mkString)
+    val program = CLCache.withCpuContext(ctx =>
+      CLCache.getCachedProgram(ctx, sources))
+    assert(program ne null)
+  }
 
-case class CLBuildSucceeded(program: cl_program) extends CLBuildStatus
-
-case class CLBuildFailed(message: String) extends CLBuildStatus
+  it should "fail when compilation is unsuccessful" in guardedOpenCLTest {
+    an[Exception] shouldBe thrownBy {
+      CLCache.withCpuContext(ctx => CLCache.getCachedProgram(ctx, List("bad")))
+    }
+  }
+}

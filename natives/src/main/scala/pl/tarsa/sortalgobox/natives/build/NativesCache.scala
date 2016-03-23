@@ -22,71 +22,32 @@ package pl.tarsa.sortalgobox.natives.build
 
 import java.io.File
 import java.nio.file.Files
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.locks.{Lock, ReentrantLock}
 
 import org.apache.commons.io.FileUtils
 import pl.tarsa.sortalgobox.common.SortAlgoBoxConfiguration.rootTempDir
+import pl.tarsa.sortalgobox.common.cache.BuildCache
 
 import scala.io.Source
 
-class NativesCache {
-  private val programsCacheLock: Lock = new ReentrantLock(true)
-
-  private val programsCache = collection.mutable.Map[
-    NativeBuildConfig, NativeBuildStatus]()
-
-  private val buildIdGenerator = new AtomicLong
-
-  private def withProgramsCacheLock[T](body: => T): T = {
-    programsCacheLock.lockInterruptibly()
-    try {
-      body
-    } finally {
-      programsCacheLock.unlock()
-    }
-  }
+class NativesCache extends BuildCache {
+  override type BuildKey = NativeBuildConfig
+  override type BuildValue = File
+  override type BuildError = String
 
   def runCachedProgram(buildConfig: NativeBuildConfig): Process = {
-    buildCachedProgram(buildConfig) match {
-      case NativeBuildSucceeded(workDir) =>
+    cachedBuild(buildConfig) match {
+      case BuildSucceeded(workDir) =>
         new ProcessBuilder(
           s"./${buildConfig.compilerOptions.executableFileName}")
           .directory(workDir).start()
-      case NativeBuildFailed(message) =>
+      case BuildFailed(message) =>
         throw new Exception(message)
       case _ =>
         throw new Exception("Natives cache in wrong state")
     }
   }
 
-  def buildCachedProgram(buildConfig: NativeBuildConfig):
-  NativeBuildStatus = {
-    val nextBuildId = buildIdGenerator.incrementAndGet()
-    val cachedBuildStatus = withProgramsCacheLock {
-      programsCache.getOrElseUpdate(buildConfig, {
-        NativeBuildPending(nextBuildId, new CountDownLatch(1))
-      })
-    }
-    cachedBuildStatus match {
-      case NativeBuildPending(buildId, latch) if buildId == nextBuildId =>
-        val newBuildStatus = buildProgram(buildConfig).fold[NativeBuildStatus](
-          NativeBuildFailed, NativeBuildSucceeded)
-        withProgramsCacheLock {
-          programsCache.update(buildConfig, newBuildStatus)
-        }
-        latch.countDown()
-        newBuildStatus
-      case NativeBuildPending(_, latch) =>
-        latch.await()
-        withProgramsCacheLock(programsCache(buildConfig))
-      case _ =>
-        cachedBuildStatus
-    }
-  }
-
-  protected def buildProgram(buildConfig: NativeBuildConfig):
+  override protected def build(buildConfig: NativeBuildConfig):
   Either[String, File] = {
     val workDir = Files.createTempDirectory(rootTempDir, "native")
     val workDirFile = workDir.toFile
@@ -105,15 +66,11 @@ class NativesCache {
     }
   }
 
-  def cleanup(): Unit = {
-    withProgramsCacheLock {
-      programsCache.values.foreach {
-        case NativeBuildSucceeded(directory) =>
-          FileUtils.deleteDirectory(directory)
-        case _ =>
-      }
-      programsCache.clear()
-    }
+  /** Warning: this method is not synchronized */
+  def cleanup(): Unit = cleanUpCache {
+    case BuildSucceeded(directory) =>
+      FileUtils.deleteDirectory(directory)
+    case _ =>
   }
 }
 
