@@ -58,7 +58,7 @@ object MainBuild extends Build {
       name := "SortingAlgorithmsToolbox")
     .settings(commonSettings: _*)
     .aggregate(rootDeps.map(Project.projectToRef): _*)
-    .dependsOn(rootDeps.map(p => classpathDependency(p)): _*)
+    .dependsOn(rootDeps.map(p => ClasspathDependency(p, Some(fullDep))): _*)
     .settings(rootDeps.map(dep => discoveredMainClasses in Compile <++=
       discoveredMainClasses in dep in Compile): _*)
 
