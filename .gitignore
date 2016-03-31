@@ -1,7 +1,3 @@
-# typesafe activator
-
-/activator*
-
 # idea
 /.idea
 
@@ -22,7 +18,6 @@
 # jocl
 
 /JOCL-*.jar
-/libOpenCL.so
 
 # CMake files
 
