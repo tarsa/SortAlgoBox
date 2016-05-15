@@ -45,7 +45,7 @@ class FxBenchmarkSuite(val benchmarks: Seq[Benchmark])
     scene = new Scene {
       root = new LineChart(CategoryAxis("Size"), NumberAxis("Time (Log) ms")) {
         title = "Sorting Algorithms Results"
-        legendSide = Side.RIGHT
+        legendSide = Side.Right
         data = seriesWithBuffers.map(_._1.delegate)
       }
     }
