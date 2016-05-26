@@ -50,7 +50,10 @@ object MainBuild extends Build {
         "org.scalafx" %% "scalafx" % "8.0.92-R10")
     )
 
-  lazy val rootDeps = Seq(common, core, fxgui, natives, opencl, random, sorts)
+  lazy val depsCp = deps % fullDep
+
+  lazy val rootDeps = Seq(common, core, crossVerify, fxGui, natives, openCl,
+    random, sorts)
 
   lazy val root = Project(id = "SortingAlgorithmsToolbox", base = file("."))
     .settings(
@@ -62,35 +65,59 @@ object MainBuild extends Build {
     .settings(rootDeps.map(dep => discoveredMainClasses in Compile <++=
       discoveredMainClasses in dep in Compile): _*)
 
-  lazy val common = Project(id = "common", base = file("./common"))
-    .settings(commonSettings: _*)
-    .dependsOn(deps % fullDep)
+  lazy val common =
+    Project(id = "common", base = file("./common"))
+      .settings(commonSettings: _*)
+      .dependsOn(depsCp)
 
   lazy val commonCp = common % fullDep
 
-  lazy val core = Project(id = "core", base = file("./core"))
-    .settings(commonSettings: _*)
-    .dependsOn(commonCp, nativesCp, opencl, random)
+  lazy val core =
+    Project(id = "core", base = file("./core"))
+      .settings(commonSettings: _*)
+      .dependsOn(commonCp, nativesCp, openClCp, randomCp)
 
-  lazy val fxgui = Project(id = "fxgui", base = file("./fxgui"))
-    .settings(commonSettings: _*)
-    .dependsOn(commonCp, core)
+  lazy val coreCp = core % fullDep
 
-  lazy val natives = Project(id = "natives", base = file("./natives"))
-    .settings(commonSettings: _*)
-    .dependsOn(commonCp)
+  lazy val crossVerify =
+    Project(id = "crossverify", base = file("./crossverify"))
+      .settings(commonSettings: _*)
+      .dependsOn(commonCp, nativesCp, openClCp, randomCp, sortsCp)
+
+  lazy val crossVerifyCp = crossVerify % fullDep
+
+  lazy val fxGui =
+    Project(id = "fxgui", base = file("./fxgui"))
+      .settings(commonSettings: _*)
+      .dependsOn(commonCp, coreCp)
+
+  lazy val fxGuiCp = fxGui % fullDep
+
+  lazy val natives =
+    Project(id = "natives", base = file("./natives"))
+      .settings(commonSettings: _*)
+      .dependsOn(commonCp)
 
   lazy val nativesCp = natives % fullDep
 
-  lazy val opencl = Project(id = "opencl", base = file("./opencl"))
-    .settings(commonSettings: _*)
-    .dependsOn(commonCp)
+  lazy val openCl =
+    Project(id = "opencl", base = file("./opencl"))
+      .settings(commonSettings: _*)
+      .dependsOn(commonCp)
 
-  lazy val random = Project(id = "random", base = file("./random"))
-    .settings(commonSettings: _*)
-    .dependsOn(commonCp, nativesCp, opencl)
+  lazy val openClCp = openCl % fullDep
 
-  lazy val sorts = Project(id = "sorts", base = file("./sorts"))
-    .settings(commonSettings: _*)
-    .dependsOn(commonCp, core, nativesCp)
+  lazy val random =
+    Project(id = "random", base = file("./random"))
+      .settings(commonSettings: _*)
+      .dependsOn(commonCp, nativesCp, openClCp)
+
+  lazy val randomCp = random % fullDep
+
+  lazy val sorts =
+    Project(id = "sorts", base = file("./sorts"))
+      .settings(commonSettings: _*)
+      .dependsOn(commonCp, coreCp, nativesCp)
+
+  lazy val sortsCp = sorts % fullDep
 }
