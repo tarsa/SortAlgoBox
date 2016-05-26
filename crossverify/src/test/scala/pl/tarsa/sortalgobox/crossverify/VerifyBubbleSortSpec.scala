@@ -1,0 +1,75 @@
+/*
+ * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty.  In no event will the author be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ * claim that you wrote the original software. If you use this software
+ * in a product, an acknowledgment in the product documentation would be
+ * appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ * misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ */
+package pl.tarsa.sortalgobox.crossverify
+
+import java.io.ByteArrayOutputStream
+import java.nio.ByteBuffer
+
+import org.apache.commons.io.IOUtils
+import pl.tarsa.sortalgobox.core.common.agents.implementations.{ComparingIntArrayItemsAgent, VerifyingComparingIntArrayItemsAgent}
+import pl.tarsa.sortalgobox.core.crossverify.PureNumberCodec
+import pl.tarsa.sortalgobox.natives.build.{NativeBuildConfig, NativeComponentsSupport, NativesCache}
+import pl.tarsa.sortalgobox.random.{Mwc64x, NativeMwc64x}
+import pl.tarsa.sortalgobox.sorts.scala.bubble.BubbleSort
+import pl.tarsa.sortalgobox.tests.NativesUnitSpecBase
+
+class VerifyBubbleSortSpec extends NativesUnitSpecBase {
+
+  "Native Bubble Sort" must "take steps identical to Scala Bubble Sort" in {
+    val codec = new NativeRecordingBubbleSort(testNativesCache)
+      .sortAndCollectData()
+    new CheckingBubbleSort().run(codec, assert(_))
+  }
+}
+
+class NativeRecordingBubbleSort(nativesCache: NativesCache = NativesCache) {
+
+  val buildConfig =
+    NativeBuildConfig(NativeRecordingBubbleSort.components, "bubblesort.cpp")
+
+  def sortAndCollectData(): PureNumberCodec = {
+
+    val generatorProcess = nativesCache.runCachedProgram(buildConfig)
+    val baos = new ByteArrayOutputStream()
+    IOUtils.copy(generatorProcess.getInputStream, baos)
+
+    generatorProcess.waitFor()
+    println("Exit value: " + generatorProcess.exitValue())
+
+    val recording = ByteBuffer.wrap(baos.toByteArray)
+    new PureNumberCodec(recording)
+  }
+}
+
+object NativeRecordingBubbleSort extends NativeComponentsSupport {
+  val components = NativeMwc64x.header ++ makeComponents(
+    ("/pl/tarsa/sortalgobox/natives/crossverify/", "numbercodec.hpp"),
+    ("/pl/tarsa/sortalgobox/crossverify/", "bubblesort.cpp"))
+}
+
+class CheckingBubbleSort {
+  def run(codecWithNumber: PureNumberCodec, verify: Boolean => Unit) = {
+    val generator = Mwc64x()
+    val array = Array.fill[Int](1234)(generator.nextInt())
+    val itemsAgent = new VerifyingComparingIntArrayItemsAgent(codecWithNumber,
+      new ComparingIntArrayItemsAgent(array), verify)
+    new BubbleSort().sort(itemsAgent)
+  }
+}
