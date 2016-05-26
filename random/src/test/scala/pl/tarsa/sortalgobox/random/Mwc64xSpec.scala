@@ -105,4 +105,14 @@ class Mwc64xSpec extends CommonUnitSpecBase {
       }
     }
   }
+
+  it must "generate the requested number of random bits" in {
+    for (bits <- 1 until 32) {
+      val generator = Mwc64x()
+      for (_ <- 0 until 10) {
+        val value = generator.next(bits)
+        assert(Integer.numberOfLeadingZeros(value) >= (32 - bits))
+      }
+    }
+  }
 }

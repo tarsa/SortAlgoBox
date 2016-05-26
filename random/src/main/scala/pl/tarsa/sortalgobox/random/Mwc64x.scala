@@ -29,7 +29,7 @@ case class Mwc64x(var state: Long = Mwc64x.initialState)
     val c = state >>> 32
     val x = state & 0xFFFFFFFFL
     state = Mwc64x.aLong * x + c
-    (x ^ c).toInt
+    (x ^ c).toInt >>> (32 - bits)
   }
 
   override def setSeed(seed: Int): Unit = setSeed(Array(seed))
