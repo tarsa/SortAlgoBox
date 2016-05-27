@@ -26,8 +26,6 @@ import java.util.Scanner
 import pl.tarsa.sortalgobox.natives.build._
 import pl.tarsa.sortalgobox.tests.NativesUnitSpecBase
 
-import scala.io.Source
-
 class NativeNumberCodecSpec extends NativesUnitSpecBase {
   behavior of "NativeNumberCodec"
 
@@ -140,9 +138,6 @@ object NativeNumberCodecSpec {
       "10, NumberCodec::ValueOverflow")
   ).map(Test.tupled)
 
-  val license_header = Source.fromInputStream(getClass.getResourceAsStream(
-    "/pl/tarsa/sortalgobox/license_header"), "UTF-8").mkString
-
   val system_includes = List("cstdlib", "cstring", "iostream").map(s => s"<$s>")
   val local_includes = List("numbercodec.hpp").map('"' + _ + '"')
 
@@ -230,7 +225,7 @@ $cases
 """
   }
 
-  val sourceCode = license_header + includes_string + enums_string +
+  val sourceCode = includes_string + enums_string +
     test_serialize_int_string + test_serialize_long_string +
     test_deserialize_int_string + test_deserialize_long_string + main_body
 

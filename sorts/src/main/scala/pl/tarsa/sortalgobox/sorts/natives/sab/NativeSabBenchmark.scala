@@ -75,11 +75,13 @@ class NativeSabBenchmark(sortAlgoName: String, sortHeader: String,
 object NativeSabBenchmark extends NativeComponentsSupport {
   val sabNamePrefix = "/pl/tarsa/sortalgobox/sorts/natives/sab/"
 
-  def components(sortHeader: String) = NativeMwc64x.header ++ makeComponents(
-    ("/pl/tarsa/sortalgobox/natives/", "macros.hpp"),
-    ("/pl/tarsa/sortalgobox/natives/", "utilities.hpp"),
-    ("/pl/tarsa/sortalgobox/sorts/natives/", "main.cpp"),
-    (sabNamePrefix, "sabmain.hpp"),
-    (sabNamePrefix, "sortalgocommon.hpp"),
-    (sabNamePrefix, sortHeader))
+  def components(sortHeader: String) = {
+    NativeMwc64x.header ++ makeResourceComponents(
+      ("/pl/tarsa/sortalgobox/natives/", "macros.hpp"),
+      ("/pl/tarsa/sortalgobox/natives/", "utilities.hpp"),
+      ("/pl/tarsa/sortalgobox/sorts/natives/", "main.cpp"),
+      (sabNamePrefix, "sabmain.hpp"),
+      (sabNamePrefix, "sortalgocommon.hpp"),
+      (sabNamePrefix, sortHeader))
+  }
 }

@@ -40,9 +40,9 @@ class NativeMwc64x(nativesCache: NativesCache = NativesCache) {
 }
 
 object NativeMwc64x extends NativeComponentsSupport {
-  val header = makeComponents(
+  val header = makeResourceComponents(
     ("/pl/tarsa/sortalgobox/random/mwc64x/native/", "mwc64x.hpp"))
 
-  val sources = header ++ makeComponents(
+  val sources = header ++ makeResourceComponents(
     ("/pl/tarsa/sortalgobox/random/mwc64x/native/", "mwc64x.cpp"))
 }

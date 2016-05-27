@@ -20,13 +20,18 @@
  */
 package pl.tarsa.sortalgobox.natives.build
 
-sealed trait NativeBuildComponent
+sealed trait NativeBuildComponent {
+  def fileName: String
+
+  def prependLicense: Boolean
+}
 
 case class NativeBuildComponentFromResource(resourceNamePrefix: String,
-  fileName: String) extends NativeBuildComponent
+  fileName: String, prependLicense: Boolean = false)
+  extends NativeBuildComponent
 
 case class NativeBuildComponentFromString(contents: String,
-  fileName: String) extends NativeBuildComponent
+  fileName: String, prependLicense: Boolean = true) extends NativeBuildComponent
 
 case class NativeBuildComponentFromGenerator(generator: () => String,
-  fileName: String) extends NativeBuildComponent
+  fileName: String, prependLicense: Boolean = true) extends NativeBuildComponent

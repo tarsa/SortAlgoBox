@@ -59,7 +59,7 @@ class NativeBubbleSort(nativesCache: NativesCache = NativesCache)
 }
 
 object NativeBubbleSort extends NativeComponentsSupport {
-  val components = NativeMwc64x.header ++ makeComponents(
+  val components = NativeMwc64x.header ++ makeResourceComponents(
     ("/pl/tarsa/sortalgobox/natives/", "macros.hpp"),
     ("/pl/tarsa/sortalgobox/natives/", "utilities.hpp"),
     ("/pl/tarsa/sortalgobox/sorts/natives/", "main.cpp"),

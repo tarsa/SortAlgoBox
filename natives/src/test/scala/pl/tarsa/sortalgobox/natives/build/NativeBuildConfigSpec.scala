@@ -22,7 +22,7 @@ package pl.tarsa.sortalgobox.natives.build
 
 import java.nio.file.Files
 
-import pl.tarsa.sortalgobox.common.SortAlgoBoxConfiguration
+import pl.tarsa.sortalgobox.common.{SortAlgoBoxConfiguration, SortAlgoBoxConstants}
 import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
 class NativeBuildConfigSpec extends CommonUnitSpecBase {
@@ -81,7 +81,8 @@ class NativeBuildConfigSpec extends CommonUnitSpecBase {
     val components = Seq(
       NativeBuildComponentFromResource(resourceNamePrefix, fileName1),
       NativeBuildComponentFromString(contents, fileName2),
-      NativeBuildComponentFromGenerator(generator, fileName3))
+      NativeBuildComponentFromGenerator(generator, fileName3,
+        prependLicense = false))
 
     val destination = Files.createTempDirectory(
       SortAlgoBoxConfiguration.rootTempDir, "test")
@@ -94,7 +95,7 @@ class NativeBuildConfigSpec extends CommonUnitSpecBase {
     assert(Files.readAllBytes(file1) ===
       "Lorem ipsum dolor sit amet.\n".getBytes("UTF-8"))
     assert(Files.readAllBytes(file2) ===
-      contents.getBytes("UTF-8"))
+      SortAlgoBoxConstants.licenseHeader ++ contents.getBytes("UTF-8"))
     assert(Files.readAllBytes(file3) ===
       generator().getBytes("UTF-8"))
 

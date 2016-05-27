@@ -20,8 +20,10 @@
  */
 package pl.tarsa.sortalgobox.natives.build
 
-import java.nio.file.{Files, Path}
+import java.nio.file.Path
 
+import org.apache.commons.io.IOUtils
+import pl.tarsa.sortalgobox.common.SortAlgoBoxConstants
 import pl.tarsa.sortalgobox.common.resources.ResourcesSupport
 
 case class NativeBuildConfig(components: Seq[_ <: NativeBuildComponent],
@@ -47,19 +49,25 @@ case class NativeBuildConfig(components: Seq[_ <: NativeBuildComponent],
   }
 
   def copyBuildComponents(destination: Path): Unit = {
-    components.foreach {
-      case NativeBuildComponentFromResource(resourceNamePrefix, fileName) =>
-        val componentPath = destination.resolve(fileName)
-        val resourceName = resourceNamePrefix + fileName
-        for (resourceStream <- managedStreamFromResource(resourceName)) {
-          Files.copy(resourceStream, componentPath)
+    components.foreach { component =>
+      val componentPath = destination.resolve(component.fileName)
+      for (componentStream <- managedFileOutputStream(componentPath)) {
+        if (component.prependLicense) {
+          componentStream.write(SortAlgoBoxConstants.licenseHeader)
         }
-      case NativeBuildComponentFromString(contents, fileName) =>
-        val componentPath = destination.resolve(fileName)
-        Files.write(componentPath, contents.getBytes("UTF-8"))
-      case NativeBuildComponentFromGenerator(generator, fileName) =>
-        val componentPath = destination.resolve(fileName)
-        Files.write(componentPath, generator().getBytes("UTF-8"))
+        component match {
+          case NativeBuildComponentFromResource(resourceNamePrefix,
+          fileName, _) =>
+            val resourceName = resourceNamePrefix + fileName
+            for (resourceStream <- managedStreamFromResource(resourceName)) {
+              IOUtils.copy(resourceStream, componentStream)
+            }
+          case NativeBuildComponentFromString(contents, _, _) =>
+            IOUtils.write(contents, componentStream, "UTF-8")
+          case NativeBuildComponentFromGenerator(generator, _, _) =>
+            IOUtils.write(generator(), componentStream, "UTF-8")
+        }
+      }
     }
   }
 }

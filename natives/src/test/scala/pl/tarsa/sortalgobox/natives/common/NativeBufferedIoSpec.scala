@@ -28,8 +28,6 @@ import pl.tarsa.sortalgobox.common.SortAlgoBoxConfiguration.rootTempDir
 import pl.tarsa.sortalgobox.natives.build._
 import pl.tarsa.sortalgobox.tests.NativesUnitSpecBase
 
-import scala.io.Source
-
 class NativeBufferedIoSpec extends NativesUnitSpecBase {
   behavior of "NativeBufferedIo"
 
@@ -183,9 +181,6 @@ object NativeBufferedIoSpec {
   }
 
   def makeBuildConfig(tests: List[Test]) = {
-    val license_header = Source.fromInputStream(getClass.getResourceAsStream(
-      "/pl/tarsa/sortalgobox/license_header"), "UTF-8").mkString
-
     val system_includes = List("cstdlib", "cstring", "iostream")
       .map(s => s"<$s>")
     val local_includes = List("buffered_io.hpp")
@@ -228,8 +223,8 @@ $cases
 """
     }
 
-    val sourceCode = license_header + includes_string + enums_string +
-      namespace + tests_bodies + main_body
+    val sourceCode = includes_string + enums_string + namespace + tests_bodies +
+      main_body
 
     val mainSourceFile = "spec.cpp"
     val numberCodecComponent = NativeBuildComponentFromResource(

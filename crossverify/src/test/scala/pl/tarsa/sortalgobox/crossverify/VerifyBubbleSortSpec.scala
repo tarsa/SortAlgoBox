@@ -59,7 +59,7 @@ class NativeRecordingBubbleSort(nativesCache: NativesCache = NativesCache) {
 }
 
 object NativeRecordingBubbleSort extends NativeComponentsSupport {
-  val components = NativeMwc64x.header ++ makeComponents(
+  val components = NativeMwc64x.header ++ makeResourceComponents(
     ("/pl/tarsa/sortalgobox/natives/crossverify/", "numbercodec.hpp"),
     ("/pl/tarsa/sortalgobox/crossverify/", "bubblesort.cpp"))
 }
