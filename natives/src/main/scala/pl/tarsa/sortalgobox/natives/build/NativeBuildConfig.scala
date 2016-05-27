@@ -22,9 +22,12 @@ package pl.tarsa.sortalgobox.natives.build
 
 import java.nio.file.{Files, Path}
 
+import pl.tarsa.sortalgobox.common.resources.ResourcesSupport
+
 case class NativeBuildConfig(components: Seq[_ <: NativeBuildComponent],
   mainSourceFile: String,
-  compilerOptions: CompilerOptions = CompilerOptions.default) {
+  compilerOptions: CompilerOptions = CompilerOptions.default)
+  extends ResourcesSupport {
 
   def makeCommandLine: Seq[String] = {
     compilerOptions.serializeAll :+ mainSourceFile
@@ -48,7 +51,9 @@ case class NativeBuildConfig(components: Seq[_ <: NativeBuildComponent],
       case NativeBuildComponentFromResource(resourceNamePrefix, fileName) =>
         val componentPath = destination.resolve(fileName)
         val resourceName = resourceNamePrefix + fileName
-        Files.copy(getClass.getResourceAsStream(resourceName), componentPath)
+        for (resourceStream <- managedStreamFromResource(resourceName)) {
+          Files.copy(resourceStream, componentPath)
+        }
       case NativeBuildComponentFromString(contents, fileName) =>
         val componentPath = destination.resolve(fileName)
         Files.write(componentPath, contents.getBytes("UTF-8"))

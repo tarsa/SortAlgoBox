@@ -42,12 +42,13 @@ object MainBuild extends Build {
     .settings(commonSettings: _*)
     .settings(
       libraryDependencies ++= Seq(
+        "com.jsuereth" %% "scala-arm" % "1.4",
         "commons-io" % "commons-io" % "2.5",
         "org.apache.commons" % "commons-math3" % "3.6.1",
         "org.jocl" % "jocl" % "0.1.9",
-        "org.scalatest" %% "scalatest" % "2.2.6" % "test",
+        "org.scalafx" %% "scalafx" % "8.0.92-R10",
         "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test",
-        "org.scalafx" %% "scalafx" % "8.0.92-R10")
+        "org.scalatest" %% "scalatest" % "2.2.6" % "test")
     )
 
   lazy val depsCp = deps % fullDep
