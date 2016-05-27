@@ -52,6 +52,9 @@ case class NativeBuildConfig(components: Seq[_ <: NativeBuildComponent],
       case NativeBuildComponentFromString(contents, fileName) =>
         val componentPath = destination.resolve(fileName)
         Files.write(componentPath, contents.getBytes("UTF-8"))
+      case NativeBuildComponentFromGenerator(generator, fileName) =>
+        val componentPath = destination.resolve(fileName)
+        Files.write(componentPath, generator().getBytes("UTF-8"))
     }
   }
 }

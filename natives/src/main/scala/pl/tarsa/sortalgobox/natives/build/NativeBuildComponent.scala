@@ -25,5 +25,8 @@ sealed trait NativeBuildComponent
 case class NativeBuildComponentFromResource(resourceNamePrefix: String,
   fileName: String) extends NativeBuildComponent
 
-case class NativeBuildComponentFromString(contents: String, fileName: String)
-  extends NativeBuildComponent
+case class NativeBuildComponentFromString(contents: String,
+  fileName: String) extends NativeBuildComponent
+
+case class NativeBuildComponentFromGenerator(generator: () => String,
+  fileName: String) extends NativeBuildComponent

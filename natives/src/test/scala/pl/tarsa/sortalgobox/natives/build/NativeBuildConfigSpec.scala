@@ -72,27 +72,35 @@ class NativeBuildConfigSpec extends CommonUnitSpecBase {
   it must "copy build components" in {
     val fileName1 = "test_file"
     val fileName2 = "aFileName.ext"
+    val fileName3 = "generated.txt"
 
+    val resourceNamePrefix = "/pl/tarsa/sortalgobox/build/"
     val contents = "someContents"
+    val generator = () => "abc" * 5
 
     val components = Seq(
-      NativeBuildComponentFromResource("/pl/tarsa/sortalgobox/build/",
-        fileName1),
-      NativeBuildComponentFromString(contents, fileName2))
+      NativeBuildComponentFromResource(resourceNamePrefix, fileName1),
+      NativeBuildComponentFromString(contents, fileName2),
+      NativeBuildComponentFromGenerator(generator, fileName3))
 
     val destination = Files.createTempDirectory(
       SortAlgoBoxConfiguration.rootTempDir, "test")
     val file1 = destination.resolve(fileName1)
     val file2 = destination.resolve(fileName2)
+    val file3 = destination.resolve(fileName3)
 
     NativeBuildConfig(components, null, null).copyBuildComponents(destination)
 
     assert(Files.readAllBytes(file1) ===
       "Lorem ipsum dolor sit amet.\n".getBytes("UTF-8"))
-    assert(Files.readAllBytes(file2) === contents.getBytes("UTF-8"))
+    assert(Files.readAllBytes(file2) ===
+      contents.getBytes("UTF-8"))
+    assert(Files.readAllBytes(file3) ===
+      generator().getBytes("UTF-8"))
 
-    assert(Files.deleteIfExists(file1))
-    assert(Files.deleteIfExists(file2))
-    assert(Files.deleteIfExists(destination))
+    Files.delete(file1)
+    Files.delete(file2)
+    Files.delete(file3)
+    Files.delete(destination)
   }
 }
