@@ -20,12 +20,12 @@
 package pl.tarsa.sortalgobox.natives.generators
 
 object NativeEnumGenerator {
-  def apply(enumName: String, enumeration: Enumeration)
+  def apply(enumName: String, namePrefix: String, enumeration: Enumeration)
     (nameMapping: (Enumeration#Value, String)*): String = {
     assert(enumeration.values == nameMapping.map(_._1).toSet)
 
     nameMapping.map { case (value, name) =>
-      s"$name = ${value.id}"
+      s"$namePrefix$name = ${value.id}"
     }.mkString(s"enum $enumName {\n  ", ", ", "\n};")
   }
 }

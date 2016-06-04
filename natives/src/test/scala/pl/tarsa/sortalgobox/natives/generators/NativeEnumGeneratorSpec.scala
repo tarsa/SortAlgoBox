@@ -26,12 +26,12 @@ class NativeEnumGeneratorSpec extends CommonUnitSpecBase {
 
   it must "generate proper enum" in {
     import SomeEnums._
-    val generated = NativeEnumGenerator("my_enum_t", SomeEnums)(
+    val generated = NativeEnumGenerator("my_enum_t", "k", SomeEnums)(
       A -> "A", B -> "B", C -> "C")
 
     val expected =
       s"""enum my_enum_t {
-         |  A = 0, B = 1, C = 2
+         |  kA = 0, kB = 1, kC = 2
          |};""".stripMargin
     val actual = generated
 
@@ -41,7 +41,7 @@ class NativeEnumGeneratorSpec extends CommonUnitSpecBase {
   it must "fail when provided non-matching enumeration and mapping" in {
     import OtherEnums._
     a[AssertionError] mustBe thrownBy {
-      NativeEnumGenerator(null, SomeEnums)(X -> "X", Y -> "Y", Z -> "Z")
+      NativeEnumGenerator(null, null, SomeEnums)(X -> "X", Y -> "Y", Z -> "Z")
     }
   }
 
