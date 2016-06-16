@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <cstdint>
 
+#include "action_codes.hpp"
 #include "mwc64x.hpp"
 #include "numbercodec.hpp"
 
@@ -42,7 +43,7 @@ void sort(int32_t * const work, ssize_t const size) {
 }
 
 int32_t compare0(int32_t const * const work, ssize_t const i, ssize_t const j) {
-    numberEncoder.serializeLong(6);
+    numberEncoder.serializeLong(CodeCompare0);
     numberEncoder.serializeLong(i);
     numberEncoder.serializeLong(j);
     int32_t const a = work[i];
@@ -57,7 +58,7 @@ int32_t compare0(int32_t const * const work, ssize_t const i, ssize_t const j) {
 }
 
 void swap0(int32_t * const work, ssize_t const i, ssize_t const j) {
-    numberEncoder.serializeLong(4);
+    numberEncoder.serializeLong(CodeSwap0);
     numberEncoder.serializeLong(i);
     numberEncoder.serializeLong(j);
     int32_t const tmp = work[i];
@@ -71,7 +72,7 @@ int main(int argc, char** argv) {
     int32_t * arrayToSort = new int32_t[ArraySize];
     mwc64xFill(arrayToSort, ArraySize);
 
-    numberEncoder.serializeLong(0);
+    numberEncoder.serializeLong(CodeSize0);
     sort(arrayToSort, ArraySize);
 
     delete [] arrayToSort;

@@ -23,14 +23,13 @@ package pl.tarsa.sortalgobox.core.common.agents.implementations
 import java.nio.{BufferUnderflowException, ByteBuffer}
 
 import org.scalatest.exceptions.TestFailedException
+import pl.tarsa.sortalgobox.common.crossverify.TrackingEnums.ActionTypes._
 import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
 import pl.tarsa.sortalgobox.core.crossverify.PureNumberCodec
 import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
 class VerifyingComparingIntArrayItemsAgentSpec extends CommonUnitSpecBase {
   typeBehavior[VerifyingComparingIntArrayItemsAgent]
-
-  import TrackingComparingItemsAgent.ActionTypes._
 
   it must "fail for some operations and no recorded bytes" in {
     a[BufferUnderflowException] mustBe thrownBy {

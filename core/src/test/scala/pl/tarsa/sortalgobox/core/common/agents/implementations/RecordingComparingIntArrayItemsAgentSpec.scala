@@ -22,14 +22,13 @@ package pl.tarsa.sortalgobox.core.common.agents.implementations
 
 import java.nio.ByteBuffer
 
+import pl.tarsa.sortalgobox.common.crossverify.TrackingEnums.ActionTypes._
 import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
 import pl.tarsa.sortalgobox.core.crossverify.PureNumberCodec
 import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
 class RecordingComparingIntArrayItemsAgentSpec extends CommonUnitSpecBase {
   typeBehavior[RecordingComparingIntArrayItemsAgent]
-
-  import TrackingComparingItemsAgent.ActionTypes._
 
   it must "return correct size for empty array" in {
     readTest()(

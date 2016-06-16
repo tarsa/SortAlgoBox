@@ -23,9 +23,11 @@ import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 
 import org.apache.commons.io.IOUtils
+import pl.tarsa.sortalgobox.common.crossverify.TrackingEnums.ActionTypes
 import pl.tarsa.sortalgobox.core.common.agents.implementations.{ComparingIntArrayItemsAgent, VerifyingComparingIntArrayItemsAgent}
 import pl.tarsa.sortalgobox.core.crossverify.PureNumberCodec
-import pl.tarsa.sortalgobox.natives.build.{NativeBuildConfig, NativeComponentsSupport, NativesCache}
+import pl.tarsa.sortalgobox.natives.build.{NativeBuildComponentFromString, NativeBuildConfig, NativeComponentsSupport, NativesCache}
+import pl.tarsa.sortalgobox.natives.generators.NativeEnumGenerator
 import pl.tarsa.sortalgobox.random.{Mwc64x, NativeMwc64x}
 import pl.tarsa.sortalgobox.sorts.scala.bubble.BubbleSort
 import pl.tarsa.sortalgobox.tests.NativesUnitSpecBase
@@ -59,9 +61,19 @@ class NativeRecordingBubbleSort(nativesCache: NativesCache = NativesCache) {
 }
 
 object NativeRecordingBubbleSort extends NativeComponentsSupport {
+
+  import ActionTypes._
+
+  val trackingEnum = Seq(NativeBuildComponentFromString(
+    NativeEnumGenerator("tracking_codes_t", "Code", ActionTypes)
+    (Size0 -> "Size0", Get0 -> "Get0", Set0 -> "Set0", Copy0 -> "Copy0",
+      Swap0 -> "Swap0", Compare -> "Compare", Compare0 -> "Compare0"),
+    "action_codes.hpp"))
+
   val components = NativeMwc64x.header ++ makeResourceComponents(
     ("/pl/tarsa/sortalgobox/natives/crossverify/", "numbercodec.hpp"),
-    ("/pl/tarsa/sortalgobox/crossverify/", "bubblesort.cpp"))
+    ("/pl/tarsa/sortalgobox/crossverify/", "bubblesort.cpp")) ++
+    trackingEnum
 }
 
 class CheckingBubbleSort {

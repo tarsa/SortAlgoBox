@@ -20,6 +20,7 @@
  */
 package pl.tarsa.sortalgobox.core.common.agents.implementations
 
+import pl.tarsa.sortalgobox.common.crossverify.TrackingEnums.ActionTypes._
 import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
 import pl.tarsa.sortalgobox.core.crossverify.PureNumberCodec
 
@@ -27,7 +28,6 @@ class VerifyingComparingIntArrayItemsAgent(recorder: PureNumberCodec,
   underlying: ComparingIntArrayItemsAgent, verify: Boolean => Unit)
   extends ComparingItemsAgent[Int] {
 
-  import TrackingComparingItemsAgent.ActionTypes._
   import recorder._
 
   override def size0: Int =
