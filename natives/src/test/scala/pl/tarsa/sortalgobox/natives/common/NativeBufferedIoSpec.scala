@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,7 +16,6 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.natives.common
 
@@ -49,7 +48,7 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
     std::string path;
     std::cin >> path;
     FILE * const inputFile = fopen(path.c_str(), "rb");
-    BufferedReader reader(inputFile, 5);
+    BufferedFileReader reader(inputFile, 5);
 
     bool valid = true;
     int32_t state = 5;
@@ -85,7 +84,7 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
     std::string path;
     std::cin >> path;
 
-    BufferedWriter writer(path, 5);
+    ExposedBufferedFileWriter writer(path, 5);
 
     writer.write(1);
     writer.write(2);
@@ -93,12 +92,16 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
     writer.write(4);
     writer.write(5);
 
-    std::cout << true << std::endl;
+    std::cout << !writer.isFileOpened() << std::endl;
 }"""
 
     def after(path: Path) = {
       val dir = path
+      val output = dir.resolve("output")
+      val content = Files.readAllBytes(output)
+      Files.delete(output)
       Files.delete(dir)
+      content mustBe Array[Byte](1, 2, 3, 4, 5)
     }
   }
 
@@ -115,7 +118,7 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
     std::string path;
     std::cin >> path;
 
-    BufferedWriter writer(path, 5);
+    ExposedBufferedFileWriter writer(path, 5);
 
     writer.write(10);
     writer.write(20);
@@ -125,9 +128,7 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
     writer.write(60);
     writer.write(70);
 
-    writer.flush(true);
-
-    std::cout << true << std::endl;
+    std::cout << writer.isFileOpened() << std::endl;
 }"""
 
     def after(path: Path) = {
@@ -156,7 +157,7 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
         val pipeFrom = new Scanner(specProcess.getInputStream)
         assert(pipeFrom.nextInt() != 0)
       } finally {
-        specProcess.destroyForcibly().waitFor()
+        specProcess.waitFor()
         test.after(state)
       }
     }
@@ -198,6 +199,21 @@ object NativeBufferedIoSpec {
 
     val namespace = "\nusing namespace tarsa;\n"
 
+    val helper_classes =
+      s"""class ExposedBufferedFileWriter: public BufferedFileWriter {
+         |  typedef BufferedFileWriter super;
+         |public:
+         |  ExposedBufferedFileWriter(std::string const targetFilename,
+         |      size_t const bufferSize, bool const closeFile = true):
+         |      super(targetFilename, bufferSize, closeFile) {
+         |  }
+         |
+         |  bool isFileOpened() {
+         |    return fileOpened;
+         |  }
+         |};
+       """.stripMargin
+
     val tests_bodies = tests.map(_.body).mkString("\n", "\n\n", "\n")
 
     val main_body = {
@@ -209,22 +225,22 @@ object NativeBufferedIoSpec {
           s"            break;"
       }.mkString("\n")
       s"""
-int main(int argc, char** argv) {
-    int32_t test;
-    std::cin >> test;
-    switch (test) {
-$cases
-        default:
-            return EXIT_FAILURE;
+      |int main(int argc, char** argv) {
+      |    int32_t test;
+      |    std::cin >> test;
+      |    switch (test) {
+      |$cases
+      |        default:
+      |            return EXIT_FAILURE;
+      |    }
+      |
+      |    return EXIT_SUCCESS;
+      |}
+      |""".stripMargin
     }
 
-    return EXIT_SUCCESS;
-}
-"""
-    }
-
-    val sourceCode = includes_string + enums_string + namespace + tests_bodies +
-      main_body
+    val sourceCode = includes_string + enums_string + namespace +
+      helper_classes + tests_bodies + main_body
 
     val mainSourceFile = "spec.cpp"
     val numberCodecComponent = NativeBuildComponentFromResource(

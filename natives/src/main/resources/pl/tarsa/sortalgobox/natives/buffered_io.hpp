@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,7 +16,6 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 #ifndef BUFFERED_IO_HPP
 #define	BUFFERED_IO_HPP
@@ -28,7 +27,7 @@
 namespace tarsa {
 
     class BufferedReader {
-        FILE * const sourceFile;
+    protected:
         size_t const bufferSize;
         uint8_t * buffer;
         int32_t bufferPosition;
@@ -36,9 +35,7 @@ namespace tarsa {
         bool readEnded;
 
     public:
-
-        BufferedReader(FILE * const sourceFile, size_t const bufferSize) :
-                sourceFile(sourceFile), bufferSize(bufferSize) {
+        BufferedReader(size_t const bufferSize): bufferSize(bufferSize) {
             bufferPosition = 0;
             bufferLimit = 0;
             readEnded = false;
@@ -46,90 +43,157 @@ namespace tarsa {
         }
 
         ~BufferedReader() {
-            delete [] buffer;
-            buffer = nullptr;
+            close();
         }
 
+        void close() {
+            if (buffer != nullptr) {
+                delete [] buffer;
+                buffer = nullptr;
+            }
+        }
+
+        /** @return byte in range 0-255 or -1 in case of failure */
         int32_t read() {
-            if (bufferPosition < bufferLimit) {
-                return buffer[bufferPosition++];
-            } else if (readEnded) {
+            if (buffer == nullptr || readEnded) {
                 return -1;
+            } else if (bufferPosition < bufferLimit) {
+                return buffer[bufferPosition++];
             } else {
                 bufferPosition = 0;
-                bufferLimit = fread(buffer, 1, bufferSize, sourceFile);
-                if (bufferLimit == 0) {
-                    readEnded = true;
-                }
+                readEnded = !refillBuffer();
                 return read();
             }
+        }
+
+    protected:
+        /** @return true on success */
+        virtual bool refillBuffer() = 0;
+    };
+
+    class BufferedFileReader : public BufferedReader {
+        typedef BufferedReader super;
+
+        FILE * const sourceFile;
+
+    public:
+        BufferedFileReader(FILE * const sourceFile, size_t const bufferSize) :
+                sourceFile(sourceFile), super(bufferSize) {
+        }
+
+    private:
+        /** @return true on success */
+        bool refillBuffer() {
+            if (buffer != nullptr) {
+                bufferLimit = fread(buffer, 1, bufferSize, sourceFile);
+            }
+            return buffer != nullptr &&  bufferLimit != 0;
         }
     };
 
     class BufferedWriter {
-        FILE * targetFile;
+    protected:
         size_t const bufferSize;
         uint8_t * buffer;
         int32_t bufferPosition;
-        int32_t bufferLimit;
-        bool fileOpened;
+        bool writeFailed;
+
+        virtual ~BufferedWriter() = 0;
+
+        /** @return true on success */
+        virtual bool flush(bool const underlyingFlush) = 0;
+
+    public:
+        BufferedWriter(size_t const bufferSize): bufferSize(bufferSize) {
+            buffer = new uint8_t[bufferSize];
+            bufferPosition = 0;
+            writeFailed = false;
+        }
+
+        /** @return true on success */
+        bool write(int32_t const byte) {
+            if (writeFailed) {
+                return false;
+            } else if (bufferPosition < bufferSize) {
+                buffer[bufferPosition++] = byte;
+                return true;
+            } else {
+                return flush(false) && write(byte);
+            }
+        }
+    };
+
+    BufferedWriter::~BufferedWriter() {}
+
+    class BufferedFileWriter: public BufferedWriter {
+        typedef BufferedWriter super;
+
+        FILE * targetFile;
         std::string const targetFilename;
+        bool const closeFile;
+
+    protected:
+        bool fileOpened;
 
     public:
 
-        BufferedWriter(std::string const targetFilename,
-                size_t const bufferSize) : targetFilename(targetFilename),
-                bufferSize(bufferSize) {
-            bufferPosition = 0;
-            bufferLimit = bufferSize;
+        BufferedFileWriter(std::string const targetFilename,
+                size_t const bufferSize, bool const closeFile = true):
+                targetFilename(targetFilename), closeFile(closeFile),
+                super(bufferSize) {
             fileOpened = false;
-            buffer = new uint8_t[bufferSize];
         }
 
-        BufferedWriter(FILE * const targetFile,
-                size_t const bufferSize, std::string const targetFilename) :
+        BufferedFileWriter(FILE * const targetFile, size_t const bufferSize,
+                std::string const targetFilename, bool const closeFile = false):
                 targetFile(targetFile), targetFilename(targetFilename),
-                bufferSize(bufferSize) {
-            bufferPosition = 0;
-            bufferLimit = bufferSize;
+                closeFile(closeFile), super(bufferSize) {
             fileOpened = true;
-            buffer = new uint8_t[bufferSize];
         }
 
-        ~BufferedWriter() {
-            delete [] buffer;
-            buffer = nullptr;
+        virtual ~BufferedFileWriter() {
+            close();
         }
 
-        void flush(bool const flushFile = false) {
-            if (bufferPosition > 0) {
+        void close() {
+            flush(false);
+            if (closeFile && fileOpened) {
+                fclose(targetFile);
+                fileOpened = false;
+            }
+            if (buffer != nullptr) {
+                delete [] buffer;
+                buffer = nullptr;
+            }
+        }
+
+        /** @return true on success */
+        bool flush(bool const flushFile) {
+            bool success = true;
+            if (buffer == nullptr) {
+                success = false;
+            } else if (bufferPosition > 0) {
                 if (!fileOpened) {
                     targetFile = fopen(targetFilename.c_str(), "wb");
                     if (targetFile == NULL) {
                         fputs("Can't open output file.\n", stderr);
-                        exit(EXIT_FAILURE);
+                        success = false;
+                    } else {
+                        fileOpened = true;
                     }
-                    fileOpened = true;
                 }
-                if (fwrite(buffer, 1, bufferPosition, targetFile)
+                if (fileOpened && fwrite(buffer, 1, bufferPosition, targetFile)
                         != bufferPosition) {
                     fputs("Error while writing to output.\n", stderr);
-                    exit(EXIT_FAILURE);
+                    success = false;
                 }
-                if (flushFile) {
+                if (fileOpened && flushFile) {
                     fflush(targetFile);
                 }
             }
             bufferPosition = 0;
-        }
-
-        void write(int32_t const byte) {
-            if (bufferPosition < bufferLimit) {
-                buffer[bufferPosition++] = byte;
-            } else {
-                flush();
-                write(byte);
-            }
+            writeFailed |= !success;
+            return success;
         }
     };
 }
