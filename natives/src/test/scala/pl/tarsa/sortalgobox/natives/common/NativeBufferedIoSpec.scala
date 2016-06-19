@@ -71,6 +71,32 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
     }
   }
 
+  val testAvoidingCreationWorks = new Test("avoid creating empty files") {
+    type T = Path
+
+    def before() = {
+      val dir = Files.createTempDirectory(rootTempDir, "test")
+      val path = dir.resolve("output")
+      (dir, List(path.toString))
+    }
+
+    def body = s"""void $functionName() {
+    std::string path;
+    std::cin >> path;
+
+    ExposedBufferedFileWriter writer(path, 5);
+
+    writer.close();
+
+    std::cout << !writer.isFileOpened() << std::endl;
+}"""
+
+    def after(path: Path) = {
+      val dir = path
+      Files.delete(dir)
+    }
+  }
+
   val testDelayedWriteWorks = new Test("delay opening file until first write") {
     type T = Path
 
@@ -141,8 +167,8 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
     }
   }
 
-  val tests = List[Test](testReadFromFile, testDelayedWriteWorks,
-    testWriteToFile)
+  val tests = List[Test](testReadFromFile, testAvoidingCreationWorks,
+    testDelayedWriteWorks, testWriteToFile)
   val buildConfig = makeBuildConfig(tests)
 
   for ((test, testIndex) <- tests.zipWithIndex) {
