@@ -71,7 +71,7 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
     }
   }
 
-  val testAvoidingCreationWorks = new Test("avoid creating empty files") {
+  val testAvoidingCreatingEmptyFiles = new Test("avoid creating empty files") {
     type T = Path
 
     def before() = {
@@ -86,7 +86,7 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
 
     ExposedBufferedFileWriter writer(path, 5);
 
-    writer.close();
+    writer.flush(true);
 
     std::cout << !writer.isFileOpened() << std::endl;
 }"""
@@ -97,7 +97,7 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
     }
   }
 
-  val testDelayedWriteWorks = new Test("delay opening file until first write") {
+  val testDelayedFileWrite = new Test("delay opening file until first write") {
     type T = Path
 
     def before() = {
@@ -167,8 +167,61 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
     }
   }
 
-  val tests = List[Test](testReadFromFile, testAvoidingCreationWorks,
-    testDelayedWriteWorks, testWriteToFile)
+  val testReadFromArray = new Test("read from array") {
+    type T = Unit
+
+    def before() = ((), Nil)
+
+    def body = s"""void $functionName() {
+    size_t const inputSize = 7;
+    uint8_t const input[inputSize] = { 1, 2, 3, 4, 5, 6, 7 };
+    BufferedArrayReader reader(input, inputSize, 3);
+    size_t const positions[inputSize] = { 0, 3, 3, 3, 6, 6, 6 };
+
+    bool valid = true;
+    for (size_t i = 0; valid && (i < inputSize + 10); i++) {
+        int32_t const expected = (i < inputSize) ? i + 1 : -1;
+        valid &= reader.getInputPosition() ==
+          (i < inputSize) ? positions[i] : inputSize;
+        valid &= reader.read() == expected;
+    }
+
+    std::cout << valid << std::endl;
+}"""
+
+    def after(unused: Unit) = ()
+  }
+
+  val testWriteToArray = new Test("write to array") {
+    type T = Unit
+
+    def before() = ((), Nil)
+
+    def body = s"""void $functionName() {
+    size_t const outputSize = 7;
+    uint8_t * const output = new uint8_t[outputSize];
+    memset(output, 0, outputSize);
+    BufferedArrayWriter writer(output, outputSize, 3);
+    size_t const positions[outputSize] = { 0, 0, 0, 0, 3, 3, 3 };
+
+    bool valid = true;
+    for (size_t i = 0; valid && (i < outputSize + 10); i++) {
+        valid &= writer.getOutputPosition() ==
+            ((i < outputSize) ? positions[i] : 6);
+        valid &= writer.write(i) == (i < (outputSize + 2) / 3 * 3 );
+    }
+
+    uint8_t const expected[outputSize] = { 1, 2, 3, 4, 5, 6, 7 };
+    valid &= memcmp(output, expected, outputSize);
+
+    std::cout << valid << std::endl;
+}"""
+
+    def after(unused: Unit) = ()
+  }
+
+  val tests = List[Test](testReadFromFile, testAvoidingCreatingEmptyFiles,
+    testDelayedFileWrite, testWriteToFile, testReadFromArray, testWriteToArray)
   val buildConfig = makeBuildConfig(tests)
 
   for ((test, testIndex) <- tests.zipWithIndex) {
@@ -181,7 +234,7 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
         params.foreach(pipeTo.println)
         pipeTo.flush()
         val pipeFrom = new Scanner(specProcess.getInputStream)
-        assert(pipeFrom.nextInt() != 0)
+        assert(pipeFrom.nextInt() != 0, "Native C++ program reported failure")
       } finally {
         specProcess.waitFor()
         test.after(state)

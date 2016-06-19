@@ -20,9 +20,11 @@
 #ifndef BUFFERED_IO_HPP
 #define	BUFFERED_IO_HPP
 
+#include <algorithm>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 
 namespace tarsa {
 
@@ -30,8 +32,8 @@ namespace tarsa {
     protected:
         size_t const bufferSize;
         uint8_t * buffer;
-        int32_t bufferPosition;
-        int32_t bufferLimit;
+        size_t bufferPosition;
+        size_t bufferLimit;
         bool readEnded;
 
     public:
@@ -42,11 +44,7 @@ namespace tarsa {
             buffer = new uint8_t[bufferSize];
         }
 
-        ~BufferedReader() {
-            close();
-        }
-
-        void close() {
+        virtual ~BufferedReader() {
             if (buffer != nullptr) {
                 delete [] buffer;
                 buffer = nullptr;
@@ -91,17 +89,45 @@ namespace tarsa {
         }
     };
 
+    /** For testing purposes */
+    class BufferedArrayReader : public BufferedReader {
+        typedef BufferedReader super;
+
+        uint8_t const * const input;
+        size_t const inputSize;
+        size_t inputPosition;
+
+    public:
+        BufferedArrayReader(uint8_t const * const input, size_t const inputSize,
+                size_t const bufferSize): input(input), inputSize(inputSize),
+                super(bufferSize) {
+            inputPosition = 0;
+        }
+
+        size_t getInputPosition() const {
+            return inputPosition;
+        }
+
+    private:
+        /** @return true on success */
+        bool refillBuffer() {
+            if (buffer != nullptr) {
+                size_t const numBytes =
+                    std::min(inputSize - inputPosition, bufferSize);
+                memcpy(buffer, input + inputPosition, numBytes);
+                inputPosition += numBytes;
+                bufferLimit = numBytes;
+            }
+            return buffer != nullptr && bufferLimit != 0;
+        }
+    };
+
     class BufferedWriter {
     protected:
         size_t const bufferSize;
         uint8_t * buffer;
-        int32_t bufferPosition;
+        size_t bufferPosition;
         bool writeFailed;
-
-        virtual ~BufferedWriter() = 0;
-
-        /** @return true on success */
-        virtual bool flush(bool const underlyingFlush) = 0;
 
     public:
         BufferedWriter(size_t const bufferSize): bufferSize(bufferSize) {
@@ -110,8 +136,15 @@ namespace tarsa {
             writeFailed = false;
         }
 
+        virtual ~BufferedWriter() {
+            if (buffer != nullptr) {
+                delete [] buffer;
+                buffer = nullptr;
+            }
+        }
+
         /** @return true on success */
-        bool write(int32_t const byte) {
+        bool write(uint8_t const byte) {
             if (writeFailed) {
                 return false;
             } else if (bufferPosition < bufferSize) {
@@ -121,9 +154,10 @@ namespace tarsa {
                 return flush(false) && write(byte);
             }
         }
-    };
 
-    BufferedWriter::~BufferedWriter() {}
+        /** @return true on success */
+        virtual bool flush(bool const underlyingFlush) = 0;
+    };
 
     class BufferedFileWriter: public BufferedWriter {
         typedef BufferedWriter super;
@@ -152,18 +186,10 @@ namespace tarsa {
         }
 
         virtual ~BufferedFileWriter() {
-            close();
-        }
-
-        void close() {
             flush(false);
             if (closeFile && fileOpened) {
                 fclose(targetFile);
                 fileOpened = false;
-            }
-            if (buffer != nullptr) {
-                delete [] buffer;
-                buffer = nullptr;
             }
         }
 
@@ -194,6 +220,40 @@ namespace tarsa {
             bufferPosition = 0;
             writeFailed |= !success;
             return success;
+        }
+    };
+
+    /** For testing purpuses */
+    class BufferedArrayWriter : public BufferedWriter {
+        typedef BufferedWriter super;
+
+        uint8_t * const output;
+        size_t const outputLimit;
+        size_t outputPosition;
+
+    public:
+        BufferedArrayWriter(uint8_t * const output, size_t const outputLimit,
+                size_t const bufferSize): output(output),
+                outputLimit(outputLimit), super(bufferSize) {
+            outputPosition = 0;
+        }
+
+        size_t getOutputPosition() const {
+            return outputPosition;
+        }
+
+    private:
+        /** @return true on success */
+        bool flush(bool const unused) {
+            size_t const allowedOutput = outputLimit - outputPosition;
+            if (bufferPosition > allowedOutput) {
+                return false;
+            } else {
+                memcpy(output + outputPosition, buffer, bufferPosition);
+                outputPosition += bufferPosition;
+                bufferPosition = 0;
+                return true;
+            }
         }
     };
 }
