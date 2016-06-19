@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,75 +16,71 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 #ifndef NUMBERCODEC_HPP
 #define	NUMBERCODEC_HPP
 
 #include <cstdint>
 
+#include "buffered_io.hpp"
+
 namespace tarsa {
 
     class NumberCodec {
     public:
-
         enum error_t {
-            OK, NegativeBufferSize, NegativeValue, ValueOverflow,
-            BufferOverflow, BufferUnderflow
+            OK, NegativeValue, ValueOverflow, BufferedIoError
         };
 
     protected:
-        ssize_t bufferPosition;
-        ssize_t const bufferSize;
         error_t error;
 
     public:
-
-        NumberCodec(ssize_t const bufferSize) : bufferPosition(0),
-        bufferSize(bufferSize) {
-            error = bufferSize < 0 ? NegativeBufferSize : OK;
+        NumberCodec() {
+            error = OK;
         }
 
-        ssize_t getBufferPosition() {
-            return bufferPosition;
-        }
-
-        error_t getError() {
+        error_t getError() const {
             return error;
         }
 
-        char const * showError() {
+        char const * showError() const {
             switch (error) {
                 case OK: return "OK";
-                case NegativeBufferSize: return "NegativeBufferSize";
                 case NegativeValue: return "NegativeValue";
                 case ValueOverflow: return "ValueOverflow";
-                case BufferOverflow: return "BufferOverflow";
-                case BufferUnderflow: return "BufferUnderflow";
+                case BufferedIoError: return "BufferedIoError";
                 default: return nullptr;
             }
         }
-
     };
 
     class NumberEncoder : public NumberCodec {
-        int8_t * const buffer;
-    public:
+        BufferedWriter * const writer;
 
-        NumberEncoder(int8_t * const buffer, ssize_t const bufferSize) :
-        buffer(buffer), NumberCodec(bufferSize) {
+    public:
+        NumberEncoder(BufferedWriter * const writer): writer(writer) {
+            error = (writer == nullptr) ? BufferedIoError : OK;
+        }
+
+        void flush() {
+            if (!writer->flush(true)) {
+                error = BufferedIoError;
+            }
         }
 
         void serializeInt(int32_t const value) {
             if (error == OK) {
                 if (value < 0) {
                     error = NegativeValue;
-                } else if (bufferPosition == bufferSize) {
-                    error = BufferOverflow;
                 } else if (value <= INT8_MAX) {
-                    buffer[bufferPosition++] = value;
+                    if (!writer->write(value)) {
+                        error = BufferedIoError;
+                    }
                 } else {
-                    buffer[bufferPosition++] = (value & 127) - 128;
+                    if (!writer->write((value & 127) - 128)) {
+                        error = BufferedIoError;
+                    }
                     serializeInt(value >> 7);
                 }
             }
@@ -94,12 +90,14 @@ namespace tarsa {
             if (error == OK) {
                 if (value < 0) {
                     error = NegativeValue;
-                } else if (bufferPosition == bufferSize) {
-                    error = BufferOverflow;
                 } else if (value <= INT8_MAX) {
-                    buffer[bufferPosition++] = value;
+                    if (!writer->write(value)) {
+                        error = BufferedIoError;
+                    }
                 } else {
-                    buffer[bufferPosition++] = (value & 127) - 128;
+                    if (!writer->write((value & 127) - 128)) {
+                        error = BufferedIoError;
+                    }
                     serializeLong(value >> 7);
                 }
             }
@@ -107,23 +105,21 @@ namespace tarsa {
     };
 
     class NumberDecoder : public NumberCodec {
-        int8_t const * const buffer;
+        BufferedReader * const reader;
 
     public:
-
-        NumberDecoder(int8_t const * const buffer, ssize_t const bufferSize) :
-        buffer(buffer), NumberCodec(bufferSize) {
+        NumberDecoder(BufferedReader * const reader): reader(reader) {
+            error = (reader == nullptr) ? BufferedIoError : OK;
         }
 
     private:
-
         int32_t deserializeInt0(int32_t const current, int32_t const shift) {
             if (error == OK) {
-                if (bufferPosition == bufferSize) {
-                    error = BufferUnderflow;
+                int32_t const input = reader->read();
+                if (input == -1) {
+                    error = BufferedIoError;
                     return -1;
                 } else {
-                    int8_t const input = buffer[bufferPosition++];
                     if (input == 0) {
                         return current;
                     } else {
@@ -134,7 +130,7 @@ namespace tarsa {
                             return -1;
                         } else {
                             int32_t const next = (chunk << shift) + current;
-                            if (input > 0) {
+                            if (input <= 127) {
                                 return next;
                             } else {
                                 return deserializeInt0(next, shift + 7);
@@ -147,11 +143,11 @@ namespace tarsa {
 
         int64_t deserializeLong0(int64_t const current, int32_t const shift) {
             if (error == OK) {
-                if (bufferPosition == bufferSize) {
-                    error = BufferUnderflow;
+                int32_t const input = reader->read();
+                if (input == -1) {
+                    error = BufferedIoError;
                     return -1;
                 } else {
-                    int8_t const input = buffer[bufferPosition++];
                     if (input == 0) {
                         return current;
                     } else {
@@ -162,7 +158,7 @@ namespace tarsa {
                             return -1;
                         } else {
                             int64_t const next = (chunk << shift) + current;
-                            if (input > 0) {
+                            if (input <= 127) {
                                 return next;
                             } else {
                                 return deserializeLong0(next, shift + 7);
@@ -174,7 +170,6 @@ namespace tarsa {
         }
 
     public:
-
         int32_t deserializeInt() {
             return deserializeInt0(0, 0);
         }
@@ -182,8 +177,6 @@ namespace tarsa {
         int64_t deserializeLong() {
             return deserializeLong0(0L, 0);
         }
-
-
     };
 }
 

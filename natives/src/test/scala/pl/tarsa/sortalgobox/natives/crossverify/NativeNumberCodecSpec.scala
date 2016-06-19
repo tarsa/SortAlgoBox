@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,7 +16,6 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.natives.crossverify
 
@@ -39,14 +38,14 @@ class NativeNumberCodecSpec extends NativesUnitSpecBase {
         pipeTo.println(testIndex)
         pipeTo.flush()
         val pipeFrom = new Scanner(specProcess.getInputStream)
-        val Array(a, b, c) = Array.fill[Boolean](3)(pipeFrom.nextInt() != 0)
         import TestMode._
         testMode match {
           case SerializeInt | SerializeLong =>
-            assert(a, ", buffer position")
-            assert(b, ", contents")
-            assert(c, ", error status")
+            val Array(a, b) = Array.fill[Boolean](2)(pipeFrom.nextInt() != 0)
+            assert(a, ", contents")
+            assert(b, ", error status")
           case DeserializeInt | DeserializeLong =>
+            val Array(a, b, c) = Array.fill[Boolean](3)(pipeFrom.nextInt() != 0)
             assert(a, ", decoded value")
             assert(b, ", buffer position")
             assert(c, ", error status")
@@ -58,7 +57,9 @@ class NativeNumberCodecSpec extends NativesUnitSpecBase {
   }
 }
 
-object NativeNumberCodecSpec {
+object NativeNumberCodecSpec extends NativeComponentsSupport {
+
+  val filler = "0xb5"
 
   object TestMode extends Enumeration {
     type TestMode = Value
@@ -79,12 +80,13 @@ object NativeNumberCodecSpec {
     ("serialize max int", SerializeInt,
       "9, INT32_MAX, new int8_t[5]{-1, -1, -1, -1, 7}, 5, NumberCodec::OK"),
     ("fail on int serialization when not enough remaining space", SerializeInt,
-      "2, INT32_MAX, new int8_t[2]{-1, -1}, 2, NumberCodec::BufferOverflow"),
+      s"2, INT32_MAX, new int8_t[2]{$filler, $filler}, 2, " +
+        "NumberCodec::BufferedIoError"),
     ("fail on deserialization of empty buffer for int", DeserializeInt,
-      "nullptr, 0, -1, 0, NumberCodec::BufferUnderflow"),
+      "nullptr, 0, -1, 0, NumberCodec::BufferedIoError"),
     ("fail on deserialization of unfinished negative sequence for int",
       DeserializeInt, "new int8_t[3]{-1, -2, -3}, 3, -1, 3, " +
-      "NumberCodec::BufferUnderflow"),
+      "NumberCodec::BufferedIoError"),
     ("deserialize int zero", DeserializeInt,
       "new int8_t[1]{0}, 1, 0, 1, NumberCodec::OK"),
     ("fully deserialize weirdly encoded int zero", DeserializeInt,
@@ -111,13 +113,13 @@ object NativeNumberCodecSpec {
       "9, INT64_MAX, new int8_t[9]{-1, -1, -1, -1, -1, -1, -1, -1, 127}, 9," +
         "NumberCodec::OK"),
     ("fail on long serialization when not enough remaining space",
-      SerializeLong, "2, INT64_MAX, new int8_t[2]{-1, -1}, 2, " +
-      "NumberCodec::BufferOverflow"),
+      SerializeLong, s"2, INT64_MAX, new int8_t[2]{$filler, $filler}, 2, " +
+      "NumberCodec::BufferedIoError"),
     ("fail on deserialization of empty buffer for long", DeserializeLong,
-      "nullptr, 0, -1, 0, NumberCodec::BufferUnderflow"),
+      "nullptr, 0, -1, 0, NumberCodec::BufferedIoError"),
     ("fail on deserialization of unfinished negative sequence for long",
       DeserializeLong, "new int8_t[3]{-1, -2, -3}, 3, -1, 3, " +
-      "NumberCodec::BufferUnderflow"),
+      "NumberCodec::BufferedIoError"),
     ("deserialize long zero", DeserializeLong,
       "new int8_t[1]{0}, 1, 0, 1, NumberCodec::OK"),
     ("fully deserialize weirdly encoded long zero", DeserializeLong,
@@ -135,7 +137,7 @@ object NativeNumberCodecSpec {
       "1}, 10, -1, 10, NumberCodec::ValueOverflow"),
     ("fail on deserialization of way too big number for long", DeserializeLong,
       "new int8_t[11]{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0}, 11, -1, " +
-      "10, NumberCodec::ValueOverflow")
+        "10, NumberCodec::ValueOverflow")
   ).map(Test.tupled)
 
   val system_includes = List("cstdlib", "cstring", "iostream").map(s => s"<$s>")
@@ -152,21 +154,25 @@ object NativeNumberCodecSpec {
       s"    $filteredName = $index"
   }.mkString("", ",\n", "\n") + "};\n"
 
-  def test_serialize_string(camel: String, bits: String) = s"""
+  def test_serialize_string(camel: String, bits: String) =
+    s"""
 void testSerialize$camel(ssize_t const bufferSize, int${bits}_t const value,
         int8_t const * const expectedOutput, ssize_t const expectedOutputLength,
         tarsa::NumberCodec::error_t const expectedError) {
-    int8_t * const buffer = new int8_t[bufferSize];
-    tarsa::NumberEncoder e(buffer, bufferSize);
+    uint8_t * const buffer = new uint8_t[bufferSize];
+    memset(buffer, $filler, bufferSize);
+    tarsa::BufferedArrayWriter * writer =
+        new tarsa::BufferedArrayWriter(buffer, bufferSize, 5);
+    tarsa::NumberEncoder e(writer);
 
     e.serialize$camel(value);
+    e.flush();
 
-    bool const lengthIsGood = e.getBufferPosition() == expectedOutputLength;
-    std::cout << lengthIsGood << std::endl;
-    std::cout << (lengthIsGood && (memcmp(buffer, expectedOutput,
-            expectedOutputLength * sizeof (int8_t)) == 0)) << std::endl;
+    std::cout << (
+        memcmp(buffer, expectedOutput, expectedOutputLength) == 0) << std::endl;
     std::cout << (e.getError() == expectedError) << std::endl;
 
+    delete writer;
     delete [] buffer;
     delete [] expectedOutput;
 }
@@ -175,19 +181,27 @@ void testSerialize$camel(ssize_t const bufferSize, int${bits}_t const value,
   val test_serialize_int_string = test_serialize_string("Int", "32")
   val test_serialize_long_string = test_serialize_string("Long", "64")
 
-  def test_deserialize_string(camel: String, bits: String) = s"""
-void testDeserialize$camel(int8_t const * const input, ssize_t const inputLength,
-        int${bits}_t const expectedValue, ssize_t const expectedInputPosition,
+  def test_deserialize_string(camel: String, bits: String) =
+    s"""
+void testDeserialize$camel(int8_t const * const _input,
+        ssize_t const inputLength, int${bits}_t const expectedValue,
+        ssize_t const expectedInputPosition,
         tarsa::NumberCodec::error_t const expectedError) {
-    tarsa::NumberDecoder d(input, inputLength);
+    uint8_t * const input = new uint8_t[inputLength];
+    memcpy(input, _input, inputLength);
+    tarsa::BufferedArrayReader * reader =
+        new tarsa::BufferedArrayReader(input, inputLength, 5);
+    tarsa::NumberDecoder d(reader);
 
     int${bits}_t const decodedValue = d.deserialize$camel();
 
     std::cout << (decodedValue == expectedValue) << std::endl;
-    std::cout << (d.getBufferPosition() == expectedInputPosition) << std::endl;
+    std::cout << (reader->getPosition() == expectedInputPosition) << std::endl;
     std::cout << (d.getError() == expectedError) << std::endl;
 
+    delete reader;
     delete [] input;
+    delete [] _input;
 }
 """
 
@@ -230,10 +244,10 @@ $cases
     test_deserialize_int_string + test_deserialize_long_string + main_body
 
   val mainSourceFile = "spec.cpp"
-  val numberCodecComponent = NativeBuildComponentFromResource(
-    "/pl/tarsa/sortalgobox/natives/crossverify/", "numbercodec.hpp")
   val specBuildComponent = NativeBuildComponentFromString(sourceCode,
     mainSourceFile)
-  val buildConfig = NativeBuildConfig(Seq(numberCodecComponent,
-    specBuildComponent), mainSourceFile)
+  val buildConfig = NativeBuildConfig(makeResourceComponents(
+    ("/pl/tarsa/sortalgobox/natives/", "buffered_io.hpp"),
+    ("/pl/tarsa/sortalgobox/natives/crossverify/", "numbercodec.hpp")
+  ) :+ specBuildComponent, mainSourceFile)
 }

@@ -21,13 +21,13 @@
 #include <cstdint>
 
 #include "action_codes.hpp"
+#include "buffered_io.hpp"
 #include "mwc64x.hpp"
 #include "numbercodec.hpp"
 
-ssize_t const OutputBufferSize = 1 << 30;
-int8_t outputBuffer[OutputBufferSize];
-
-tarsa::NumberEncoder numberEncoder(outputBuffer, OutputBufferSize);
+tarsa::BufferedWriter * const writer = new tarsa::BufferedFileWriter(stdout,
+    1 << 20, "stdout");
+tarsa::NumberEncoder numberEncoder(writer);
 
 int32_t compare0(int32_t const * const, ssize_t const, ssize_t const);
 void swap0(int32_t * const, ssize_t const, ssize_t const);
@@ -78,7 +78,6 @@ int main(int argc, char** argv) {
     delete [] arrayToSort;
     arrayToSort = nullptr;
 
-    fwrite(outputBuffer, 1, numberEncoder.getBufferPosition(), stdout);
-    fflush(stdout);
+    numberEncoder.flush();
     return EXIT_SUCCESS;
 }

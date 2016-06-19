@@ -196,7 +196,7 @@ namespace tarsa {
         /** @return true on success */
         bool flush(bool const flushFile) {
             bool success = true;
-            if (buffer == nullptr) {
+            if (buffer == nullptr || writeFailed) {
                 success = false;
             } else if (bufferPosition > 0) {
                 if (!fileOpened) {
@@ -244,14 +244,17 @@ namespace tarsa {
 
         /** @return true on success */
         bool flush(bool const unused) {
-            size_t const allowedOutput = outputLimit - outputPosition;
-            if (bufferPosition > allowedOutput) {
-                return false;
-            } else {
-                memcpy(output + outputPosition, buffer, bufferPosition);
-                outputPosition += bufferPosition;
-                bufferPosition = 0;
-                return true;
+            if (!writeFailed) {
+                size_t const allowedOutput = outputLimit - outputPosition;
+                if (bufferPosition > allowedOutput) {
+                    writeFailed = true;
+                    return false;
+                } else {
+                    memcpy(output + outputPosition, buffer, bufferPosition);
+                    outputPosition += bufferPosition;
+                    bufferPosition = 0;
+                    return true;
+                }
             }
         }
     };
