@@ -104,8 +104,8 @@ namespace tarsa {
             inputPosition = 0;
         }
 
-        size_t getInputPosition() const {
-            return inputPosition;
+        size_t getPosition() const {
+            return inputPosition - bufferLimit + bufferPosition;
         }
 
     private:
@@ -238,11 +238,10 @@ namespace tarsa {
             outputPosition = 0;
         }
 
-        size_t getOutputPosition() const {
-            return outputPosition;
+        size_t getPosition() const {
+            return outputPosition + bufferPosition;
         }
 
-    private:
         /** @return true on success */
         bool flush(bool const unused) {
             size_t const allowedOutput = outputLimit - outputPosition;

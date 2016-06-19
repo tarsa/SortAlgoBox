@@ -176,13 +176,11 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
     size_t const inputSize = 7;
     uint8_t const input[inputSize] = { 1, 2, 3, 4, 5, 6, 7 };
     BufferedArrayReader reader(input, inputSize, 3);
-    size_t const positions[inputSize] = { 0, 3, 3, 3, 6, 6, 6 };
 
     bool valid = true;
     for (size_t i = 0; valid && (i < inputSize + 10); i++) {
         int32_t const expected = (i < inputSize) ? i + 1 : -1;
-        valid &= reader.getInputPosition() ==
-          (i < inputSize) ? positions[i] : inputSize;
+        valid &= reader.getPosition() == std::min(i, inputSize);
         valid &= reader.read() == expected;
     }
 
@@ -202,12 +200,10 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
     uint8_t * const output = new uint8_t[outputSize];
     memset(output, 0, outputSize);
     BufferedArrayWriter writer(output, outputSize, 3);
-    size_t const positions[outputSize] = { 0, 0, 0, 0, 3, 3, 3 };
 
     bool valid = true;
     for (size_t i = 0; valid && (i < outputSize + 10); i++) {
-        valid &= writer.getOutputPosition() ==
-            ((i < outputSize) ? positions[i] : 6);
+        valid &= writer.getPosition() == std::min(i, (outputSize + 2) / 3 * 3);
         valid &= writer.write(i) == (i < (outputSize + 2) / 3 * 3 );
     }
 
