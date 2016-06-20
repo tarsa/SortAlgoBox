@@ -20,60 +20,40 @@
 #include <algorithm>
 #include <cstdint>
 
-#include "action_codes.hpp"
 #include "buffered_io.hpp"
+#include "comparing_array_items_agent.hpp"
 #include "mwc64x.hpp"
 #include "numbercodec.hpp"
+#include "recording_comparing_items_agent.hpp"
 
-tarsa::BufferedWriter * const writer = new tarsa::BufferedFileWriter(stdout,
-    1 << 20, "stdout");
-tarsa::NumberEncoder numberEncoder(writer);
-
-int32_t compare0(int32_t const * const, ssize_t const, ssize_t const);
-void swap0(int32_t * const, ssize_t const, ssize_t const);
-
-void sort(int32_t * const work, ssize_t const size) {
-    for (ssize_t i = size - 1; i >= 1; i--) {
-        for (ssize_t j = 0; j < i; j++) {
-            if (compare0(work, j, j + 1) > 0) {
-                swap0(work, j, j + 1);
+template<template<typename> class UnderlyingAgent, template<template<typename>
+    class, typename> class ItemsAgent, typename ItemType>
+void sort(ItemsAgent<UnderlyingAgent, ItemType> agent) {
+    for (size_t i = agent.size0() - 1; i >= 1; i--) {
+        for (size_t j = 0; j < i; j++) {
+            if (agent.compare0(j, j + 1) == tarsa::CompareAbove) {
+                agent.swap0(j, j + 1);
             }
         }
     }
 }
 
-int32_t compare0(int32_t const * const work, ssize_t const i, ssize_t const j) {
-    numberEncoder.serializeLong(CodeCompare0);
-    numberEncoder.serializeLong(i);
-    numberEncoder.serializeLong(j);
-    int32_t const a = work[i];
-    int32_t const b = work[j];
-    if (a > b) {
-        return 1;
-    } else if (a < b) {
-        return -1;
-    } else {
-        return 0;
-    }
-}
-
-void swap0(int32_t * const work, ssize_t const i, ssize_t const j) {
-    numberEncoder.serializeLong(CodeSwap0);
-    numberEncoder.serializeLong(i);
-    numberEncoder.serializeLong(j);
-    int32_t const tmp = work[i];
-    work[i] = work[j];
-    work[j] = tmp;
-}
-
 int main(int argc, char** argv) {
-    ssize_t const ArraySize = 1234;
+    size_t const ArraySize = 1234;
 
     int32_t * arrayToSort = new int32_t[ArraySize];
     mwc64xFill(arrayToSort, ArraySize);
 
-    numberEncoder.serializeLong(CodeSize0);
-    sort(arrayToSort, ArraySize);
+    tarsa::BufferedWriter * const writer = new tarsa::BufferedFileWriter(stdout,
+        1 << 20, "stdout");
+    tarsa::NumberEncoder numberEncoder(writer);
+
+    tarsa::ComparingArrayItemsAgent<int32_t>
+        comparingArrayItemsAgent(arrayToSort, ArraySize);
+    tarsa::RecordingComparingItemsAgent<tarsa::ComparingArrayItemsAgent,
+        int32_t> recordingItemsAgent(numberEncoder, comparingArrayItemsAgent);
+
+    sort(recordingItemsAgent);
 
     delete [] arrayToSort;
     arrayToSort = nullptr;

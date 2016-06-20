@@ -72,6 +72,12 @@ object NativeRecordingBubbleSort extends NativeComponentsSupport {
 
   val components = NativeMwc64x.header ++ makeResourceComponents(
     ("/pl/tarsa/sortalgobox/natives/", "buffered_io.hpp"),
+    ("/pl/tarsa/sortalgobox/natives/agents/", "comparing_items_agent.hpp"),
+    ("/pl/tarsa/sortalgobox/natives/agents/", "items_agent.hpp"),
+    ("/pl/tarsa/sortalgobox/natives/agents/implementations/",
+      "comparing_array_items_agent.hpp"),
+    ("/pl/tarsa/sortalgobox/natives/agents/implementations/",
+      "recording_comparing_items_agent.hpp"),
     ("/pl/tarsa/sortalgobox/natives/crossverify/", "numbercodec.hpp"),
     ("/pl/tarsa/sortalgobox/crossverify/", "bubblesort.cpp")) ++
     trackingEnum
