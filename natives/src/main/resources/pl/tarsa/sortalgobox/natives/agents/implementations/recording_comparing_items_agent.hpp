@@ -28,72 +28,80 @@
 
 namespace tarsa {
 
-    template<template<typename> class UnderlyingItemsAgent, typename ItemType>
-    class RecordingComparingItemsAgent : public ComparingItemsAgent<ItemType> {
-        NumberEncoder recorder;
-        UnderlyingItemsAgent<ItemType> underlying;
+    template<template<typename> class UnderlyingItemsAgent>
+    struct RecordingComparingItemsAgentSetup {
 
-    public:
-        RecordingComparingItemsAgent(NumberEncoder const recorder,
-                UnderlyingItemsAgent<ItemType> const underlying):
-            recorder(recorder), underlying(underlying) {
-        }
+        template<typename ItemType>
+        class RecordingComparingItemsAgent :
+                public ComparingItemsAgent<ItemType> {
+            NumberEncoder recorder;
+            UnderlyingItemsAgent<ItemType> underlying;
 
-        size_t size0() {
-            recorder.serializeInt(CodeSize0);
-            return underlying.size0();
-        }
+        public:
+            RecordingComparingItemsAgent(NumberEncoder const recorder,
+                    UnderlyingItemsAgent<ItemType> const underlying):
+                recorder(recorder), underlying(underlying) {
+            }
 
-        ItemType get0(size_t const i) {
-            recorder.serializeInt(CodeGet0);
-            recorder.serializeLong(i);
-            return underlying.get0(i);
-        }
+            size_t size0() {
+                recorder.serializeInt(CodeSize0);
+                return underlying.size0();
+            }
 
-        void set0(size_t const i, ItemType const v) {
-            recorder.serializeInt(CodeSet0);
-            recorder.serializeLong(i);
-            underlying.set0(i, v);
-        }
+            ItemType get0(size_t const i) {
+                recorder.serializeInt(CodeGet0);
+                recorder.serializeLong(i);
+                return underlying.get0(i);
+            }
 
-        void copy0(size_t const i, size_t const j, size_t const n) {
-            recorder.serializeInt(CodeCopy0);
-            recorder.serializeLong(i);
-            recorder.serializeLong(j);
-            recorder.serializeLong(n);
-            underlying.copy0(i, j, n);
-        }
+            void set0(size_t const i, ItemType const v) {
+                recorder.serializeInt(CodeSet0);
+                recorder.serializeLong(i);
+                underlying.set0(i, v);
+            }
 
-        void swap0(size_t const i, size_t const j) {
-            recorder.serializeInt(CodeSwap0);
-            recorder.serializeLong(i);
-            recorder.serializeLong(j);
-            underlying.swap0(i, j);
-        }
+            void copy0(size_t const i, size_t const j, size_t const n) {
+                recorder.serializeInt(CodeCopy0);
+                recorder.serializeLong(i);
+                recorder.serializeLong(j);
+                recorder.serializeLong(n);
+                underlying.copy0(i, j, n);
+            }
 
-        compare_t compare(ItemType const a, ItemType const b) {
-            recorder.serializeInt(CodeCompare);
-            return underlying.compare(a, b);
-        }
+            void swap0(size_t const i, size_t const j) {
+                recorder.serializeInt(CodeSwap0);
+                recorder.serializeLong(i);
+                recorder.serializeLong(j);
+                underlying.swap0(i, j);
+            }
 
-        bool compareLt(ItemType const a, ItemType const b) {
-            recorder.serializeInt(CodeCompare);
-            return underlying.compareLt(a, b);
-        }
+            compare_t compare(ItemType const a, ItemType const b) {
+                recorder.serializeInt(CodeCompare);
+                return underlying.compare(a, b);
+            }
 
-        compare_t compare0(size_t const i, size_t const j) {
-            recorder.serializeInt(CodeCompare0);
-            recorder.serializeLong(i);
-            recorder.serializeLong(j);
-            return underlying.compare0(i, j);
-        }
+            bool compareLt(ItemType const a, ItemType const b) {
+                recorder.serializeInt(CodeCompare);
+                return underlying.compareLt(a, b);
+            }
 
-        bool compareLt0(size_t const i, size_t const j) {
-            recorder.serializeInt(CodeCompare0);
-            recorder.serializeLong(i);
-            recorder.serializeLong(j);
-            return underlying.compareLt0(i, j);
-        }
+            compare_t compare0(size_t const i, size_t const j) {
+                recorder.serializeInt(CodeCompare0);
+                recorder.serializeLong(i);
+                recorder.serializeLong(j);
+                return underlying.compare0(i, j);
+            }
+
+            bool compareLt0(size_t const i, size_t const j) {
+                recorder.serializeInt(CodeCompare0);
+                recorder.serializeLong(i);
+                recorder.serializeLong(j);
+                return underlying.compareLt0(i, j);
+            }
+        };
+
+        template<typename ItemType>
+        using Result = RecordingComparingItemsAgent<ItemType>;
     };
 }
 
