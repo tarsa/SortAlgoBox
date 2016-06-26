@@ -27,13 +27,13 @@
 
 namespace tarsa {
 
-    template<typename ItemType>
-    class ComparingArrayItemsAgent : public ComparingItemsAgent<ItemType> {
-        ItemType * const array;
+    template<typename item_t>
+    class ComparingArrayItemsAgent : public ComparingItemsAgent<item_t> {
+        item_t * const array;
         size_t const count;
 
     public:
-        ComparingArrayItemsAgent(ItemType * const array, size_t const count):
+        ComparingArrayItemsAgent(item_t * const array, size_t const count):
             array(array), count(count) {
         }
 
@@ -41,25 +41,25 @@ namespace tarsa {
             return count;
         }
 
-        ItemType get0(size_t const i) const {
+        item_t get0(size_t const i) const {
             return array[i];
         }
 
-        void set0(size_t const i, ItemType const v) {
+        void set0(size_t const i, item_t const v) {
             array[i] = v;
         }
 
         void copy0(size_t const i, size_t const j, size_t const n) {
-            memcpy(array + j, array + i, n + sizeof(ItemType));
+            memcpy(array + j, array + i, n + sizeof(item_t));
         }
 
         void swap0(size_t const i, size_t const j) {
-            ItemType const temp = get0(i);
+            item_t const temp = get0(i);
             set0(i, get0(j));
             set0(j, temp);
         }
 
-        compare_t compare(ItemType const a, ItemType const b) const {
+        compare_t compare(item_t const a, item_t const b) const {
             if (a < b) {
                 return CompareBelow;
             } else if (a == b) {
@@ -69,7 +69,7 @@ namespace tarsa {
             }
         }
 
-        bool compareLt(ItemType const a, ItemType const b) const {
+        bool compareLt(item_t const a, item_t const b) const {
             return a < b;
         }
 

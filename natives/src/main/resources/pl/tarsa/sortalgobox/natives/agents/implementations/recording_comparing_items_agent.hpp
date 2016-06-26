@@ -31,15 +31,15 @@ namespace tarsa {
     template<template<typename> class UnderlyingItemsAgent>
     struct RecordingComparingItemsAgentSetup {
 
-        template<typename ItemType>
+        template<typename item_t>
         class RecordingComparingItemsAgent :
-                public ComparingItemsAgent<ItemType> {
+                public ComparingItemsAgent<item_t> {
             NumberEncoder recorder;
-            UnderlyingItemsAgent<ItemType> underlying;
+            UnderlyingItemsAgent<item_t> underlying;
 
         public:
             RecordingComparingItemsAgent(NumberEncoder const recorder,
-                    UnderlyingItemsAgent<ItemType> const underlying):
+                    UnderlyingItemsAgent<item_t> const underlying):
                 recorder(recorder), underlying(underlying) {
             }
 
@@ -48,13 +48,13 @@ namespace tarsa {
                 return underlying.size0();
             }
 
-            ItemType get0(size_t const i) {
+            item_t get0(size_t const i) {
                 recorder.serializeInt(CodeGet0);
                 recorder.serializeLong(i);
                 return underlying.get0(i);
             }
 
-            void set0(size_t const i, ItemType const v) {
+            void set0(size_t const i, item_t const v) {
                 recorder.serializeInt(CodeSet0);
                 recorder.serializeLong(i);
                 underlying.set0(i, v);
@@ -75,12 +75,12 @@ namespace tarsa {
                 underlying.swap0(i, j);
             }
 
-            compare_t compare(ItemType const a, ItemType const b) {
+            compare_t compare(item_t const a, item_t const b) {
                 recorder.serializeInt(CodeCompare);
                 return underlying.compare(a, b);
             }
 
-            bool compareLt(ItemType const a, ItemType const b) {
+            bool compareLt(item_t const a, item_t const b) {
                 recorder.serializeInt(CodeCompare);
                 return underlying.compareLt(a, b);
             }
@@ -100,8 +100,8 @@ namespace tarsa {
             }
         };
 
-        template<typename ItemType>
-        using Result = RecordingComparingItemsAgent<ItemType>;
+        template<typename item_t>
+        using Result = RecordingComparingItemsAgent<item_t>;
     };
 }
 

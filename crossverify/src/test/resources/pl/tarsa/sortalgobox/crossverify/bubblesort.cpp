@@ -26,8 +26,8 @@
 #include "numbercodec.hpp"
 #include "recording_comparing_items_agent.hpp"
 
-template<template<typename> class ItemsAgent, typename ItemType>
-void sort(ItemsAgent<ItemType> agent) {
+template<template<typename> class ItemsAgent, typename item_t>
+void sort(ItemsAgent<item_t> agent) {
     for (size_t i = agent.size0() - 1; i >= 1; i--) {
         for (size_t j = 0; j < i; j++) {
             if (agent.compare0(j, j + 1) == tarsa::CompareAbove) {

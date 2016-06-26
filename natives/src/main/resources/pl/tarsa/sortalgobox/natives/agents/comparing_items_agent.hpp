@@ -30,12 +30,12 @@ namespace tarsa {
         CompareBelow, CompareEqual, CompareAbove
     };
 
-    template<typename ItemType>
-    class ComparingItemsAgent : public ItemsAgent<ItemType> {
+    template<typename item_t>
+    class ComparingItemsAgent : public ItemsAgent<item_t> {
     public:
-        compare_t compare(ItemType const a, ItemType const b) const {}
+        compare_t compare(item_t const a, item_t const b) const {}
 
-        bool compareLt(ItemType const a, ItemType const b) const {}
+        bool compareLt(item_t const a, item_t const b) const {}
 
         compare_t compare0(size_t const i, size_t const j) const {}
 

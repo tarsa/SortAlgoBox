@@ -24,14 +24,14 @@
 
 namespace tarsa {
 
-    template<typename ItemType>
+    template<typename item_t>
     class ItemsAgent {
     public:
         size_t size0() const {}
 
-        ItemType get0(size_t const i) const {}
+        item_t get0(size_t const i) const {}
 
-        void set0(size_t const i, ItemType const v) {}
+        void set0(size_t const i, item_t const v) {}
 
         void copy0(size_t const i, size_t const j, size_t const n) {}
 
