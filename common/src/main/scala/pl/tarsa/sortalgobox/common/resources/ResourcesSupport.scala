@@ -21,12 +21,14 @@ package pl.tarsa.sortalgobox.common.resources
 
 import java.io.{InputStream, OutputStream}
 import java.nio.file.{Files, Path}
+import java.util.Objects.requireNonNull
 
 import resource.{ManagedResource, managed}
 
 trait ResourcesSupport {
   def managedStreamFromResource(name: String): ManagedResource[InputStream] =
-    managed(getClass.getResourceAsStream(name))
+    managed(requireNonNull(getClass.getResourceAsStream(name),
+      s"Resource with name: $name not found"))
 
   def managedFileOutputStream(path: Path): ManagedResource[OutputStream] =
     managed(Files.newOutputStream(path))
