@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,15 +16,14 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.core.common.agents.implementations
 
-import java.nio.ByteBuffer
+import java.io.ByteArrayOutputStream
 
 import pl.tarsa.sortalgobox.common.crossverify.TrackingEnums.ActionTypes._
 import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
-import pl.tarsa.sortalgobox.core.crossverify.PureNumberCodec
+import pl.tarsa.sortalgobox.core.crossverify.PureNumberEncoder
 import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
 class RecordingComparingIntArrayItemsAgentSpec extends CommonUnitSpecBase {
@@ -91,22 +90,22 @@ class RecordingComparingIntArrayItemsAgentSpec extends CommonUnitSpecBase {
         Compare0.id, 0, 1, Compare0.id, 2, 3, Compare0.id, 0, 4)
   }
 
-  def buildRecordingAgent(inputItems: Array[Int]): (ByteBuffer,
+  def buildRecordingAgent(inputItems: Array[Int]): (ByteArrayOutputStream,
     ComparingItemsAgent[Int]) = {
-    val recordingBuffer = ByteBuffer.allocate(100)
-    val recorder = new PureNumberCodec(recordingBuffer)
+    val recordingStream = new ByteArrayOutputStream()
+    val recorder = new PureNumberEncoder(recordingStream)
     val underlying = new ComparingIntArrayItemsAgent(inputItems)
     val recordingAgent = new RecordingComparingIntArrayItemsAgent(
       recorder, underlying)
-    (recordingBuffer, recordingAgent)
+    (recordingStream, recordingAgent)
   }
 
-  def assertRecordedBytes(recordingBuffer: ByteBuffer,
-    expectedRecordedBytes: Seq[Int]): Unit = {
-    recordingBuffer.flip()
-    assert(recordingBuffer.remaining() == expectedRecordedBytes.length)
-    for (expectedValue <- expectedRecordedBytes) {
-      assert(expectedValue == (recordingBuffer.get().toInt & 0xFF))
+  def assertRecordedBytes(recordingStream: ByteArrayOutputStream,
+    expectedBytes: Seq[Int]): Unit = {
+    val recordedBytes = recordingStream.toByteArray
+    assert(recordedBytes.length == expectedBytes.length)
+    for ((expectedValue, recordedValue) <- expectedBytes.zip(recordedBytes)) {
+      assert(expectedValue == (recordedValue & 0xFF))
     }
   }
 

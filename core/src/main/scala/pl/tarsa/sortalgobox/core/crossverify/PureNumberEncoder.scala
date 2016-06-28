@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,49 +16,28 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
+
 package pl.tarsa.sortalgobox.core.crossverify
 
-import java.nio.ByteBuffer
+import java.io.OutputStream
 
 import scala.annotation.tailrec
 
-class PureNumberCodec(buffer: ByteBuffer) {
+class PureNumberEncoder(output: OutputStream) {
   def serializeInt(value: Int): Unit = {
     @tailrec
     def serialize(value: Int): Unit = {
       if (value < 0) {
         throw new IllegalArgumentException
       } else if (value <= Byte.MaxValue) {
-        buffer.put(value.toByte)
+        output.write(value)
       } else {
-        buffer.put(((value & 127) - 128).toByte)
+        output.write((value & 127) - 128)
         serialize(value >> 7)
       }
     }
     serialize(value)
-  }
-
-  def deserializeInt(): Int = {
-    @tailrec
-    def deserialize(current: Int, shift: Int): Int = {
-      val input = buffer.get()
-      if (input == 0) {
-        current
-      } else {
-        val chunk = input & 127
-        if (chunk != 0 && (shift > 31 || chunk > (Int.MaxValue >> shift))) {
-          throw new NumberCodecException
-        }
-        if (input > 0) {
-          (chunk << shift) + current
-        } else {
-          deserialize((chunk << shift) + current, shift + 7)
-        }
-      }
-    }
-    deserialize(0, 0)
   }
 
   def serializeLong(value: Long): Unit = {
@@ -67,33 +46,12 @@ class PureNumberCodec(buffer: ByteBuffer) {
       if (value < 0) {
         throw new IllegalArgumentException
       } else if (value <= Byte.MaxValue) {
-        buffer.put(value.toByte)
+        output.write(value.toByte)
       } else {
-        buffer.put(((value & 127) - 128).toByte)
+        output.write(((value & 127) - 128).toByte)
         serialize(value >> 7)
       }
     }
     serialize(value)
-  }
-
-  def deserializeLong(): Long = {
-    @tailrec
-    def deserialize(current: Long, shift: Int): Long = {
-      val input = buffer.get()
-      if (input == 0) {
-        current
-      } else {
-        val chunk = input & 127L
-        if (chunk != 0 && (shift > 63 || chunk > (Long.MaxValue >> shift))) {
-          throw new NumberCodecException
-        }
-        if (input > 0) {
-          (chunk << shift) + current
-        } else {
-          deserialize((chunk << shift) + current, shift + 7)
-        }
-      }
-    }
-    deserialize(0, 0)
   }
 }

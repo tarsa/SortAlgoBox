@@ -17,15 +17,13 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-package pl.tarsa.sortalgobox.crossverify
 
-import java.io.ByteArrayOutputStream
-import java.nio.ByteBuffer
+package pl.tarsa.sortalgobox.crossverify
 
 import org.apache.commons.io.IOUtils
 import pl.tarsa.sortalgobox.common.crossverify.TrackingEnums.ActionTypes
 import pl.tarsa.sortalgobox.core.common.agents.implementations.{ComparingIntArrayItemsAgent, VerifyingComparingIntArrayItemsAgent}
-import pl.tarsa.sortalgobox.core.crossverify.PureNumberCodec
+import pl.tarsa.sortalgobox.core.crossverify.PureNumberDecoder
 import pl.tarsa.sortalgobox.natives.build.{NativeBuildComponentFromString, NativeBuildConfig, NativeComponentsSupport, NativesCache}
 import pl.tarsa.sortalgobox.natives.generators.NativeEnumGenerator
 import pl.tarsa.sortalgobox.random.{Mwc64x, NativeMwc64x}
@@ -35,9 +33,9 @@ import pl.tarsa.sortalgobox.tests.NativesUnitSpecBase
 class VerifyBubbleSortSpec extends NativesUnitSpecBase {
 
   "Native Bubble Sort" must "take steps identical to Scala Bubble Sort" in {
-    val codec = new NativeRecordingBubbleSort(testNativesCache)
+    val replayer = new NativeRecordingBubbleSort(testNativesCache)
       .sortAndCollectData()
-    new CheckingBubbleSort().run(codec, assert(_))
+    new CheckingBubbleSort().run(replayer, assert(_))
   }
 }
 
@@ -46,17 +44,10 @@ class NativeRecordingBubbleSort(nativesCache: NativesCache = NativesCache) {
   val buildConfig =
     NativeBuildConfig(NativeRecordingBubbleSort.components, "bubblesort.cpp")
 
-  def sortAndCollectData(): PureNumberCodec = {
-
+  def sortAndCollectData(): PureNumberDecoder = {
     val generatorProcess = nativesCache.runCachedProgram(buildConfig)
-    val baos = new ByteArrayOutputStream()
-    IOUtils.copy(generatorProcess.getInputStream, baos)
-
-    generatorProcess.waitFor()
-    println("Exit value: " + generatorProcess.exitValue())
-
-    val recording = ByteBuffer.wrap(baos.toByteArray)
-    new PureNumberCodec(recording)
+    val stream = IOUtils.buffer(generatorProcess.getInputStream)
+    new PureNumberDecoder(stream)
   }
 }
 
@@ -84,10 +75,10 @@ object NativeRecordingBubbleSort extends NativeComponentsSupport {
 }
 
 class CheckingBubbleSort {
-  def run(codecWithNumber: PureNumberCodec, verify: Boolean => Unit) = {
+  def run(replayer: PureNumberDecoder, verify: Boolean => Unit) = {
     val generator = Mwc64x()
     val array = Array.fill[Int](1234)(generator.nextInt())
-    val itemsAgent = new VerifyingComparingIntArrayItemsAgent(codecWithNumber,
+    val itemsAgent = new VerifyingComparingIntArrayItemsAgent(replayer,
       new ComparingIntArrayItemsAgent(array), verify)
     new BubbleSort().sort(itemsAgent)
   }

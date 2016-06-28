@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,23 +16,22 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.core.common.agents.implementations
 
-import java.nio.{BufferUnderflowException, ByteBuffer}
+import java.io.{ByteArrayInputStream, InputStream}
 
 import org.scalatest.exceptions.TestFailedException
 import pl.tarsa.sortalgobox.common.crossverify.TrackingEnums.ActionTypes._
 import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
-import pl.tarsa.sortalgobox.core.crossverify.PureNumberCodec
+import pl.tarsa.sortalgobox.core.crossverify.{PrematureEndOfInputException, PureNumberDecoder}
 import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
 class VerifyingComparingIntArrayItemsAgentSpec extends CommonUnitSpecBase {
   typeBehavior[VerifyingComparingIntArrayItemsAgent]
 
   it must "fail for some operations and no recorded bytes" in {
-    a[BufferUnderflowException] mustBe thrownBy {
+    a[PrematureEndOfInputException] mustBe thrownBy {
       readTest(1, 2, 3)(_.compare0(1, 2))()
     }
   }
@@ -117,23 +116,22 @@ class VerifyingComparingIntArrayItemsAgentSpec extends CommonUnitSpecBase {
   }
 
   def buildRecordingAgent(inputItems: Array[Int], recordedBytes: Seq[Int]):
-  (ByteBuffer, ComparingItemsAgent[Int]) = {
-    val recordingBuffer = ByteBuffer.allocate(recordedBytes.length)
-    recordedBytes.map(_.toByte).foreach(recordingBuffer.put)
-    recordingBuffer.flip()
-    val recorder = new PureNumberCodec(recordingBuffer)
+  (InputStream, ComparingItemsAgent[Int]) = {
+    val recordingStream =
+      new ByteArrayInputStream(recordedBytes.map(_.toByte).toArray)
+    val replayer = new PureNumberDecoder(recordingStream)
     val underlying = new ComparingIntArrayItemsAgent(inputItems)
     val recordingAgent = new VerifyingComparingIntArrayItemsAgent(
-      recorder, underlying, verify)
-    (recordingBuffer, recordingAgent)
+      replayer, underlying, verify)
+    (recordingStream, recordingAgent)
   }
 
   def readTest(inputItems: Int*)
     (operations: (ComparingItemsAgent[Int] => Unit)*)
     (recordedBytes: Int*): Unit = {
-    val (buffer, agent) = buildRecordingAgent(inputItems.toArray, recordedBytes)
+    val (stream, agent) = buildRecordingAgent(inputItems.toArray, recordedBytes)
     operations.foreach(_(agent))
-    assert(!buffer.hasRemaining)
+    assert(stream.read() == -1)
 
   }
 
@@ -141,16 +139,16 @@ class VerifyingComparingIntArrayItemsAgentSpec extends CommonUnitSpecBase {
     (operations: (ComparingItemsAgent[Int] => Unit)*)
     (outputItems: Int*)(recordedBytes: Int*): Unit = {
     val array = inputItems.toArray
-    val (buffer, agent) = buildRecordingAgent(array, recordedBytes)
+    val (stream, agent) = buildRecordingAgent(array, recordedBytes)
     operations.foreach(_(agent))
     assert(array.toSeq == outputItems)
-    assert(!buffer.hasRemaining)
+    assert(stream.read() == -1)
   }
 
   def pureTest(operations: (ComparingItemsAgent[Int] => Unit)*)
     (recordedBytes: Int*): Unit = {
-    val (buffer, agent) = buildRecordingAgent(null, recordedBytes)
+    val (stream, agent) = buildRecordingAgent(null, recordedBytes)
     operations.foreach(_(agent))
-    assert(!buffer.hasRemaining)
+    assert(stream.read() == -1)
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,72 +16,21 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
+
 package pl.tarsa.sortalgobox.core.crossverify
 
-import java.nio.ByteBuffer._
-import java.nio.{BufferOverflowException, BufferUnderflowException}
+import java.io.ByteArrayInputStream
 
+import org.apache.commons.io.input.CountingInputStream
 import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
-class PureNumberCodecSpec extends CommonUnitSpecBase {
-  typeBehavior[PureNumberCodec]
-
-  def havingSize(size: Int)(function: PureNumberCodec => Unit)
-    (contents: Byte*): Unit = {
-    val buffer = allocate(size)
-    val codec = new PureNumberCodec(buffer)
-    function(codec)
-    assert(buffer.position() == contents.length)
-    assert(buffer.flip() == wrap(contents.toArray))
-  }
-
-  def havingContents(contents: Byte*)(function: PureNumberCodec => Unit)
-    (position: Int): Unit = {
-    val buffer = wrap(contents.toArray)
-    val codec = new PureNumberCodec(buffer)
-    function(codec)
-    assert(buffer.position() == position)
-  }
-
-  it must "fail on serializing negative int" in {
-    havingSize(0) { codec =>
-      an[IllegalArgumentException] mustBe thrownBy {
-        codec.serializeInt(-1)
-      }
-    }()
-  }
-
-  it must "serialize int zero" in {
-    havingSize(1) { codec =>
-      codec.serializeInt(0)
-    }(contents = 0)
-  }
-
-  it must "serialize positive int" in {
-    havingSize(9) { codec =>
-      codec.serializeInt(1234567)
-    }(contents = -121, -83, 75)
-  }
-
-  it must "serialize max int" in {
-    havingSize(9) { codec =>
-      codec.serializeInt(Int.MaxValue)
-    }(contents = -1, -1, -1, -1, 7)
-  }
-
-  it must "fail on int serialization when not enough remaining space" in {
-    havingSize(2) { codec =>
-      a[BufferOverflowException] mustBe thrownBy {
-        codec.serializeInt(Int.MaxValue)
-      }
-    }(contents = -1, -1)
-  }
+class PureNumberDecoderSpec extends CommonUnitSpecBase {
+  typeBehavior[PureNumberDecoder]
 
   it must "fail on deserialization of empty buffer for int" in {
     havingContents() { codec =>
-      a[BufferUnderflowException] mustBe thrownBy {
+      a[PrematureEndOfInputException] mustBe thrownBy {
         codec.deserializeInt()
       }
     }(position = 0)
@@ -90,7 +39,7 @@ class PureNumberCodecSpec extends CommonUnitSpecBase {
   it must "fail on deserialization of unfinished negative sequence for " +
     "int" in {
     havingContents(-1, -2, -3) { codec =>
-      a[BufferUnderflowException] mustBe thrownBy {
+      a[PrematureEndOfInputException] mustBe thrownBy {
         codec.deserializeInt()
       }
     }(position = 3)
@@ -122,7 +71,7 @@ class PureNumberCodecSpec extends CommonUnitSpecBase {
 
   it must "fail on deserialization of slightly too big number for int" in {
     havingContents(-1, -1, -1, -1, 8) { codec =>
-      a[NumberCodecException] mustBe thrownBy {
+      a[ValueOverflowException] mustBe thrownBy {
         codec.deserializeInt()
       }
     }(position = 5)
@@ -130,49 +79,15 @@ class PureNumberCodecSpec extends CommonUnitSpecBase {
 
   it must "fail on deserialization of way too big number for int" in {
     havingContents(-1, -1, -1, -1, -1, 1) { codec =>
-      a[NumberCodecException] mustBe thrownBy {
+      a[ValueOverflowException] mustBe thrownBy {
         codec.deserializeInt()
       }
     }(position = 5)
   }
 
-  it must "fail on serializing negative long" in {
-    havingSize(0) { codec =>
-      an[IllegalArgumentException] mustBe thrownBy {
-        codec.serializeLong(-1L)
-      }
-    }()
-  }
-
-  it must "serialize long zero" in {
-    havingSize(1) { codec =>
-      codec.serializeLong(0L)
-    }(contents = 0)
-  }
-
-  it must "serialize positive long" in {
-    havingSize(9) { codec =>
-      codec.serializeLong(123456789000L)
-    }(contents = -120, -76, -28, -12, -53, 3)
-  }
-
-  it must "serialize max long" in {
-    havingSize(9) { codec =>
-      codec.serializeLong(Long.MaxValue)
-    }(contents = -1, -1, -1, -1, -1, -1, -1, -1, 127)
-  }
-
-  it must "fail on long serialization when not enough remaining space" in {
-    havingSize(2) { codec =>
-      a[BufferOverflowException] mustBe thrownBy {
-        codec.serializeLong(Long.MaxValue)
-      }
-    }(-1, -1)
-  }
-
   it must "fail on deserialization of empty buffer for long" in {
     havingContents() { codec =>
-      a[BufferUnderflowException] mustBe thrownBy {
+      a[PrematureEndOfInputException] mustBe thrownBy {
         codec.deserializeLong()
       }
     }(position = 0)
@@ -181,7 +96,7 @@ class PureNumberCodecSpec extends CommonUnitSpecBase {
   it must "fail on deserialization of unfinished negative sequence for " +
     "long" in {
     havingContents(-1, -2, -3) { codec =>
-      a[BufferUnderflowException] mustBe thrownBy {
+      a[PrematureEndOfInputException] mustBe thrownBy {
         codec.deserializeLong()
       }
     }(position = 3)
@@ -214,7 +129,7 @@ class PureNumberCodecSpec extends CommonUnitSpecBase {
 
   it must "fail on deserialization of slightly too big number for long" in {
     havingContents(-1, -1, -1, -1, -1, -1, -1, -1, -1, 1) { codec =>
-      a[NumberCodecException] mustBe thrownBy {
+      a[ValueOverflowException] mustBe thrownBy {
         codec.deserializeLong()
       }
     }(position = 10)
@@ -222,9 +137,21 @@ class PureNumberCodecSpec extends CommonUnitSpecBase {
 
   it must "fail on deserialization of way too big number for long" in {
     havingContents(-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0) { codec =>
-      a[NumberCodecException] mustBe thrownBy {
+      a[ValueOverflowException] mustBe thrownBy {
         codec.deserializeLong()
       }
     }(position = 10)
+  }
+
+  def havingContents(contents: Byte*)(function: PureNumberDecoder => Unit)
+    (position: Int): Unit = {
+    val stream = new CountingInputStream(new ByteArrayInputStream(
+      contents.toArray))
+    val codec = new PureNumberDecoder(stream)
+    try {
+      function(codec)
+    } finally {
+      assert(stream.getCount == position)
+    }
   }
 }
