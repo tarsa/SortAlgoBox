@@ -31,11 +31,11 @@ namespace tarsa {
 
         item_t get0(size_t const i) const {}
 
-        void set0(size_t const i, item_t const v) {}
+        void set0(size_t const i, item_t const v) const {}
 
-        void copy0(size_t const i, size_t const j, size_t const n) {}
+        void copy0(size_t const i, size_t const j, size_t const n) const {}
 
-        void swap0(size_t const i, size_t const j) {}
+        void swap0(size_t const i, size_t const j) const {}
     };
 }
 

@@ -45,15 +45,15 @@ namespace tarsa {
             return array[i];
         }
 
-        void set0(size_t const i, item_t const v) {
+        void set0(size_t const i, item_t const v) const {
             array[i] = v;
         }
 
-        void copy0(size_t const i, size_t const j, size_t const n) {
+        void copy0(size_t const i, size_t const j, size_t const n) const {
             memcpy(array + j, array + i, n + sizeof(item_t));
         }
 
-        void swap0(size_t const i, size_t const j) {
+        void swap0(size_t const i, size_t const j) const {
             item_t const temp = get0(i);
             set0(i, get0(j));
             set0(j, temp);
