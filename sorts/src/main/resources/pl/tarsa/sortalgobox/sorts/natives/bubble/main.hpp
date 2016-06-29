@@ -26,13 +26,13 @@
 
 EMPTY_AUXILIARY_SPACE
 
-int32_t compare0(int32_t const * const, ssize_t const, ssize_t const);
-void swap0(int32_t * const, ssize_t const, ssize_t const);
+int32_t compare0(int32_t const * const, size_t const, size_t const);
+void swap0(int32_t * const, size_t const, size_t const);
 
-void sortPerform(int32_t * const work, ssize_t const size,
+void sortPerform(int32_t * const work, size_t const size,
         auxiliary_space_t * const auxiliary) {
-    for (ssize_t i = size - 1; i >= 1; i--) {
-        for (ssize_t j = 0; j < i; j++) {
+    for (size_t i = size - 1; i >= 1; i--) {
+        for (size_t j = 0; j < i; j++) {
             if (compare0(work, j, j + 1) > 0) {
                 swap0(work, j, j + 1);
             }
@@ -40,7 +40,7 @@ void sortPerform(int32_t * const work, ssize_t const size,
     }
 }
 
-int32_t compare0(int32_t const * const work, ssize_t const i, ssize_t const j) {
+int32_t compare0(int32_t const * const work, size_t const i, size_t const j) {
     int32_t const a = work[i];
     int32_t const b = work[j];
     if (a > b) {
@@ -52,7 +52,7 @@ int32_t compare0(int32_t const * const work, ssize_t const i, ssize_t const j) {
     }
 }
 
-void swap0(int32_t * const work, ssize_t const i, ssize_t const j) {
+void swap0(int32_t * const work, size_t const i, size_t const j) {
     int32_t const tmp = work[i];
     work[i] = work[j];
     work[j] = tmp;

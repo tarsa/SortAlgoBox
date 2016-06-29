@@ -36,7 +36,7 @@
 #define EMPTY_AUXILIARY_SPACE struct auxiliary_space_t { \
 }; \
 \
-auxiliary_space_t sortInitAuxiliary(ssize_t const size) { \
+auxiliary_space_t sortInitAuxiliary(size_t const size) { \
     auxiliary_space_t auxiliary; \
     return auxiliary; \
 }
@@ -47,7 +47,7 @@ auxiliary_space_t sortInitAuxiliary(ssize_t const size) { \
 #ifndef VALIDATE_FUNCTION
 #define VALIDATE_FUNCTION
 
-bool sortValidate(int32_t const * const work, ssize_t const size,
+bool sortValidate(int32_t const * const work, size_t const size,
         auxiliary_space_t const * const auxiliary) {
     int32_t * reference;
     checkZero(posix_memalign((void**) &reference, 128,
@@ -55,7 +55,7 @@ bool sortValidate(int32_t const * const work, ssize_t const size,
     mwc64xFill(reference, size);
     std::sort(reference, reference + size);
     bool valid = true;
-    for (ssize_t i = 0; valid && (i < size); i++) {
+    for (size_t i = 0; valid && (i < size); i++) {
         valid &= work[i] == reference[i];
     }
     return valid;
@@ -66,7 +66,7 @@ bool sortValidate(int32_t const * const work, ssize_t const size,
 int main(int argc, char** argv) {
     bool shouldValidate;
     std::cin >> shouldValidate;
-    ssize_t size;
+    size_t size;
     std::cin >> size;
 
     int32_t * work;

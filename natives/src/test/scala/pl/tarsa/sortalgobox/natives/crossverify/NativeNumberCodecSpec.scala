@@ -156,8 +156,8 @@ object NativeNumberCodecSpec extends NativeComponentsSupport {
 
   def test_serialize_string(camel: String, bits: String) =
     s"""
-void testSerialize$camel(ssize_t const bufferSize, int${bits}_t const value,
-        int8_t const * const expectedOutput, ssize_t const expectedOutputLength,
+void testSerialize$camel(size_t const bufferSize, int${bits}_t const value,
+        int8_t const * const expectedOutput, size_t const expectedOutputLength,
         tarsa::NumberCodec::error_t const expectedError) {
     uint8_t * const buffer = new uint8_t[bufferSize];
     memset(buffer, $filler, bufferSize);
@@ -184,8 +184,8 @@ void testSerialize$camel(ssize_t const bufferSize, int${bits}_t const value,
   def test_deserialize_string(camel: String, bits: String) =
     s"""
 void testDeserialize$camel(int8_t const * const _input,
-        ssize_t const inputLength, int${bits}_t const expectedValue,
-        ssize_t const expectedInputPosition,
+        size_t const inputLength, int${bits}_t const expectedValue,
+        size_t const expectedInputPosition,
         tarsa::NumberCodec::error_t const expectedError) {
     uint8_t * const input = new uint8_t[inputLength];
     memcpy(input, _input, inputLength);
