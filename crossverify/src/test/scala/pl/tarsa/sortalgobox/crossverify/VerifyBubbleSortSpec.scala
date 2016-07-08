@@ -45,7 +45,7 @@ class NativeRecordingBubbleSort(nativesCache: NativesCache = NativesCache) {
     NativeBuildConfig(NativeRecordingBubbleSort.components, "bubblesort.cpp")
 
   def sortAndCollectData(): PureNumberDecoder = {
-    val generatorProcess = nativesCache.runCachedProgram(buildConfig)
+    val generatorProcess = nativesCache.startCachedProgram(buildConfig)
     val stream = IOUtils.buffer(generatorProcess.getInputStream)
     new PureNumberDecoder(stream)
   }

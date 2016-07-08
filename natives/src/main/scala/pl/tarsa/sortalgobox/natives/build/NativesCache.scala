@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,7 +16,6 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.natives.build
 
@@ -26,20 +25,30 @@ import java.nio.file.Files
 import org.apache.commons.io.FileUtils
 import pl.tarsa.sortalgobox.common.SortAlgoBoxConfiguration.rootTempDir
 import pl.tarsa.sortalgobox.common.cache.BuildCache
-
-import scala.io.Source
+import pl.tarsa.sortalgobox.common.system.{ProcessRunResult, ProcessUtils}
 
 class NativesCache extends BuildCache {
   override type BuildKey = NativeBuildConfig
   override type BuildValue = File
   override type BuildError = String
 
-  def runCachedProgram(buildConfig: NativeBuildConfig): Process = {
+  def startCachedProgram(buildConfig: NativeBuildConfig): Process = {
+    val workDir = getWorkDir(buildConfig)
+    new ProcessBuilder(s"./${buildConfig.compilerOptions.executableFileName}")
+      .directory(workDir).start()
+  }
+
+  def runCachedProgram(buildConfig: NativeBuildConfig, stdInLines: Seq[String]):
+  ProcessRunResult = {
+    val workDir = getWorkDir(buildConfig)
+    val cmdLine = Seq(s"./${buildConfig.compilerOptions.executableFileName}")
+    ProcessUtils.runSynchronously(cmdLine, workDir, stdInLines)
+  }
+
+  private def getWorkDir(buildConfig: NativeBuildConfig): File = {
     cachedBuild(buildConfig) match {
       case BuildSucceeded(workDir) =>
-        new ProcessBuilder(
-          s"./${buildConfig.compilerOptions.executableFileName}")
-          .directory(workDir).start()
+        workDir
       case BuildFailed(message) =>
         throw new Exception(message)
       case _ =>
@@ -52,17 +61,13 @@ class NativesCache extends BuildCache {
     val workDir = Files.createTempDirectory(rootTempDir, "native")
     val workDirFile = workDir.toFile
     buildConfig.copyBuildComponents(workDir)
-    val buildProcess = new ProcessBuilder(buildConfig.makeCommandLine: _*)
-      .directory(workDirFile).start()
-    val buildExitValue = buildProcess.waitFor()
-    if (buildExitValue != 0) {
-      val output = Source.fromInputStream(buildProcess.getErrorStream, "UTF-8")
-        .mkString
-      FileUtils.deleteDirectory(workDirFile)
-      val msg = s"Build process exit value: $buildExitValue, output:\n$output"
-      Left(msg)
-    } else {
+    val result = ProcessUtils.runSynchronously(
+      buildConfig.makeCommandLine, workDirFile, Nil)
+    if (result.exitValue == 0) {
       Right(workDirFile)
+    } else {
+      FileUtils.deleteDirectory(workDirFile)
+      Left(result.toString)
     }
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,11 +16,8 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.natives.build
-
-import java.util.Scanner
 
 import pl.tarsa.sortalgobox.natives.build.NativesCacheSpec._
 import pl.tarsa.sortalgobox.tests.NativesUnitSpecBase
@@ -30,33 +27,30 @@ class NativesCacheSpec extends NativesUnitSpecBase {
 
   it must "compile file without defines" in {
     val buildConfig = NativeBuildConfig(components, "source.cpp")
-    val process = testNativesCache.runCachedProgram(buildConfig)
-    val pipeFrom = new Scanner(process.getInputStream)
-    assertResult("Hello.")(pipeFrom.nextLine())
+    val execResult = testNativesCache.runCachedProgram(buildConfig, Nil)
+    assertResult("Hello.")(execResult.stdOut.trim)
   }
 
   it must "compile file with header" in {
     val buildConfig = NativeBuildConfig(components, "source.cpp",
       CompilerOptions(options = CompilerOptions.defaultOptions ++
         Seq("-include", "source.hpp")))
-    val process = testNativesCache.runCachedProgram(buildConfig)
-    val pipeFrom = new Scanner(process.getInputStream)
-    assertResult("Hello from main.hpp")(pipeFrom.nextLine())
+    val execResult = testNativesCache.runCachedProgram(buildConfig, Nil)
+    assertResult("Hello from main.hpp")(execResult.stdOut.trim)
   }
 
   it must "compile file with define" in {
     val buildConfig = NativeBuildConfig(components, "source.cpp",
       CompilerOptions(defines = CompilerOptions.defaultDefines ++
         Seq(CompilerDefine("SOURCE", Some("test")))))
-    val process = testNativesCache.runCachedProgram(buildConfig)
-    val pipeFrom = new Scanner(process.getInputStream)
-    assertResult("Hello from test!")(pipeFrom.nextLine())
+    val execResult = testNativesCache.runCachedProgram(buildConfig, Nil)
+    assertResult("Hello from test!")(execResult.stdOut.trim)
   }
 
   it must "fail when compilation is unsuccessful" in {
     val buildConfig = NativeBuildConfig(Nil, "non_existing.cpp")
     an[Exception] mustBe thrownBy {
-      testNativesCache.runCachedProgram(buildConfig)
+      testNativesCache.runCachedProgram(buildConfig, Nil)
     }
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,12 +16,11 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.sorts.natives.sab
 
-import java.io.PrintStream
-import java.util.Scanner
+import java.lang.Long._
+
 import pl.tarsa.sortalgobox.core.NativeBenchmark
 import pl.tarsa.sortalgobox.core.exceptions.VerificationFailedException
 import pl.tarsa.sortalgobox.natives.build._
@@ -53,22 +52,16 @@ class NativeSabBenchmark(sortAlgoName: String, sortHeader: String,
 
   override def forSize(n: Int, validate: Boolean,
     buffer: Option[Array[Int]]): Long = {
-
-    val generatorProcess = nativesCache.runCachedProgram(buildConfig)
-    val pipeTo = new PrintStream(generatorProcess.getOutputStream)
-    pipeTo.println(if (validate) 1 else 0)
-    pipeTo.println(n)
-    pipeTo.flush()
-    val pipeFrom = new Scanner(generatorProcess.getInputStream)
-    val result = pipeFrom.nextLong(16).toInt
+    val input = Seq(if (validate) 1 else 0, n).map(_.toString)
+    val execResult = nativesCache.runCachedProgram(buildConfig, input)
+    val lines = execResult.stdOut.lines.toList
     if (validate) {
-      val valid = pipeFrom.next() == "pass"
+      val valid = lines(1) == "pass"
       if (!valid) {
         throw new VerificationFailedException()
       }
     }
-    generatorProcess.waitFor()
-    result
+    parseLong(lines.head, 16)
   }
 }
 

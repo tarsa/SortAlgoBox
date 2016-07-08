@@ -19,9 +19,7 @@
  */
 package pl.tarsa.sortalgobox.natives.common
 
-import java.io.PrintStream
 import java.nio.file.{Files, Path}
-import java.util.Scanner
 
 import pl.tarsa.sortalgobox.common.SortAlgoBoxConfiguration.rootTempDir
 import pl.tarsa.sortalgobox.natives.build._
@@ -223,16 +221,12 @@ class NativeBufferedIoSpec extends NativesUnitSpecBase {
   for ((test, testIndex) <- tests.zipWithIndex) {
     it must test.name in {
       val (state, params) = test.before()
-      val specProcess = testNativesCache.runCachedProgram(buildConfig)
       try {
-        val pipeTo = new PrintStream(specProcess.getOutputStream)
-        pipeTo.println(testIndex)
-        params.foreach(pipeTo.println)
-        pipeTo.flush()
-        val pipeFrom = new Scanner(specProcess.getInputStream)
-        assert(pipeFrom.nextInt() != 0, "Native C++ program reported failure")
+        val input = testIndex.toString :: params
+        val runResult = testNativesCache.runCachedProgram(buildConfig, input)
+        val passed = runResult.stdOut.trim.toInt != 0
+        assert(passed, "Native C++ program reported failure")
       } finally {
-        specProcess.waitFor()
         test.after(state)
       }
     }

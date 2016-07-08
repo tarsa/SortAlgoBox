@@ -19,9 +19,6 @@
  */
 package pl.tarsa.sortalgobox.natives.crossverify
 
-import java.io.PrintStream
-import java.util.Scanner
-
 import pl.tarsa.sortalgobox.natives.build._
 import pl.tarsa.sortalgobox.tests.NativesUnitSpecBase
 
@@ -32,26 +29,20 @@ class NativeNumberCodecSpec extends NativesUnitSpecBase {
 
   for ((Test(testName, testMode, _), testIndex) <- tests.zipWithIndex) {
     it must testName in {
-      val specProcess = testNativesCache.runCachedProgram(buildConfig)
-      try {
-        val pipeTo = new PrintStream(specProcess.getOutputStream)
-        pipeTo.println(testIndex)
-        pipeTo.flush()
-        val pipeFrom = new Scanner(specProcess.getInputStream)
-        import TestMode._
-        testMode match {
-          case SerializeInt | SerializeLong =>
-            val Array(a, b) = Array.fill[Boolean](2)(pipeFrom.nextInt() != 0)
-            assert(a, ", contents")
-            assert(b, ", error status")
-          case DeserializeInt | DeserializeLong =>
-            val Array(a, b, c) = Array.fill[Boolean](3)(pipeFrom.nextInt() != 0)
-            assert(a, ", decoded value")
-            assert(b, ", buffer position")
-            assert(c, ", error status")
-        }
-      } finally {
-        specProcess.waitFor()
+      val input = Seq(testIndex.toString)
+      val execResult = testNativesCache.runCachedProgram(buildConfig, input)
+      val flags = execResult.stdOut.lines.map(_.toInt != 0).toList
+      import TestMode._
+      testMode match {
+        case SerializeInt | SerializeLong =>
+          val List(a, b) = flags
+          assert(a, ", contents")
+          assert(b, ", error status")
+        case DeserializeInt | DeserializeLong =>
+          val List(a, b, c) = flags
+          assert(a, ", decoded value")
+          assert(b, ", buffer position")
+          assert(c, ", error status")
       }
     }
   }

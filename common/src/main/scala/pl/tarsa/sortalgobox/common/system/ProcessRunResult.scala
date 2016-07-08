@@ -17,23 +17,6 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-package pl.tarsa.sortalgobox.random
+package pl.tarsa.sortalgobox.common.system
 
-import pl.tarsa.sortalgobox.natives.build._
-
-class NativeMwc64x(nativesCache: NativesCache = NativesCache) {
-  def generate(n: Int): Array[Int] = {
-    val buildConfig = NativeBuildConfig(NativeMwc64x.sources, "mwc64x.cpp")
-    val input = Seq(n.toString)
-    val execResult = nativesCache.runCachedProgram(buildConfig, input)
-    execResult.stdOut.lines.map(Integer.parseUnsignedInt(_, 16)).toArray
-  }
-}
-
-object NativeMwc64x extends NativeComponentsSupport {
-  val header = makeResourceComponents(
-    ("/pl/tarsa/sortalgobox/random/mwc64x/native/", "mwc64x.hpp"))
-
-  val sources = header ++ makeResourceComponents(
-    ("/pl/tarsa/sortalgobox/random/mwc64x/native/", "mwc64x.cpp"))
-}
+case class ProcessRunResult(exitValue: Int, stdOut: String, stdErr: String)
