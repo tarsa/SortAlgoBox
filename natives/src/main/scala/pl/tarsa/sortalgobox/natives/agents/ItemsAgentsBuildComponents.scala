@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,33 +16,21 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
-#ifndef MAIN_HPP
-#define MAIN_HPP
+package pl.tarsa.sortalgobox.natives.agents
 
-#include <algorithm>
-#include <cstdint>
+import pl.tarsa.sortalgobox.natives.build.NativeComponentsSupport
 
-#include "comparing_array_items_agent.hpp"
+object ItemsAgentsBuildComponents extends NativeComponentsSupport {
+  val standard = makeResourceComponents(
+    ("/pl/tarsa/sortalgobox/natives/agents/", "items_agent.hpp"),
+    ("/pl/tarsa/sortalgobox/natives/agents/", "comparing_items_agent.hpp"),
+    ("/pl/tarsa/sortalgobox/natives/agents/implementations/",
+      "comparing_array_items_agent.hpp"))
 
-EMPTY_AUXILIARY_SPACE
-
-template<template<typename> class ItemsAgent, typename item_t>
-void sort(ItemsAgent<item_t> agent) {
-    for (size_t i = agent.size0() - 1; i >= 1; i--) {
-        for (size_t j = 0; j < i; j++) {
-            if (agent.compare0(j, j + 1) == tarsa::CompareAbove) {
-                agent.swap0(j, j + 1);
-            }
-        }
-    }
+  val recording = standard ++ makeResourceComponents(
+    ("/pl/tarsa/sortalgobox/natives/", "buffered_io.hpp"),
+    ("/pl/tarsa/sortalgobox/natives/agents/implementations/",
+      "recording_comparing_items_agent.hpp"),
+    ("/pl/tarsa/sortalgobox/natives/crossverify/", "numbercodec.hpp"))
 }
-
-void sortPerform(int32_t * const work, size_t const size,
-        auxiliary_space_t * const auxiliary) {
-    tarsa::ComparingArrayItemsAgent<int32_t> agent(work, size);
-    sort(agent);
-}
-
-#endif /* MAIN_HPP */

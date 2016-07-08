@@ -22,6 +22,7 @@ package pl.tarsa.sortalgobox.sorts.natives
 import java.lang.Long.parseLong
 
 import pl.tarsa.sortalgobox.core.NativeBenchmark
+import pl.tarsa.sortalgobox.natives.agents.ItemsAgentsBuildComponents
 import pl.tarsa.sortalgobox.natives.build._
 import pl.tarsa.sortalgobox.random.NativeMwc64x
 
@@ -56,5 +57,6 @@ object NativeBubbleSort extends NativeComponentsSupport {
     ("/pl/tarsa/sortalgobox/natives/", "macros.hpp"),
     ("/pl/tarsa/sortalgobox/natives/", "utilities.hpp"),
     ("/pl/tarsa/sortalgobox/sorts/natives/", "main.cpp"),
-    ("/pl/tarsa/sortalgobox/sorts/natives/bubble/", "main.hpp"))
+    ("/pl/tarsa/sortalgobox/sorts/natives/bubble/", "main.hpp")
+  ) ++ ItemsAgentsBuildComponents.standard
 }
