@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,7 +16,6 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 #define NDEBUG
 
@@ -33,22 +32,25 @@
 
 #include "mwc64x.hpp"
 
-#define EMPTY_AUXILIARY_SPACE struct auxiliary_space_t { \
+#define EMPTY_AUXILIARY_SPACE \
+\
+struct auxiliary_space_t { \
 }; \
 \
-auxiliary_space_t sortInitAuxiliary(size_t const size) { \
+auxiliary_space_t sortPrepareAuxiliary(size_t const size) { \
     auxiliary_space_t auxiliary; \
     return auxiliary; \
+} \
+\
+void sortReleaseAuxiliary(auxiliary_space_t& auxiliary) { \
 }
-
 
 #include xstr(SORT_MECHANICS)
 
 #ifndef VALIDATE_FUNCTION
 #define VALIDATE_FUNCTION
 
-bool sortValidate(int32_t const * const work, size_t const size,
-        auxiliary_space_t const * const auxiliary) {
+bool sortValidate(int32_t const * const work, size_t const size) {
     int32_t * reference;
     checkZero(posix_memalign((void**) &reference, 128,
             sizeof (int32_t) * size));
@@ -71,19 +73,21 @@ int main(int argc, char** argv) {
 
     int32_t * work;
     checkZero(posix_memalign((void**) &work, 128, sizeof (int32_t) * size));
-    auxiliary_space_t auxiliary = sortInitAuxiliary(size);
-
     mwc64xFill(work, size);
 
+    auxiliary_space_t auxiliary = sortPrepareAuxiliary(size);
+
     auto startingChrono = std::chrono::system_clock::now();
-    sortPerform(work, size, &auxiliary);
+    sortPerform(work, size, auxiliary);
     auto elapsedChrono = std::chrono::system_clock::now() - startingChrono;
     uint64_t elapsedChronoNanoseconds = std::chrono::duration_cast<std::chrono
         ::nanoseconds>(elapsedChrono).count();
     printf("%lx\n", elapsedChronoNanoseconds);
 
+    sortReleaseAuxiliary(auxiliary);
+
     if (shouldValidate) {
-        bool const valid = sortValidate(work, size, &auxiliary);
+        bool const valid = sortValidate(work, size);
         std::cout << (valid ? "pass" : "fail") << std::endl;
     }
 

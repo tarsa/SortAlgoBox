@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,21 +16,19 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 #ifndef UTILITIES_HPP
 #define UTILITIES_HPP
 
 template<typename T>
-void checkNew(size_t n) {
-    T * const result = new T[n];
-    assert(result != nullptr);
-    return result;
+void checkZero(T value) {
+    assert(value == 0);
 }
 
 template<typename T>
-void checkZero(T value) {
-    assert(value == 0);
+void safeFree(T*& pointer) {
+    free(pointer);
+    pointer == nullptr;
 }
 
 #endif /* UTILITIES_HPP */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,7 +16,6 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 #ifndef SABMAIN_HPP
 #define SABMAIN_HPP
@@ -53,7 +52,7 @@ struct auxiliary_space_t {
 #endif
 };
 
-auxiliary_space_t sortInitAuxiliary(size_t const size) {
+auxiliary_space_t sortPrepareAuxiliary(size_t const size) {
     auxiliary_space_t auxiliary;
 #ifdef SORT_CACHED
     checkZero(posix_memalign((void**) &auxiliary.scratchpad, 128,
@@ -62,13 +61,19 @@ auxiliary_space_t sortInitAuxiliary(size_t const size) {
     return auxiliary;
 }
 
+void sortReleaseAuxiliary(auxiliary_space_t& auxiliary) {
+#ifdef SORT_CACHED
+    safeFree(auxiliary.scratchpad);
+#endif
+}
+
 void sortPerform(int32_t * const work, size_t const size,
-        auxiliary_space_t * const auxiliary) {
+        auxiliary_space_t& auxiliary) {
 #if defined(SORT_SIMD)
     tarsa::SORT_ALGO<int32_t, true>(work, size);
 #elif defined(SORT_CACHED)
     tarsa::SORT_ALGO<int32_t, ComparisonOperator>(work, size,
-        auxiliary->scratchpad);
+        auxiliary.scratchpad);
 #else
     tarsa::SORT_ALGO<int32_t, ComparisonOperator>(work, size);
 #endif
