@@ -17,62 +17,31 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-#ifndef SABMAIN_HPP
-#define SABMAIN_HPP
+#ifndef STANDARD_ITEMS_HANDLER_HPP
+#define STANDARD_ITEMS_HANDLER_HPP
 
-#if defined(SORT_CACHED) && defined(SORT_SIMD)
-#error Unsupported combination
-#endif
+#include <cstddef>
 
-#include xstr(SORT_HEADER)
-
-using namespace tarsa;
-
-// #define COUNT_COMPARISONS
-
-#ifdef COUNT_COMPARISONS
-int64_t counter;
-
-template<typename ItemType>
-bool countingComparisonOperator(ItemType leftOp, ComparisonType opType,
-        ItemType rightOp) {
-    counter++;
-    return genericComparisonOperator(leftOp, opType, rightOp);
-}
-
-#define ComparisonOperator countingComparisonOperator
-#else
-#define ComparisonOperator genericComparisonOperator
-#endif
+#include "utilities.hpp"
 
 template<typename item_t>
 struct items_handler_t {
     item_t * input;
     size_t size;
-#ifdef SORT_CACHED
-    int8_t * scratchpad;
-#endif
 };
 
 template<typename item_t>
-items_handler_t<item_t> sortItemsHandlerPrepare(item_t * const input ,
+items_handler_t<item_t> sortItemsHandlerPrepare(item_t * const input,
         size_t const size) {
     items_handler_t<item_t> itemsHandler;
     itemsHandler.input = input;
     itemsHandler.size = size;
-#ifdef SORT_CACHED
-    checkZero(posix_memalign((void**) &itemsHandler.scratchpad, 128,
-            sizeof (int8_t) * size));
-#endif
     return itemsHandler;
 }
 
 template<typename item_t>
 void sortItemsHandlerReleasePreValidation(
         items_handler_t<item_t> &itemsHandler) {
-#ifdef SORT_CACHED
-    safeFree(itemsHandler.scratchpad);
-#endif
 }
 
 template<typename item_t>
@@ -80,18 +49,4 @@ void sortItemsHandlerReleasePostValidation(
         items_handler_t<item_t> &itemsHandler) {
 }
 
-template<typename item_t>
-void sortPerform(items_handler_t<item_t> &itemsHandler) {
-    int32_t * const work = itemsHandler.input;
-    size_t const size = itemsHandler.size;
-#if defined(SORT_SIMD)
-    tarsa::SORT_ALGO<item_t, true>(work, size);
-#elif defined(SORT_CACHED)
-    tarsa::SORT_ALGO<item_t, ComparisonOperator>(work, size,
-        itemsHandler.scratchpad);
-#else
-    tarsa::SORT_ALGO<item_t, ComparisonOperator>(work, size);
-#endif
-}
-
-#endif /* SABMAIN_HPP */
+#endif // STANDARD_ITEMS_HANDLER_HPP

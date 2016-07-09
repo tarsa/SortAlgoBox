@@ -21,12 +21,30 @@
 #define UTILITIES_HPP
 
 template<typename T>
-void checkZero(T value) {
+T * checkNonNull(T * const value) {
+    assert(value != nullptr);
+    return value;
+}
+
+template<typename T>
+T const * checkNonNull(T const * const value) {
+    assert(value != nullptr);
+    return value;
+}
+
+template<typename T>
+void checkZero(T const value) {
     assert(value == 0);
 }
 
 template<typename T>
-void safeFree(T*& pointer) {
+void safeDelete(T* &pointer) {
+    delete pointer;
+    pointer = nullptr;
+}
+
+template<typename T>
+void safeFree(T* &pointer) {
     free(pointer);
     pointer == nullptr;
 }

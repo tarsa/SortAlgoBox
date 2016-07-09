@@ -32,25 +32,14 @@
 
 #include "mwc64x.hpp"
 
-#define EMPTY_AUXILIARY_SPACE \
-\
-struct auxiliary_space_t { \
-}; \
-\
-auxiliary_space_t sortPrepareAuxiliary(size_t const size) { \
-    auxiliary_space_t auxiliary; \
-    return auxiliary; \
-} \
-\
-void sortReleaseAuxiliary(auxiliary_space_t& auxiliary) { \
-}
-
 #include xstr(SORT_MECHANICS)
 
 #ifndef VALIDATE_FUNCTION
 #define VALIDATE_FUNCTION
 
-bool sortValidate(int32_t const * const work, size_t const size) {
+bool sortValidate(items_handler_t<int32_t> const &itemsHandler) {
+    int32_t const * const work = itemsHandler.input;
+    size_t const size = itemsHandler.size;
     int32_t * reference;
     checkZero(posix_memalign((void**) &reference, 128,
             sizeof (int32_t) * size));
@@ -67,29 +56,30 @@ bool sortValidate(int32_t const * const work, size_t const size) {
 
 int main(int argc, char** argv) {
     bool shouldValidate;
-    std::cin >> shouldValidate;
     size_t size;
-    std::cin >> size;
+    std::cin >> shouldValidate >> size;
 
     int32_t * work;
     checkZero(posix_memalign((void**) &work, 128, sizeof (int32_t) * size));
     mwc64xFill(work, size);
 
-    auxiliary_space_t auxiliary = sortPrepareAuxiliary(size);
+    items_handler_t<int32_t> itemsHandler = sortItemsHandlerPrepare(work, size);
 
     auto startingChrono = std::chrono::system_clock::now();
-    sortPerform(work, size, auxiliary);
+    sortPerform(itemsHandler);
     auto elapsedChrono = std::chrono::system_clock::now() - startingChrono;
     uint64_t elapsedChronoNanoseconds = std::chrono::duration_cast<std::chrono
         ::nanoseconds>(elapsedChrono).count();
     printf("%lx\n", elapsedChronoNanoseconds);
 
-    sortReleaseAuxiliary(auxiliary);
+    sortItemsHandlerReleasePreValidation(itemsHandler);
 
     if (shouldValidate) {
-        bool const valid = sortValidate(work, size);
+        bool const valid = sortValidate(itemsHandler);
         std::cout << (valid ? "pass" : "fail") << std::endl;
     }
+
+    sortItemsHandlerReleasePostValidation(itemsHandler);
 
     return EXIT_SUCCESS;
 }

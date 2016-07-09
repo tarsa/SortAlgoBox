@@ -55,5 +55,6 @@ object NativeStdSort extends NativeComponentsSupport {
     ("/pl/tarsa/sortalgobox/natives/", "macros.hpp"),
     ("/pl/tarsa/sortalgobox/natives/", "utilities.hpp"),
     ("/pl/tarsa/sortalgobox/sorts/natives/", "main.cpp"),
+    ("/pl/tarsa/sortalgobox/sorts/natives/", "standard_items_handler.hpp"),
     ("/pl/tarsa/sortalgobox/sorts/natives/std__sort/", "main.hpp"))
 }

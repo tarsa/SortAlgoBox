@@ -23,21 +23,22 @@
 #include <algorithm>
 #include <cstdint>
 
-EMPTY_AUXILIARY_SPACE
+#include "standard_items_handler.hpp"
 
 #define VALIDATE_FUNCTION
 
-bool sortValidate(int32_t const * const work, size_t const size) {
+bool sortValidate(items_handler_t<int32_t> &itemsHandler) {
+    int32_t const * const work = itemsHandler.input;
     bool sorted = true;
-    for (size_t i = 1; sorted && (i < size); i++) {
+    for (size_t i = 1; sorted && (i < itemsHandler.size); i++) {
         sorted &= work[i - 1] <= work[i];
     }
     return sorted;
 }
 
-void sortPerform(int32_t * const work, size_t const size,
-        auxiliary_space_t& auxiliary) {
-    std::sort(work, work + size);
+void sortPerform(items_handler_t<int32_t> &itemsHandler) {
+    int32_t * const work = itemsHandler.input;
+    std::sort(work, work + itemsHandler.size);
 }
 
 #endif /* MAIN_HPP */
