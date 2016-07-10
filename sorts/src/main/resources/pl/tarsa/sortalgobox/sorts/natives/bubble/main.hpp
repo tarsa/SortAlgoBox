@@ -20,51 +20,9 @@
 #ifndef MAIN_HPP
 #define MAIN_HPP
 
-#include <algorithm>
-#include <cstdint>
+#include <cstddef>
 
-#include "comparing_array_items_agent.hpp"
-
-template<typename item_t>
-struct items_handler_t {
-    tarsa::ComparingArrayItemsAgent<item_t> * agent;
-};
-
-template<typename item_t>
-items_handler_t<item_t> sortItemsHandlerPrepare(item_t * const input ,
-        size_t const size) {
-    items_handler_t<item_t> itemsHandler;
-    itemsHandler.agent = checkNonNull(
-        new tarsa::ComparingArrayItemsAgent<item_t>(input, size));
-    return itemsHandler;
-}
-
-template<typename item_t>
-void sortItemsHandlerReleasePreValidation(
-        items_handler_t<item_t> &itemsHandler) {
-}
-
-template<typename item_t>
-void sortItemsHandlerReleasePostValidation(
-        items_handler_t<item_t> &itemsHandler) {
-    safeDelete(itemsHandler.agent);
-}
-
-#define VALIDATE_FUNCTION
-
-bool sortValidate(items_handler_t<int32_t> const &itemsHandler) {
-    size_t const size = itemsHandler.agent->size0();
-    int32_t * reference;
-    checkZero(posix_memalign((void**) &reference, 128,
-            sizeof (int32_t) * size));
-    mwc64xFill(reference, size);
-    std::sort(reference, reference + size);
-    bool valid = true;
-    for (size_t i = 0; valid && (i < size); i++) {
-        valid &= itemsHandler.agent->get0(i) == reference[i];
-    }
-    return valid;
-}
+#include "items_handler.hpp"
 
 template<template<typename> class ItemsAgent, typename item_t>
 void sort(ItemsAgent<item_t> agent) {
@@ -77,7 +35,8 @@ void sort(ItemsAgent<item_t> agent) {
     }
 }
 
-void sortPerform(items_handler_t<int32_t> &itemsHandler) {
+template<typename item_t>
+void sortPerform(items_handler_t<item_t> &itemsHandler) {
     sort(*itemsHandler.agent);
 }
 

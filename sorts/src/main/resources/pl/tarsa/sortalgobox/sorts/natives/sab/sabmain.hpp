@@ -28,57 +28,7 @@
 
 using namespace tarsa;
 
-// #define COUNT_COMPARISONS
-
-#ifdef COUNT_COMPARISONS
-int64_t counter;
-
-template<typename ItemType>
-bool countingComparisonOperator(ItemType leftOp, ComparisonType opType,
-        ItemType rightOp) {
-    counter++;
-    return genericComparisonOperator(leftOp, opType, rightOp);
-}
-
-#define ComparisonOperator countingComparisonOperator
-#else
 #define ComparisonOperator genericComparisonOperator
-#endif
-
-template<typename item_t>
-struct items_handler_t {
-    item_t * input;
-    size_t size;
-#ifdef SORT_CACHED
-    int8_t * scratchpad;
-#endif
-};
-
-template<typename item_t>
-items_handler_t<item_t> sortItemsHandlerPrepare(item_t * const input ,
-        size_t const size) {
-    items_handler_t<item_t> itemsHandler;
-    itemsHandler.input = input;
-    itemsHandler.size = size;
-#ifdef SORT_CACHED
-    checkZero(posix_memalign((void**) &itemsHandler.scratchpad, 128,
-            sizeof (int8_t) * size));
-#endif
-    return itemsHandler;
-}
-
-template<typename item_t>
-void sortItemsHandlerReleasePreValidation(
-        items_handler_t<item_t> &itemsHandler) {
-#ifdef SORT_CACHED
-    safeFree(itemsHandler.scratchpad);
-#endif
-}
-
-template<typename item_t>
-void sortItemsHandlerReleasePostValidation(
-        items_handler_t<item_t> &itemsHandler) {
-}
 
 template<typename item_t>
 void sortPerform(items_handler_t<item_t> &itemsHandler) {

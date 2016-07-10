@@ -17,8 +17,8 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-#ifndef NUMBERCODEC_HPP
-#define	NUMBERCODEC_HPP
+#ifndef NUMBER_CODEC_HPP
+#define	NUMBER_CODEC_HPP
 
 #include <cstdint>
 
@@ -64,7 +64,7 @@ namespace tarsa {
         }
 
         void flush() {
-            if (!writer->flush(true)) {
+            if (error == OK && !writer->flush(true)) {
                 error = BufferedIoError;
             }
         }
@@ -180,4 +180,4 @@ namespace tarsa {
     };
 }
 
-#endif	/* NUMBERCODEC_HPP */
+#endif	/* NUMBER_CODEC_HPP */

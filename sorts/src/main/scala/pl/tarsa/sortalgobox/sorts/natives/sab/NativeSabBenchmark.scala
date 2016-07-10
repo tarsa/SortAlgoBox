@@ -27,7 +27,7 @@ import pl.tarsa.sortalgobox.natives.build._
 import pl.tarsa.sortalgobox.random.NativeMwc64x
 
 class NativeSabBenchmark(sortAlgoName: String, sortHeader: String,
-  nativesCache: NativesCache = NativesCache,
+  nativesCache: NativesCache, itemsHandlerType: String = "ITEMS_HANDLER_RAW",
   sortCached: Boolean = false, sortSimd: Boolean = false)
   extends NativeBenchmark {
 
@@ -41,6 +41,7 @@ class NativeSabBenchmark(sortAlgoName: String, sortHeader: String,
       CompilerDefine(defineName, None)
     }
     val algoDefines = Seq(
+      CompilerDefine("ITEMS_HANDLER_TYPE", Some(itemsHandlerType)),
       CompilerDefine("SORT_ALGO", Some(sortAlgoName)),
       CompilerDefine("SORT_HEADER", Some(sortHeader)),
       CompilerDefine("SORT_MECHANICS", Some("sabmain.hpp"))) ++ sortTypeDefines
@@ -73,6 +74,7 @@ object NativeSabBenchmark extends NativeComponentsSupport {
       ("/pl/tarsa/sortalgobox/natives/", "macros.hpp"),
       ("/pl/tarsa/sortalgobox/natives/", "utilities.hpp"),
       ("/pl/tarsa/sortalgobox/sorts/natives/", "main.cpp"),
+      ("/pl/tarsa/sortalgobox/sorts/natives/", "items_handler.hpp"),
       (sabNamePrefix, "sabmain.hpp"),
       (sabNamePrefix, "sortalgocommon.hpp"),
       (sabNamePrefix, sortHeader))

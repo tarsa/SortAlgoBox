@@ -31,7 +31,9 @@ class NativeStdSort(nativesCache: NativesCache = NativesCache)
   val name = getClass.getSimpleName
 
   val buildConfig = {
-    val algoDefines = Seq(CompilerDefine("SORT_MECHANICS", Some("main.hpp")))
+    val algoDefines = Seq(
+      CompilerDefine("ITEMS_HANDLER_TYPE", Some("ITEMS_HANDLER_RAW_REFERENCE")),
+      CompilerDefine("SORT_MECHANICS", Some("main.hpp")))
     val compilerOptions = CompilerOptions(defines =
       CompilerOptions.defaultDefines ++ algoDefines)
     NativeBuildConfig(NativeStdSort.components, "main.cpp", compilerOptions)
@@ -55,6 +57,6 @@ object NativeStdSort extends NativeComponentsSupport {
     ("/pl/tarsa/sortalgobox/natives/", "macros.hpp"),
     ("/pl/tarsa/sortalgobox/natives/", "utilities.hpp"),
     ("/pl/tarsa/sortalgobox/sorts/natives/", "main.cpp"),
-    ("/pl/tarsa/sortalgobox/sorts/natives/", "standard_items_handler.hpp"),
+    ("/pl/tarsa/sortalgobox/sorts/natives/", "items_handler.hpp"),
     ("/pl/tarsa/sortalgobox/sorts/natives/std__sort/", "main.hpp"))
 }

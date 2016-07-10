@@ -20,24 +20,11 @@
 #ifndef MAIN_HPP
 #define MAIN_HPP
 
-#include <algorithm>
-#include <cstdint>
+#include "items_handler.hpp"
 
-#include "standard_items_handler.hpp"
-
-#define VALIDATE_FUNCTION
-
-bool sortValidate(items_handler_t<int32_t> &itemsHandler) {
-    int32_t const * const work = itemsHandler.input;
-    bool sorted = true;
-    for (size_t i = 1; sorted && (i < itemsHandler.size); i++) {
-        sorted &= work[i - 1] <= work[i];
-    }
-    return sorted;
-}
-
-void sortPerform(items_handler_t<int32_t> &itemsHandler) {
-    int32_t * const work = itemsHandler.input;
+template<typename item_t>
+void sortPerform(items_handler_t<item_t> &itemsHandler) {
+    item_t * const work = itemsHandler.input;
     std::sort(work, work + itemsHandler.size);
 }
 

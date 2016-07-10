@@ -30,29 +30,10 @@
 #include "macros.hpp"
 #include "utilities.hpp"
 
+#include "items_handler.hpp"
 #include "mwc64x.hpp"
 
 #include xstr(SORT_MECHANICS)
-
-#ifndef VALIDATE_FUNCTION
-#define VALIDATE_FUNCTION
-
-bool sortValidate(items_handler_t<int32_t> const &itemsHandler) {
-    int32_t const * const work = itemsHandler.input;
-    size_t const size = itemsHandler.size;
-    int32_t * reference;
-    checkZero(posix_memalign((void**) &reference, 128,
-            sizeof (int32_t) * size));
-    mwc64xFill(reference, size);
-    std::sort(reference, reference + size);
-    bool valid = true;
-    for (size_t i = 0; valid && (i < size); i++) {
-        valid &= work[i] == reference[i];
-    }
-    return valid;
-}
-
-#endif // VALIDATE_FUNCTION
 
 int main(int argc, char** argv) {
     bool shouldValidate;

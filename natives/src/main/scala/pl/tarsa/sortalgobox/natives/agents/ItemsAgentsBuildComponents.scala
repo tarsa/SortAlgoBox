@@ -32,5 +32,5 @@ object ItemsAgentsBuildComponents extends NativeComponentsSupport {
     ("/pl/tarsa/sortalgobox/natives/", "buffered_io.hpp"),
     ("/pl/tarsa/sortalgobox/natives/agents/implementations/",
       "recording_comparing_items_agent.hpp"),
-    ("/pl/tarsa/sortalgobox/natives/crossverify/", "numbercodec.hpp"))
+    ("/pl/tarsa/sortalgobox/natives/crossverify/", "number_codec.hpp"))
 }

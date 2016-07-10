@@ -132,7 +132,7 @@ object NativeNumberCodecSpec extends NativeComponentsSupport {
   ).map(Test.tupled)
 
   val system_includes = List("cstdlib", "cstring", "iostream").map(s => s"<$s>")
-  val local_includes = List("numbercodec.hpp").map('"' + _ + '"')
+  val local_includes = List("number_codec.hpp").map('"' + _ + '"')
 
   def stringify_include(quotedFile: String) = s"#include $quotedFile"
 
@@ -239,6 +239,6 @@ $cases
     mainSourceFile)
   val buildConfig = NativeBuildConfig(makeResourceComponents(
     ("/pl/tarsa/sortalgobox/natives/", "buffered_io.hpp"),
-    ("/pl/tarsa/sortalgobox/natives/crossverify/", "numbercodec.hpp")
+    ("/pl/tarsa/sortalgobox/natives/crossverify/", "number_codec.hpp")
   ) :+ specBuildComponent, mainSourceFile)
 }

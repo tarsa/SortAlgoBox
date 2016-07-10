@@ -32,7 +32,10 @@ class NativeBubbleSort(nativesCache: NativesCache = NativesCache)
   val name = getClass.getSimpleName
 
   val buildConfig = {
-    val algoDefines = Seq(CompilerDefine("SORT_MECHANICS", Some("main.hpp")))
+    val algoDefines = Seq(
+      CompilerDefine("ITEMS_HANDLER_TYPE",
+        Some("ITEMS_HANDLER_AGENT_COMPARING")),
+      CompilerDefine("SORT_MECHANICS", Some("main.hpp")))
     val compilerOptions = CompilerOptions(defines =
       CompilerOptions.defaultDefines ++ algoDefines)
     NativeBuildConfig(NativeBubbleSort.components, "main.cpp", compilerOptions)
@@ -57,6 +60,7 @@ object NativeBubbleSort extends NativeComponentsSupport {
     ("/pl/tarsa/sortalgobox/natives/", "macros.hpp"),
     ("/pl/tarsa/sortalgobox/natives/", "utilities.hpp"),
     ("/pl/tarsa/sortalgobox/sorts/natives/", "main.cpp"),
+    ("/pl/tarsa/sortalgobox/sorts/natives/", "items_handler.hpp"),
     ("/pl/tarsa/sortalgobox/sorts/natives/bubble/", "main.hpp")
   ) ++ ItemsAgentsBuildComponents.standard
 }

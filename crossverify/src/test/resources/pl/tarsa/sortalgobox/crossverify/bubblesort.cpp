@@ -23,7 +23,7 @@
 #include "buffered_io.hpp"
 #include "comparing_array_items_agent.hpp"
 #include "mwc64x.hpp"
-#include "numbercodec.hpp"
+#include "number_codec.hpp"
 #include "recording_comparing_items_agent.hpp"
 
 template<template<typename> class ItemsAgent, typename item_t>
