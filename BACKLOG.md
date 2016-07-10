@@ -1,6 +1,9 @@
 Backlog:
 
  * convert native C++ sorts to use items agents
+ * remove native C++ items handlers when we are left with items agents only
+ * make witness classes for native C++ items agents instead of useless
+   inheritance of empty methods
  * use specialization in Scala items agents
  * implement guards in generated native C++ headers (eg enums)
  * decide on int8_t or uint8_t in native C++ number codecs and buffered I/O
