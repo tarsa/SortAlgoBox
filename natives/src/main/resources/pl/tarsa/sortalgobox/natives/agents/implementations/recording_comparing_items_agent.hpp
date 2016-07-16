@@ -34,68 +34,68 @@ namespace tarsa {
         template<typename item_t>
         class RecordingComparingItemsAgent :
                 public ComparingItemsAgent<item_t> {
-            NumberEncoder recorder;
-            UnderlyingItemsAgent<item_t> underlying;
+            NumberEncoder * const recorder;
+            UnderlyingItemsAgent<item_t> const underlying;
 
         public:
-            RecordingComparingItemsAgent(NumberEncoder const recorder,
+            RecordingComparingItemsAgent(NumberEncoder * const recorder,
                     UnderlyingItemsAgent<item_t> const underlying):
                 recorder(recorder), underlying(underlying) {
             }
 
-            size_t size0() {
-                recorder.serializeInt(CodeSize0);
+            size_t size0() const {
+                recorder->serializeInt(CodeSize0);
                 return underlying.size0();
             }
 
-            item_t get0(size_t const i) {
-                recorder.serializeInt(CodeGet0);
-                recorder.serializeLong(i);
+            item_t get0(size_t const i) const {
+                recorder->serializeInt(CodeGet0);
+                recorder->serializeLong(i);
                 return underlying.get0(i);
             }
 
-            void set0(size_t const i, item_t const v) {
-                recorder.serializeInt(CodeSet0);
-                recorder.serializeLong(i);
+            void set0(size_t const i, item_t const v) const {
+                recorder->serializeInt(CodeSet0);
+                recorder->serializeLong(i);
                 underlying.set0(i, v);
             }
 
-            void copy0(size_t const i, size_t const j, size_t const n) {
-                recorder.serializeInt(CodeCopy0);
-                recorder.serializeLong(i);
-                recorder.serializeLong(j);
-                recorder.serializeLong(n);
+            void copy0(size_t const i, size_t const j, size_t const n) const {
+                recorder->serializeInt(CodeCopy0);
+                recorder->serializeLong(i);
+                recorder->serializeLong(j);
+                recorder->serializeLong(n);
                 underlying.copy0(i, j, n);
             }
 
-            void swap0(size_t const i, size_t const j) {
-                recorder.serializeInt(CodeSwap0);
-                recorder.serializeLong(i);
-                recorder.serializeLong(j);
+            void swap0(size_t const i, size_t const j) const {
+                recorder->serializeInt(CodeSwap0);
+                recorder->serializeLong(i);
+                recorder->serializeLong(j);
                 underlying.swap0(i, j);
             }
 
-            compare_t compare(item_t const a, item_t const b) {
-                recorder.serializeInt(CodeCompare);
+            compare_t compare(item_t const a, item_t const b) const {
+                recorder->serializeInt(CodeCompare);
                 return underlying.compare(a, b);
             }
 
-            bool compareLt(item_t const a, item_t const b) {
-                recorder.serializeInt(CodeCompare);
+            bool compareLt(item_t const a, item_t const b) const {
+                recorder->serializeInt(CodeCompare);
                 return underlying.compareLt(a, b);
             }
 
-            compare_t compare0(size_t const i, size_t const j) {
-                recorder.serializeInt(CodeCompare0);
-                recorder.serializeLong(i);
-                recorder.serializeLong(j);
+            compare_t compare0(size_t const i, size_t const j) const {
+                recorder->serializeInt(CodeCompare0);
+                recorder->serializeLong(i);
+                recorder->serializeLong(j);
                 return underlying.compare0(i, j);
             }
 
-            bool compareLt0(size_t const i, size_t const j) {
-                recorder.serializeInt(CodeCompare0);
-                recorder.serializeLong(i);
-                recorder.serializeLong(j);
+            bool compareLt0(size_t const i, size_t const j) const {
+                recorder->serializeInt(CodeCompare0);
+                recorder->serializeLong(i);
+                recorder->serializeLong(j);
                 return underlying.compareLt0(i, j);
             }
         };

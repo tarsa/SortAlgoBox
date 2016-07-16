@@ -20,31 +20,38 @@
 package pl.tarsa.sortalgobox.sorts.natives
 
 import java.lang.Long.parseLong
+import java.nio.file.Path
 
 import pl.tarsa.sortalgobox.core.NativeBenchmark
 import pl.tarsa.sortalgobox.natives.agents.ItemsAgentsBuildComponents
 import pl.tarsa.sortalgobox.natives.build._
 import pl.tarsa.sortalgobox.random.NativeMwc64x
 
-class NativeBubbleSort(nativesCache: NativesCache = NativesCache)
-  extends NativeBenchmark {
+class NativeBubbleSort(nativesCache: NativesCache = NativesCache,
+  recordingFileOpt: Option[Path] = None) extends NativeBenchmark {
 
   val name = getClass.getSimpleName
 
   val buildConfig = {
     val algoDefines = Seq(
       CompilerDefine("ITEMS_HANDLER_TYPE",
-        Some("ITEMS_HANDLER_AGENT_COMPARING")),
+        if (recordingFileOpt.isDefined) {
+          Some("ITEMS_HANDLER_AGENT_RECORDING_COMPARING")
+        } else {
+          Some("ITEMS_HANDLER_AGENT_COMPARING")
+        }),
       CompilerDefine("SORT_MECHANICS", Some("main.hpp")))
     val compilerOptions = CompilerOptions(defines =
       CompilerOptions.defaultDefines ++ algoDefines)
-    NativeBuildConfig(NativeBubbleSort.components, "main.cpp", compilerOptions)
+    NativeBuildConfig(NativeBubbleSort.components(recordingFileOpt.isDefined),
+      "main.cpp", compilerOptions)
   }
 
   override def forSize(n: Int, validate: Boolean,
     buffer: Option[Array[Int]]): Long = {
 
-    val input = Seq(if (validate) 1 else 0, n).map(_.toString)
+    val input = Seq(Some(if (validate) 1 else 0), Some(n), recordingFileOpt)
+      .flatten.map(_.toString)
     val execResult = nativesCache.runCachedProgram(buildConfig, input)
     val lines = execResult.stdOut.lines.toList
     if (validate) {
@@ -56,11 +63,18 @@ class NativeBubbleSort(nativesCache: NativesCache = NativesCache)
 }
 
 object NativeBubbleSort extends NativeComponentsSupport {
-  val components = NativeMwc64x.header ++ makeResourceComponents(
-    ("/pl/tarsa/sortalgobox/natives/", "macros.hpp"),
-    ("/pl/tarsa/sortalgobox/natives/", "utilities.hpp"),
-    ("/pl/tarsa/sortalgobox/sorts/natives/", "main.cpp"),
-    ("/pl/tarsa/sortalgobox/sorts/natives/", "items_handler.hpp"),
-    ("/pl/tarsa/sortalgobox/sorts/natives/bubble/", "main.hpp")
-  ) ++ ItemsAgentsBuildComponents.standard
+  def components(recordingEnabled: Boolean) = NativeMwc64x.header ++
+    makeResourceComponents(
+      ("/pl/tarsa/sortalgobox/natives/", "macros.hpp"),
+      ("/pl/tarsa/sortalgobox/natives/", "utilities.hpp"),
+      ("/pl/tarsa/sortalgobox/sorts/natives/", "main.cpp"),
+      ("/pl/tarsa/sortalgobox/sorts/natives/", "items_handler.hpp"),
+      ("/pl/tarsa/sortalgobox/sorts/natives/bubble/", "main.hpp")
+    ) ++ (
+      if (recordingEnabled) {
+        ItemsAgentsBuildComponents.recording
+      } else {
+        ItemsAgentsBuildComponents.standard
+      }
+    )
 }

@@ -91,12 +91,13 @@ items_handler_t<item_t> sortItemsHandlerPrepare(item_t * const input,
 #if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_RECORDING_COMPARING
     itemsHandler.writer = checkNonNull(new tarsa::BufferedFileWriter(
         recordingFilePath, 1 << 20, true));
-    itemsHandler.numberEncoder = checkNonNull(new tarsa::NumberEncoder(writer));
+    itemsHandler.numberEncoder = checkNonNull(
+        new tarsa::NumberEncoder(itemsHandler.writer));
     itemsHandler.basicAgent = checkNonNull(
         new tarsa::ComparingArrayItemsAgent<item_t>(input, size));
     itemsHandler.agent = checkNonNull(new tarsa::
         RecordingComparingItemsAgentSetup<tarsa::ComparingArrayItemsAgent>::
-        Result<int32_t>(numberEncoder, basicAgent));
+        Result<int32_t>(itemsHandler.numberEncoder, *itemsHandler.basicAgent));
 #endif
 #if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_RAW || \
     ITEMS_HANDLER_TYPE == ITEMS_HANDLER_RAW_REFERENCE || \
