@@ -27,5 +27,5 @@ class NativeInsertionSort(nativesCache: NativesCache,
   recordingFileOpt: Option[Path] = None) extends
   NativeItemsAgentSort(
     NativeBuildComponentFromResource(
-      "/pl/tarsa/sortalgobox/sorts/natives/insertion/", "main.hpp"),
+      "/pl/tarsa/sortalgobox/sorts/natives/", "insertion.hpp"),
     nativesCache, recordingFileOpt)

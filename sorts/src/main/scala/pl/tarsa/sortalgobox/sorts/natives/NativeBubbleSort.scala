@@ -27,5 +27,5 @@ class NativeBubbleSort(nativesCache: NativesCache,
   recordingFileOpt: Option[Path] = None) extends
   NativeItemsAgentSort(
     NativeBuildComponentFromResource(
-      "/pl/tarsa/sortalgobox/sorts/natives/bubble/", "main.hpp"),
+      "/pl/tarsa/sortalgobox/sorts/natives/", "bubble.hpp"),
     nativesCache, recordingFileOpt)

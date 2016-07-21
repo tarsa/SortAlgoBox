@@ -73,8 +73,8 @@ object NativeSabBenchmark extends NativeComponentsSupport {
     NativeMwc64x.header ++ makeResourceComponents(
       ("/pl/tarsa/sortalgobox/natives/", "macros.hpp"),
       ("/pl/tarsa/sortalgobox/natives/", "utilities.hpp"),
-      ("/pl/tarsa/sortalgobox/sorts/natives/", "main.cpp"),
-      ("/pl/tarsa/sortalgobox/sorts/natives/", "items_handler.hpp"),
+      ("/pl/tarsa/sortalgobox/sorts/natives/common/", "main.cpp"),
+      ("/pl/tarsa/sortalgobox/sorts/natives/common/", "items_handler.hpp"),
       (sabNamePrefix, "sabmain.hpp"),
       (sabNamePrefix, "sortalgocommon.hpp"),
       (sabNamePrefix, sortHeader))
