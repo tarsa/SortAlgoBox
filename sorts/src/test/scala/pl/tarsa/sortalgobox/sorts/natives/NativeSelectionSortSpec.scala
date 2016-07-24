@@ -17,27 +17,15 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-package pl.tarsa.sortalgobox.sorts.scala.selection
+package pl.tarsa.sortalgobox.sorts.natives
 
-import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
-import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
+import pl.tarsa.sortalgobox.tests.NativesUnitSpecBase
 
-class SelectionSort extends ComparisonSortAlgorithm {
-  override def sort[ItemType](
-    itemsAgent: ComparingItemsAgent[ItemType]): Unit = {
-    import itemsAgent._
+class NativeSelectionSortSpec extends NativesUnitSpecBase {
+  typeBehavior[NativeSelectionSort]
 
-    val size = size0
-    for (i <- 0 to size - 2) {
-      val j = ((i + 1) until size).foldLeft(i) {
-        case (lastMinIndex, itemIndex) =>
-          if (compare0(lastMinIndex, itemIndex) > 0) {
-            itemIndex
-          } else {
-            lastMinIndex
-          }
-      }
-      swap0(i, j)
-    }
+  it must "sort and validate" in {
+    val sort = new NativeSelectionSort(testNativesCache)
+    sort.forSize(12345, validate = true)
   }
 }

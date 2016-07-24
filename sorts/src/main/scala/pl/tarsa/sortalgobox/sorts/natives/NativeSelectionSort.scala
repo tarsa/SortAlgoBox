@@ -17,27 +17,15 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-package pl.tarsa.sortalgobox.sorts.scala.selection
+package pl.tarsa.sortalgobox.sorts.natives
 
-import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
-import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
+import java.nio.file.Path
 
-class SelectionSort extends ComparisonSortAlgorithm {
-  override def sort[ItemType](
-    itemsAgent: ComparingItemsAgent[ItemType]): Unit = {
-    import itemsAgent._
+import pl.tarsa.sortalgobox.natives.build.{NativeBuildComponentFromResource, NativesCache}
 
-    val size = size0
-    for (i <- 0 to size - 2) {
-      val j = ((i + 1) until size).foldLeft(i) {
-        case (lastMinIndex, itemIndex) =>
-          if (compare0(lastMinIndex, itemIndex) > 0) {
-            itemIndex
-          } else {
-            lastMinIndex
-          }
-      }
-      swap0(i, j)
-    }
-  }
-}
+class NativeSelectionSort(nativesCache: NativesCache,
+  recordingFileOpt: Option[Path] = None) extends
+  NativeItemsAgentSort(
+    NativeBuildComponentFromResource(
+      "/pl/tarsa/sortalgobox/sorts/natives/", "selection.hpp"),
+    nativesCache, recordingFileOpt)

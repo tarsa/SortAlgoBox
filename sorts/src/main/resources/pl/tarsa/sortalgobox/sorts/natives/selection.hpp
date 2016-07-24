@@ -17,27 +17,30 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-package pl.tarsa.sortalgobox.sorts.scala.selection
+#ifndef MAIN_HPP
+#define MAIN_HPP
 
-import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
-import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
+#include <cstddef>
 
-class SelectionSort extends ComparisonSortAlgorithm {
-  override def sort[ItemType](
-    itemsAgent: ComparingItemsAgent[ItemType]): Unit = {
-    import itemsAgent._
+#include "items_handler.hpp"
 
-    val size = size0
-    for (i <- 0 to size - 2) {
-      val j = ((i + 1) until size).foldLeft(i) {
-        case (lastMinIndex, itemIndex) =>
-          if (compare0(lastMinIndex, itemIndex) > 0) {
-            itemIndex
-          } else {
-            lastMinIndex
-          }
-      }
-      swap0(i, j)
+template<template<typename> class ItemsAgent, typename item_t>
+void sort(ItemsAgent<item_t> agent) {
+    size_t const size = agent.size0();
+    for (size_t i = 0; i < size - 1; i++) {
+        size_t minIndex = i;
+        for (size_t j = i + 1; j < size; j++) {
+            if (agent.compare0(minIndex, j) == tarsa::CompareAbove) {
+                minIndex = j;
+            }
+        }
+        agent.swap0(i, minIndex);
     }
-  }
 }
+
+template<typename item_t>
+void sortPerform(items_handler_t<item_t> &itemsHandler) {
+    sort(*itemsHandler.agent);
+}
+
+#endif /* MAIN_HPP */
