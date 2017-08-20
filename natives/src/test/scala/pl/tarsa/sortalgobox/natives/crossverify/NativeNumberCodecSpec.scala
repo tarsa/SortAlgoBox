@@ -71,7 +71,7 @@ object NativeNumberCodecSpec extends NativeComponentsSupport {
     ("serialize max int", SerializeInt,
       "9, INT32_MAX, new int8_t[5]{-1, -1, -1, -1, 7}, 5, NumberCodec::OK"),
     ("fail on int serialization when not enough remaining space", SerializeInt,
-      s"2, INT32_MAX, new int8_t[2]{$filler, $filler}, 2, " +
+      s"2, INT32_MAX, new int8_t[2]{(int8_t) $filler, (int8_t) $filler}, 2, " +
         "NumberCodec::BufferedIoError"),
     ("fail on deserialization of empty buffer for int", DeserializeInt,
       "nullptr, 0, -1, 0, NumberCodec::BufferedIoError"),
@@ -104,8 +104,8 @@ object NativeNumberCodecSpec extends NativeComponentsSupport {
       "9, INT64_MAX, new int8_t[9]{-1, -1, -1, -1, -1, -1, -1, -1, 127}, 9," +
         "NumberCodec::OK"),
     ("fail on long serialization when not enough remaining space",
-      SerializeLong, s"2, INT64_MAX, new int8_t[2]{$filler, $filler}, 2, " +
-      "NumberCodec::BufferedIoError"),
+      SerializeLong, s"2, INT64_MAX, new int8_t[2]{(int8_t) $filler, " +
+      s"(int8_t) $filler}, 2, NumberCodec::BufferedIoError"),
     ("fail on deserialization of empty buffer for long", DeserializeLong,
       "nullptr, 0, -1, 0, NumberCodec::BufferedIoError"),
     ("fail on deserialization of unfinished negative sequence for long",
