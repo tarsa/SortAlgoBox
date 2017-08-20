@@ -23,7 +23,7 @@ import sbt.Keys._
 
 object MainBuild extends Build {
 
-  val theScalaVersion = "2.11.8"
+  val theScalaVersion = "2.11.11"
 
   lazy val commonSettings = Seq(
     scalaVersion := theScalaVersion,
@@ -33,7 +33,7 @@ object MainBuild extends Build {
       "org.scala-lang" % "scala-library" % theScalaVersion,
       "org.scala-lang" % "scala-reflect" % theScalaVersion,
       "org.scala-lang.modules" %% "scala-xml" % "1.0.5",
-      "org.scalatest" %% "scalatest" % "2.2.6" % "test")
+      "org.scalatest" %% "scalatest" % "3.0.1" % Test)
   )
 
   val fullDep = "compile->compile;test->test"
@@ -45,10 +45,10 @@ object MainBuild extends Build {
         "com.jsuereth" %% "scala-arm" % "1.4",
         "commons-io" % "commons-io" % "2.5",
         "org.apache.commons" % "commons-math3" % "3.6.1",
-        "org.jocl" % "jocl" % "0.1.9",
-        "org.scalafx" %% "scalafx" % "8.0.92-R10",
-        "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test",
-        "org.scalatest" %% "scalatest" % "2.2.6" % "test")
+        "org.jocl" % "jocl" % "2.0.0",
+        "org.scalafx" %% "scalafx" % "8.0.102-R11",
+        "org.scalamock" %% "scalamock-scalatest-support" % "3.6.0" % Test,
+        "org.scalatest" %% "scalatest" % "3.0.1" % Test)
     )
 
   lazy val depsCp = deps % fullDep

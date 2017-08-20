@@ -32,6 +32,8 @@ import scala.reflect.runtime.universe._
 abstract class CommonUnitSpecBase
   extends FlatSpec with MockFactory with MustMatchers {
 
+  System.setProperty("uniqueLibraryNames", "true")
+
   val `have full code coverage` = "have full code coverage"
 
   def typeBehavior[T](implicit tag: TypeTag[T]): Unit = {
