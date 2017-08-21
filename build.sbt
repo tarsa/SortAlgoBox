@@ -24,7 +24,7 @@ lazy val commonSettings =
   Seq(
     scalaVersion := theScalaVersion,
     conflictManager := ConflictManager.strict,
-    scalacOptions += "-feature",
+    scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked"),
     dependencyOverrides ++= Seq(
       "org.scala-lang" % "scala-library" % theScalaVersion,
       "org.scala-lang" % "scala-reflect" % theScalaVersion,
