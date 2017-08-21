@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -33,7 +33,8 @@ object MainBuild extends Build {
       "org.scala-lang" % "scala-library" % theScalaVersion,
       "org.scala-lang" % "scala-reflect" % theScalaVersion,
       "org.scala-lang.modules" %% "scala-xml" % "1.0.5",
-      "org.scalatest" %% "scalatest" % "3.0.1" % Test)
+      "org.scalatest" %% "scalatest" % "3.0.1" % Test
+    )
   )
 
   val fullDep = "compile->compile;test->test"
@@ -48,23 +49,24 @@ object MainBuild extends Build {
         "org.jocl" % "jocl" % "2.0.0",
         "org.scalafx" %% "scalafx" % "8.0.102-R11",
         "org.scalamock" %% "scalamock-scalatest-support" % "3.6.0" % Test,
-        "org.scalatest" %% "scalatest" % "3.0.1" % Test)
+        "org.scalatest" %% "scalatest" % "3.0.1" % Test
+      )
     )
 
   lazy val depsCp = deps % fullDep
 
-  lazy val rootDeps = Seq(common, core, crossVerify, fxGui, natives, openCl,
-    random, sorts)
+  lazy val rootDeps =
+    Seq(common, core, crossVerify, fxGui, natives, openCl, random, sorts)
 
   lazy val root = Project(id = "SortingAlgorithmsToolbox", base = file("."))
-    .settings(
-      version := "0.1",
-      name := "SortingAlgorithmsToolbox")
+    .settings(version := "0.1", name := "SortingAlgorithmsToolbox")
     .settings(commonSettings: _*)
     .aggregate(rootDeps.map(Project.projectToRef): _*)
     .dependsOn(rootDeps.map(p => ClasspathDependency(p, Some(fullDep))): _*)
-    .settings(rootDeps.map(dep => discoveredMainClasses in Compile <++=
-      discoveredMainClasses in dep in Compile): _*)
+    .settings(rootDeps.map { dep =>
+      discoveredMainClasses in Compile ++=
+        (discoveredMainClasses in dep in Compile).value
+    }: _*)
 
   lazy val common =
     Project(id = "common", base = file("./common"))
