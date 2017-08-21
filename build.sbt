@@ -20,43 +20,44 @@
 
 val theScalaVersion = "2.11.11"
 
-lazy val commonSettings = Seq(
-  scalaVersion := theScalaVersion,
-  conflictManager := ConflictManager.strict,
-  scalacOptions += "-feature",
-  dependencyOverrides ++= Set(
-    "org.scala-lang" % "scala-library" % theScalaVersion,
-    "org.scala-lang" % "scala-reflect" % theScalaVersion,
-    "org.scala-lang.modules" %% "scala-xml" % "1.0.5",
-    "org.scalatest" %% "scalatest" % "3.0.1" % Test
-  )
-)
-
-val fullDep = "compile->compile;test->test"
-
-lazy val deps = (project in file("./deps"))
-  .copy(id = "deps")
-  .settings(commonSettings: _*)
-  .settings(
-    libraryDependencies ++= Seq(
-      "com.jsuereth" %% "scala-arm" % "1.4",
-      "commons-io" % "commons-io" % "2.5",
-      "org.apache.commons" % "commons-math3" % "3.6.1",
-      "org.jocl" % "jocl" % "2.0.0",
-      "org.scalafx" %% "scalafx" % "8.0.102-R11",
-      "org.scalamock" %% "scalamock-scalatest-support" % "3.6.0" % Test,
+lazy val commonSettings =
+  Seq(
+    scalaVersion := theScalaVersion,
+    conflictManager := ConflictManager.strict,
+    scalacOptions += "-feature",
+    dependencyOverrides ++= Seq(
+      "org.scala-lang" % "scala-library" % theScalaVersion,
+      "org.scala-lang" % "scala-reflect" % theScalaVersion,
+      "org.scala-lang.modules" %% "scala-xml" % "1.0.5",
       "org.scalatest" %% "scalatest" % "3.0.1" % Test
     )
   )
+
+val fullDep = "compile->compile;test->test"
+
+//noinspection SbtReplaceProjectWithProjectIn
+lazy val deps =
+  Project("deps", file("./deps"))
+    .settings(commonSettings: _*)
+    .settings(
+      libraryDependencies ++= Seq(
+        "com.jsuereth" %% "scala-arm" % "1.4",
+        "commons-io" % "commons-io" % "2.5",
+        "org.apache.commons" % "commons-math3" % "3.6.1",
+        "org.jocl" % "jocl" % "2.0.0",
+        "org.scalafx" %% "scalafx" % "8.0.102-R11",
+        "org.scalamock" %% "scalamock-scalatest-support" % "3.6.0" % Test,
+        "org.scalatest" %% "scalatest" % "3.0.1" % Test
+      )
+    )
 
 lazy val depsCp = deps % fullDep
 
 lazy val rootDeps =
   Seq(common, core, crossVerify, fxGui, natives, openCl, random, sorts)
 
-lazy val root = (project in file("."))
-  .copy(id = "SortingAlgorithmsToolbox")
-  .settings(version := "0.1", name := "SortingAlgorithmsToolbox")
+lazy val root = Project("SortingAlgorithmsToolbox", file("."))
+  .settings(version := "0.1")
   .settings(commonSettings: _*)
   .aggregate(rootDeps.map(Project.projectToRef): _*)
   .dependsOn(rootDeps.map(p => ClasspathDependency(p, Some(fullDep))): _*)
@@ -65,65 +66,62 @@ lazy val root = (project in file("."))
       (discoveredMainClasses in dep in Compile).value
   }: _*)
 
+//noinspection SbtReplaceProjectWithProjectIn
 lazy val common =
-  (project in file("./common"))
-    .copy(id = "common")
+  Project("common", file("./common"))
     .settings(commonSettings: _*)
     .dependsOn(depsCp)
 
 lazy val commonCp = common % fullDep
 
+//noinspection SbtReplaceProjectWithProjectIn
 lazy val core =
-  (project in file("./core"))
-    .copy(id = "core")
+  Project("core", file("./core"))
     .settings(commonSettings: _*)
     .dependsOn(commonCp, nativesCp, openClCp, randomCp)
 
 lazy val coreCp = core % fullDep
 
 lazy val crossVerify =
-  (project in file("./crossverify"))
-    .copy(id = "crossverify")
+  Project("crossverify", file("./crossverify"))
     .settings(commonSettings: _*)
     .dependsOn(commonCp, nativesCp, openClCp, randomCp, sortsCp)
 
 lazy val crossVerifyCp = crossVerify % fullDep
 
 lazy val fxGui =
-  (project in file("./fxgui"))
-    .copy(id = "fxgui")
+  Project("fxgui", file("./fxgui"))
     .settings(commonSettings: _*)
     .dependsOn(commonCp, coreCp)
 
 lazy val fxGuiCp = fxGui % fullDep
 
+//noinspection SbtReplaceProjectWithProjectIn
 lazy val natives =
-  (project in file("./natives"))
-    .copy(id = "natives")
+  Project("natives", file("./natives"))
     .settings(commonSettings: _*)
     .dependsOn(commonCp)
 
 lazy val nativesCp = natives % fullDep
 
 lazy val openCl =
-  (project in file("./opencl"))
-    .copy(id = "opencl")
+  Project("opencl", file("./opencl"))
     .settings(commonSettings: _*)
     .dependsOn(commonCp)
 
 lazy val openClCp = openCl % fullDep
 
+//noinspection SbtReplaceProjectWithProjectIn
 lazy val random =
-  (project in file("./random"))
-    .copy(id = "random")
+  Project("random", file("./random"))
     .settings(commonSettings: _*)
     .dependsOn(commonCp, nativesCp, openClCp)
 
 lazy val randomCp = random % fullDep
 
+//noinspection SbtReplaceProjectWithProjectIn
 lazy val sorts =
-  (project in file("./sorts"))
-    .copy(id = "sorts")
+  Project("sorts", file("./sorts"))
     .settings(commonSettings: _*)
     .dependsOn(commonCp, coreCp, nativesCp)
 
