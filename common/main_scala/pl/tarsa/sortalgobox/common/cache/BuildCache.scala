@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -20,9 +20,11 @@
 package pl.tarsa.sortalgobox.common.cache
 
 import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.{CountDownLatch,
-ConcurrentHashMap => jConcurrentHashMap, ConcurrentMap => jConcurrentMap}
-import java.util.function.{Function => jFunction}
+import java.util.concurrent.{
+  CountDownLatch,
+  ConcurrentHashMap => jConcurrentHashMap,
+  ConcurrentMap => jConcurrentMap
+}
 
 abstract class BuildCache {
   type BuildKey
@@ -32,7 +34,7 @@ abstract class BuildCache {
   sealed trait BuildStatus
 
   case class BuildPending(buildId: Long, latch: CountDownLatch)
-    extends BuildStatus
+      extends BuildStatus
 
   case class BuildSucceeded(value: BuildValue) extends BuildStatus
 
@@ -45,15 +47,13 @@ abstract class BuildCache {
 
   protected def cachedBuild(key: BuildKey): BuildStatus = {
     val nextBuildId = buildIdGenerator.incrementAndGet()
-    val cachedBuildStatus = buildCache.computeIfAbsent(key,
-      new jFunction[BuildKey, BuildStatus] {
-        override def apply(t: BuildKey): BuildStatus =
-          BuildPending(nextBuildId, new CountDownLatch(1))
-      })
+    val cachedBuildStatus = buildCache.computeIfAbsent(
+      key,
+      _ => BuildPending(nextBuildId, new CountDownLatch(1)))
     cachedBuildStatus match {
       case BuildPending(buildId, latch) if buildId == nextBuildId =>
-        val newBuildStatus = build(key).fold[BuildStatus](
-          BuildFailed, BuildSucceeded)
+        val newBuildStatus =
+          build(key).fold[BuildStatus](BuildFailed, BuildSucceeded)
         buildCache.put(key, newBuildStatus)
         latch.countDown()
         newBuildStatus

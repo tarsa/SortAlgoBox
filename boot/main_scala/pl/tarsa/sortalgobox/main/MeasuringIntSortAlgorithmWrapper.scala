@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -20,12 +20,11 @@
  */
 package pl.tarsa.sortalgobox.main
 
-import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
 import pl.tarsa.sortalgobox.core.common._
 import pl.tarsa.sortalgobox.core.common.agents.implementations.ComparingIntArrayItemsAgent
 
 object MeasuringIntSortAlgorithmWrapper {
-  def apply(plainSortAlgorithm: AnyRef): MeasuredSortAlgorithm[Int] =
+  def apply(plainSortAlgorithm: AnyRef): MeasuredSortAlgorithm[Int] = {
     plainSortAlgorithm match {
       case sortAlgorithm: GenericIntSortAlgorithm =>
         wrap(sortAlgorithm)
@@ -37,13 +36,12 @@ object MeasuringIntSortAlgorithmWrapper {
           System.nanoTime() - startTime
         }
     }
+  }
 
-  def wrap(doSorting: (Array[Int]) => Unit): MeasuredSortAlgorithm[Int] =
-    new MeasuredSortAlgorithm[Int] {
-      override def sort(array: Array[Int]): Long = {
-        val startTime = System.nanoTime()
-        doSorting(array)
-        System.nanoTime() - startTime
-      }
-    }
+  def wrap(doSorting: (Array[Int]) => Unit): MeasuredSortAlgorithm[Int] = {
+    (array: Array[Int]) =>
+      val startTime = System.nanoTime()
+      doSorting(array)
+      System.nanoTime() - startTime
+  }
 }
