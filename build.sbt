@@ -18,7 +18,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-val theScalaVersion = "2.11.11"
+val theScalaVersion = "2.12.3"
 
 lazy val directoriesLayoutSettings =
   Seq(
@@ -40,7 +40,7 @@ lazy val commonSettings =
     dependencyOverrides ++= Seq(
       "org.scala-lang" % "scala-library" % theScalaVersion,
       "org.scala-lang" % "scala-reflect" % theScalaVersion,
-      "org.scala-lang.modules" %% "scala-xml" % "1.0.5",
+      "org.scala-lang.modules" %% "scala-xml" % "1.0.6",
       "org.scalatest" %% "scalatest" % "3.0.1" % Test
     )
   ) ++ directoriesLayoutSettings ++ Special.commonSettings
@@ -53,7 +53,7 @@ lazy val deps =
     .settings(commonSettings: _*)
     .settings(
       libraryDependencies ++= Seq(
-        "com.jsuereth" %% "scala-arm" % "1.4",
+        "com.jsuereth" %% "scala-arm" % "2.0",
         "commons-io" % "commons-io" % "2.5",
         "org.apache.commons" % "commons-math3" % "3.6.1",
         "org.scalafx" %% "scalafx" % "8.0.102-R11",
