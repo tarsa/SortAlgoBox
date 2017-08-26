@@ -59,7 +59,6 @@ lazy val deps =
         "org.scalafx" %% "scalafx" % "8.0.102-R11",
         // test libraries
         "com.typesafe.akka" %% "akka-testkit" % Versions.akka % Test,
-        "org.scalamock" %% "scalamock-scalatest-support" % "3.6.0" % Test,
         "org.scalatest" %% "scalatest" % "3.0.1" % Test
       )
     )

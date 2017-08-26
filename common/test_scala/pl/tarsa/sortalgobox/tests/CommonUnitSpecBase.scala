@@ -22,15 +22,18 @@ package pl.tarsa.sortalgobox.tests
 
 import java.util.concurrent.{Executors, TimeUnit}
 
-import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FlatSpec, MustMatchers}
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
+import scala.concurrent.{
+  Await,
+  ExecutionContext,
+  ExecutionContextExecutorService,
+  Future
+}
 import scala.reflect.runtime.universe._
 
-abstract class CommonUnitSpecBase
-  extends FlatSpec with MockFactory with MustMatchers {
+abstract class CommonUnitSpecBase extends FlatSpec with MustMatchers {
 
   System.setProperty("uniqueLibraryNames", "true")
 
@@ -55,8 +58,8 @@ abstract class CommonUnitSpecBase
     }
   }
 
-  def withFixedExecutor(threadsNumber: Int)
-    (body: ExecutionContextExecutorService => Unit): Unit = {
+  def withFixedExecutor(threadsNumber: Int)(
+      body: ExecutionContextExecutorService => Unit): Unit = {
     val execCtx = ExecutionContext.fromExecutorService(
       Executors.newFixedThreadPool(threadsNumber))
     try {
