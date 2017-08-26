@@ -31,7 +31,7 @@ lazy val commonSettings =
       "org.scala-lang.modules" %% "scala-xml" % "1.0.5",
       "org.scalatest" %% "scalatest" % "3.0.1" % Test
     )
-  )
+  ) ++ Special.commonSettings
 
 val fullDep = "compile->compile;test->test"
 
@@ -44,12 +44,12 @@ lazy val deps =
         "com.jsuereth" %% "scala-arm" % "1.4",
         "commons-io" % "commons-io" % "2.5",
         "org.apache.commons" % "commons-math3" % "3.6.1",
-        "org.jocl" % "jocl" % "2.0.0",
         "org.scalafx" %% "scalafx" % "8.0.102-R11",
         "org.scalamock" %% "scalamock-scalatest-support" % "3.6.0" % Test,
         "org.scalatest" %% "scalatest" % "3.0.1" % Test
       )
     )
+    .settings(Special.depsSettings: _*)
 
 lazy val depsCp = deps % fullDep
 
