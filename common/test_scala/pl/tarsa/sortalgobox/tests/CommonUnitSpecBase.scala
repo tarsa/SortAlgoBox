@@ -31,7 +31,7 @@ import scala.concurrent.{
   ExecutionContextExecutorService,
   Future
 }
-import scala.reflect.runtime.universe._
+import scala.reflect.ClassTag
 
 abstract class CommonUnitSpecBase extends FlatSpec with MustMatchers {
 
@@ -39,9 +39,8 @@ abstract class CommonUnitSpecBase extends FlatSpec with MustMatchers {
 
   val `have full code coverage` = "have full code coverage"
 
-  def typeBehavior[T](implicit tag: TypeTag[T]): Unit = {
-    behavior of typeOf[T].typeSymbol.toString
-  }
+  def typeBehavior[T](implicit classTag: ClassTag[T]): Unit =
+    behavior of classTag.runtimeClass.getSimpleName
 
   implicit class InstantFuture[T](future: Future[T]) {
     def readyNow(): Future[T] = Await.ready(future, Duration.Inf)
