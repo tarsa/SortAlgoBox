@@ -20,6 +20,18 @@
 
 val theScalaVersion = "2.11.11"
 
+lazy val directoriesLayoutSettings =
+  Seq(
+    sourceDirectory in Compile := baseDirectory.value / "main_src",
+    sourceDirectory in Test := baseDirectory.value / "test_src",
+    resourceDirectory in Compile := baseDirectory.value / "main_rsrc",
+    resourceDirectory in Test := baseDirectory.value / "test_rsrc",
+    scalaSource in Compile := baseDirectory.value / "main_scala",
+    scalaSource in Test := baseDirectory.value / "test_scala",
+    javaSource in Compile := baseDirectory.value / "main_java",
+    javaSource in Test := baseDirectory.value / "test_java"
+  )
+
 lazy val commonSettings =
   Seq(
     scalaVersion := theScalaVersion,
@@ -31,7 +43,7 @@ lazy val commonSettings =
       "org.scala-lang.modules" %% "scala-xml" % "1.0.5",
       "org.scalatest" %% "scalatest" % "3.0.1" % Test
     )
-  ) ++ Special.commonSettings
+  ) ++ directoriesLayoutSettings ++ Special.commonSettings
 
 val fullDep = "compile->compile;test->test"
 
@@ -53,8 +65,7 @@ lazy val deps =
 
 lazy val depsCp = deps % fullDep
 
-lazy val rootDeps =
-  Seq(common, core, crossVerify, fxGui, natives, openCl, random, sorts)
+lazy val rootDeps = boot +: bootDeps
 
 lazy val root = Project("SortingAlgorithmsToolbox", file("."))
   .settings(version := "0.1")
@@ -65,6 +76,15 @@ lazy val root = Project("SortingAlgorithmsToolbox", file("."))
     discoveredMainClasses in Compile ++=
       (discoveredMainClasses in dep in Compile).value
   }: _*)
+
+lazy val bootDeps =
+  Seq(common, core, crossVerify, fxGui, natives, openCl, random, sorts)
+
+//noinspection SbtReplaceProjectWithProjectIn
+lazy val boot =
+  Project("boot", file("./boot"))
+    .settings(commonSettings: _*)
+    .dependsOn(bootDeps.map(p => ClasspathDependency(p, Some(fullDep))): _*)
 
 //noinspection SbtReplaceProjectWithProjectIn
 lazy val common =
