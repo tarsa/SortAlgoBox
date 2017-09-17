@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,7 +16,6 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.core.actors
 
@@ -26,35 +25,76 @@ import pl.tarsa.sortalgobox.core.actors.BenchmarkWorkerActor.{
   BenchmarkRequest,
   BenchmarkSucceeded
 }
-import pl.tarsa.sortalgobox.tests.ActorSpecBase
+import pl.tarsa.sortalgobox.tests.{ActorSpecBase, LightException}
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 
 class BenchmarkWorkerActorSpec extends ActorSpecBase {
   typeBehavior[BenchmarkWorkerActor]
 
-  it must "report time of successful action" in {
-    val workerActor = TestActorRef[BenchmarkWorkerActor]
-    val probe = TestProbe()
-    probe.send(workerActor, BenchmarkRequest(5, () => ()))
-    val result = probe.expectMsgType[BenchmarkSucceeded]
-    result.id mustBe 5
-    result.timeTaken mustBe >(Duration.Zero)
+  it must "report time of successful action" in new Fixture {
+    probe.send(workerActor, BenchmarkRequest(5, 1, _ => 2 * nanosInMilli))
+    probe.expectMsg(BenchmarkSucceeded(5, 2.millis))
   }
 
-  it must "report failure" in {
-    val workerActor = TestActorRef[BenchmarkWorkerActor]
-    val probe = TestProbe()
-    probe.send(workerActor, BenchmarkRequest(3, () => sys.error("boom")))
+  it must "report failure" in new Fixture {
+    probe.send(workerActor,
+               BenchmarkRequest(3, 1, _ => throw LightException("boom")))
     probe.expectMsg(BenchmarkFailed(3))
   }
 
-  it must "work after failure" in {
-    val workerActor = TestActorRef[BenchmarkWorkerActor]
-    val probe = TestProbe()
-    probe.send(workerActor, BenchmarkRequest(1, () => sys.error("boom")))
+  it must "work after failure" in new Fixture {
+    probe.send(workerActor,
+               BenchmarkRequest(1, 1, _ => throw LightException("boom")))
     probe.expectMsg(BenchmarkFailed(1))
-    probe.send(workerActor, BenchmarkRequest(2, () => ()))
-    probe.expectMsgType[BenchmarkSucceeded].id mustBe 2
+    probe.send(workerActor, BenchmarkRequest(2, 1, _ => 3000 * nanosInMilli))
+    probe.expectMsg(BenchmarkSucceeded(2, 3.seconds))
   }
+
+  it must "run action with correctly sized buffer" in new Fixture {
+    probe.send(workerActor, BenchmarkRequest(4, 123, buffer => {
+      buffer.length mustBe 123
+      1000
+    }))
+    probe.expectMsg(BenchmarkSucceeded(4, 1.micro))
+  }
+
+  it must "reuse previously created buffer of same size" in new Fixture {
+    var bufferOpt: Option[Array[Int]] = None
+    probe.send(workerActor, BenchmarkRequest(6, 123, buffer => {
+      bufferOpt = Some(buffer)
+      0
+    }))
+    probe.expectMsg(BenchmarkSucceeded(6, Duration.Zero))
+    bufferOpt mustBe 'defined
+    probe.send(workerActor, BenchmarkRequest(7, 123, buffer => {
+      assert(bufferOpt.get eq buffer)
+      0
+    }))
+    probe.expectMsg(BenchmarkSucceeded(7, Duration.Zero))
+  }
+
+  it must "create new buffer if old one has different size" in new Fixture {
+    var bufferOpt: Option[Array[Int]] = None
+    probe.send(workerActor, BenchmarkRequest(8, 123, buffer => {
+      bufferOpt = Some(buffer)
+      0
+    }))
+    probe.expectMsg(BenchmarkSucceeded(8, Duration.Zero))
+    bufferOpt mustBe 'defined
+    probe.send(workerActor, BenchmarkRequest(9, 234, buffer => {
+      assert(bufferOpt.get ne buffer)
+      0
+    }))
+    probe.expectMsg(BenchmarkSucceeded(9, Duration.Zero))
+  }
+
+  class Fixture {
+    val workerActor: TestActorRef[BenchmarkWorkerActor] =
+      TestActorRef[BenchmarkWorkerActor]
+
+    val probe = TestProbe()
+  }
+
+  val nanosInMilli: Long = 1e6.toLong
 }

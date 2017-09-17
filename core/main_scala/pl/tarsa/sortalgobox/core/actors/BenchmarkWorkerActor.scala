@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,7 +16,6 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.core.actors
 
@@ -31,13 +30,22 @@ import pl.tarsa.sortalgobox.core.actors.BenchmarkWorkerActor.{
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
 class BenchmarkWorkerActor extends Actor {
+  var bufferOpt: Option[Array[Int]] = None
+
   override def receive: Receive = {
-    case BenchmarkRequest(id, action) =>
+    case BenchmarkRequest(id, bufferSize, benchmarkBody) =>
       var result: BenchmarkResult = BenchmarkFailed(id)
+      val currentBuffer =
+        bufferOpt match {
+          case Some(buffer) if buffer.length == bufferSize =>
+            buffer
+          case _ =>
+            val buffer = Array.ofDim[Int](bufferSize)
+            bufferOpt = Some(buffer)
+            buffer
+        }
       try {
-        val startTimeNanos = System.nanoTime()
-        action()
-        val totalTimeNanos = System.nanoTime() - startTimeNanos
+        val totalTimeNanos = benchmarkBody(currentBuffer)
         val totalTime = Duration.fromNanos(totalTimeNanos)
         result = BenchmarkSucceeded(id, totalTime)
       } finally {
@@ -49,9 +57,13 @@ class BenchmarkWorkerActor extends Actor {
 object BenchmarkWorkerActor {
   val props: Props = Props(new BenchmarkWorkerActor())
 
-  case class BenchmarkRequest(id: Int, action: () => Unit)
+  case class BenchmarkRequest(id: Int,
+                              bufferSize: Int,
+                              benchmarkBody: Array[Int] => Long)
 
-  sealed trait BenchmarkResult
+  sealed trait BenchmarkResult {
+    def id: Int
+  }
 
   case class BenchmarkSucceeded(id: Int, timeTaken: FiniteDuration)
       extends BenchmarkResult

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,13 +16,12 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.tests
 
 import java.util.concurrent.{Executors, TimeUnit}
 
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.{FlatSpec, Inside, MustMatchers}
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{
@@ -33,7 +32,10 @@ import scala.concurrent.{
 }
 import scala.reflect.ClassTag
 
-abstract class CommonUnitSpecBase extends FlatSpec with MustMatchers {
+abstract class CommonUnitSpecBase
+    extends FlatSpec
+    with MustMatchers
+    with Inside {
 
   System.setProperty("uniqueLibraryNames", "true")
 

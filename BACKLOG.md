@@ -1,5 +1,7 @@
 Backlog:
 
+ * use Duration class to express durations instead of Longs
+ * convert BenchmarkSuiteActor to FSM style
  * convert native C++ sorts to use items agents
  * remove native C++ items handlers when we are left with items agents only
  * make witness classes for native C++ items agents instead of useless
