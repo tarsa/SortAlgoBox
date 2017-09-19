@@ -44,6 +44,9 @@ abstract class CommonUnitSpecBase
   def typeBehavior[T](implicit classTag: ClassTag[T]): Unit =
     behavior of classTag.runtimeClass.getSimpleName
 
+  def testException: Exception =
+    LightException(s"boom in $suiteName")
+
   implicit class InstantFuture[T](future: Future[T]) {
     def readyNow(): Future[T] = Await.ready(future, Duration.Inf)
 

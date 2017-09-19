@@ -41,7 +41,7 @@ class BenchmarkSuiteActorSpec extends ActorSpecBase {
     probe.expectMsg(BenchmarkingFinished)
   }
 
-  it must "handle warm up failures" in new Fixture {
+  it must "report warm up failures" in new Fixture {
     probe.send(suiteActor, StartBenchmarking(Seq(null)))
     expectWorkerBenchmarkRequest(0, warmUpArraySize)
     workerProbe.reply(BenchmarkWorkerActor.BenchmarkFailed(0))
@@ -49,7 +49,7 @@ class BenchmarkSuiteActorSpec extends ActorSpecBase {
     probe.expectMsg(BenchmarkingFinished)
   }
 
-  it must "handle benchmark failures" in new Fixture {
+  it must "report benchmark failures" in new Fixture {
     probe.send(suiteActor, StartBenchmarking(Seq(null)))
     expectWorkerBenchmarkRequest(0, warmUpArraySize)
     workerProbe.reply(BenchmarkWorkerActor.BenchmarkSucceeded(0, 1.second))
@@ -99,6 +99,23 @@ class BenchmarkSuiteActorSpec extends ActorSpecBase {
       instance.runBenchmark(worker, 3, 123, validate = true, benchmark)
     result mustBe BenchmarkSucceeded(3, 123, 1234.nanos)
     worker ! PoisonPill
+  }
+
+  it must "work after failures on real setup" in {
+    val suiteActor = TestActorRef(BenchmarkSuiteActor.props)
+    val probe = TestProbe()
+    val benchmark = new Benchmark {
+      override def forSize(n: Int,
+                           validate: Boolean,
+                           buffer: Option[Array[Int]]): Long =
+        throw testException
+
+      override def name: String = ""
+    }
+    probe.send(suiteActor, StartBenchmarking(Seq(benchmark, benchmark)))
+    probe.expectMsg(BenchmarkFailed(0, warmUpArraySize))
+    probe.expectMsg(BenchmarkFailed(1, warmUpArraySize))
+    probe.expectMsg(BenchmarkingFinished)
   }
 
   class Fixture {

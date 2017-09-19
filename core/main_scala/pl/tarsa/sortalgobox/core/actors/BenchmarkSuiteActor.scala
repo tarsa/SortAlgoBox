@@ -32,7 +32,9 @@ import scala.concurrent.duration._
 class BenchmarkSuiteActor(workerProps: Props) extends Actor {
   override def receive: Receive = {
     case StartBenchmarking(benchmarks) =>
-      val workerActor = context.actorOf(workerProps)
+      // context.actorOf will get stuck on child failures
+      // because we're blocking in this actor
+      val workerActor = context.system.actorOf(workerProps)
       val initiator = sender()
       val activeBenchmarks = Array.fill[Boolean](benchmarks.length)(true)
       benchmarks.zipWithIndex.foreach {
@@ -118,6 +120,7 @@ object BenchmarkSuiteActor {
 
   sealed abstract class BenchmarkResult(val isFailed: Boolean) {
     def id: Int
+    def size: Int
   }
 
   case class BenchmarkSucceeded(id: Int, size: Int, timeTaken: FiniteDuration)

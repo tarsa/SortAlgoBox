@@ -25,7 +25,7 @@ import pl.tarsa.sortalgobox.core.actors.BenchmarkWorkerActor.{
   BenchmarkRequest,
   BenchmarkSucceeded
 }
-import pl.tarsa.sortalgobox.tests.{ActorSpecBase, LightException}
+import pl.tarsa.sortalgobox.tests.ActorSpecBase
 
 import scala.concurrent.duration._
 
@@ -38,14 +38,12 @@ class BenchmarkWorkerActorSpec extends ActorSpecBase {
   }
 
   it must "report failure" in new Fixture {
-    probe.send(workerActor,
-               BenchmarkRequest(3, 1, _ => throw LightException("boom")))
+    probe.send(workerActor, BenchmarkRequest(3, 1, _ => throw testException))
     probe.expectMsg(BenchmarkFailed(3))
   }
 
   it must "work after failure" in new Fixture {
-    probe.send(workerActor,
-               BenchmarkRequest(1, 1, _ => throw LightException("boom")))
+    probe.send(workerActor, BenchmarkRequest(1, 1, _ => throw testException))
     probe.expectMsg(BenchmarkFailed(1))
     probe.send(workerActor, BenchmarkRequest(2, 1, _ => 3000 * nanosInMilli))
     probe.expectMsg(BenchmarkSucceeded(2, 3.seconds))
