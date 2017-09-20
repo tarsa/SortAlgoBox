@@ -22,13 +22,8 @@ package pl.tarsa.sortalgobox.core.actors
 import akka.actor.{ActorRef, PoisonPill, Props}
 import akka.testkit.{TestActorRef, TestActors, TestProbe}
 import pl.tarsa.sortalgobox.core.Benchmark
-import pl.tarsa.sortalgobox.core.actors.BenchmarkSuiteActor.{
-  BenchmarkFailed,
-  BenchmarkSucceeded,
-  BenchmarkingFinished,
-  StartBenchmarking,
-  warmUpArraySize
-}
+import pl.tarsa.sortalgobox.core.actors.BenchmarkSuiteActor.BenchmarkData._
+import pl.tarsa.sortalgobox.core.actors.BenchmarkSuiteActor._
 import pl.tarsa.sortalgobox.tests.ActorSpecBase
 
 import scala.concurrent.duration._
@@ -80,9 +75,6 @@ class BenchmarkSuiteActorSpec extends ActorSpecBase {
   }
 
   it must "send proper requests to worker actor" in {
-    val instance =
-      TestActorRef(new BenchmarkSuiteActor(null)).underlyingActor
-    val worker = actorSystem.actorOf(BenchmarkWorkerActor.props)
     val benchmark = new Benchmark {
       override def name: String = ""
 
@@ -95,9 +87,16 @@ class BenchmarkSuiteActorSpec extends ActorSpecBase {
         1234
       }
     }
-    val result =
-      instance.runBenchmark(worker, 3, 123, validate = true, benchmark)
-    result mustBe BenchmarkSucceeded(3, 123, 1234.nanos)
+    val focusedBenchmark =
+      BenchmarksWithFocus.fromBenchmarkSuite(Seq(benchmark))
+    val benchmarkRequest = focusedBenchmark
+      .currentBenchmarkRequest(123, validate = true)
+      .copy(id = 3)
+
+    val worker = actorSystem.actorOf(BenchmarkWorkerActor.props)
+    val probe = TestProbe()
+    probe.send(worker, benchmarkRequest)
+    probe.expectMsg(BenchmarkWorkerActor.BenchmarkSucceeded(3, 1234.nanos))
     worker ! PoisonPill
   }
 

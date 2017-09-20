@@ -21,16 +21,27 @@
 package pl.tarsa.sortalgobox.tests
 
 import akka.actor.ActorSystem
+import com.typesafe.config.ConfigFactory
 import org.scalatest.BeforeAndAfterAll
+import pl.tarsa.sortalgobox.tests.AkkaSpecMixin.config
 
 trait AkkaSpecMixin { self: BeforeAndAfterAll =>
   implicit var actorSystem: ActorSystem = _
 
   override protected def beforeAll(): Unit = {
     val safeName = getClass.getSimpleName
-    actorSystem = ActorSystem(safeName)
+    actorSystem = ActorSystem(safeName, ConfigFactory.parseString(config))
   }
 
   override protected def afterAll(): Unit =
     actorSystem.terminate()
+}
+
+object AkkaSpecMixin {
+  val config: String =
+    """akka {
+      |  # actor.debug.fsm = true
+      |  # loglevel = "DEBUG"
+      |}
+    """.stripMargin
 }
