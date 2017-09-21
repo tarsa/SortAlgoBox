@@ -87,6 +87,14 @@ class BenchmarkWorkerActorSpec extends ActorSpecBase {
     probe.expectMsg(BenchmarkSucceeded(9, Duration.Zero))
   }
 
+  it must "bubble exception from benchmark body" in new Fixture {
+    intercept[TestException] {
+      workerActor.receive(BenchmarkRequest(-1, 0, _ => throw testException),
+                          probe.ref)
+    }
+    probe.expectMsg(BenchmarkFailed(-1))
+  }
+
   class Fixture {
     val workerActor: TestActorRef[BenchmarkWorkerActor] =
       TestActorRef[BenchmarkWorkerActor]

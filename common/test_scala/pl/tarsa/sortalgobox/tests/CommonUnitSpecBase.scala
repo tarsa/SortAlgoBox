@@ -37,6 +37,8 @@ abstract class CommonUnitSpecBase
     with MustMatchers
     with Inside {
 
+  type TestException = LightException
+
   System.setProperty("uniqueLibraryNames", "true")
 
   val `have full code coverage` = "have full code coverage"
