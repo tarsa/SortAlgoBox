@@ -1,7 +1,7 @@
 Backlog:
 
  * use Duration class to express durations instead of Longs
- * simplify BenchmarkSuiteActor using FSM transitions
+ * simplify BenchmarkSuiteActor
  * use lenses from https://github.com/adamw/quicklens
  * convert native C++ sorts to use items agents
  * remove native C++ items handlers when we are left with items agents only
