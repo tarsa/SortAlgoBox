@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -19,41 +19,52 @@
  */
 package pl.tarsa.sortalgobox.sorts.natives.sab
 
-import java.lang.Long._
+import java.lang.Long.parseLong
 
 import pl.tarsa.sortalgobox.core.NativeBenchmark
 import pl.tarsa.sortalgobox.core.exceptions.VerificationFailedException
-import pl.tarsa.sortalgobox.natives.build._
+import pl.tarsa.sortalgobox.natives.build.{
+  CompilerDefine,
+  CompilerOptions,
+  NativeBuildComponent,
+  NativeBuildConfig,
+  NativeComponentsSupport,
+  NativesCache
+}
 import pl.tarsa.sortalgobox.random.NativeMwc64x
 
-class NativeSabBenchmark(sortAlgoName: String, sortHeader: String,
-  nativesCache: NativesCache, itemsHandlerType: String = "ITEMS_HANDLER_RAW",
-  sortCached: Boolean = false, sortSimd: Boolean = false)
-  extends NativeBenchmark {
+import scala.concurrent.duration.{Duration, FiniteDuration}
 
-  val name = getClass.getSimpleName
+class NativeSabBenchmark(sortAlgoName: String,
+                         sortHeader: String,
+                         nativesCache: NativesCache,
+                         itemsHandlerType: String = "ITEMS_HANDLER_RAW",
+                         sortCached: Boolean = false,
+                         sortSimd: Boolean = false)
+    extends NativeBenchmark {
 
-  val buildConfig = {
+  override val buildConfig: NativeBuildConfig = {
     val sortTypeDefines = Seq(
       ("SORT_CACHED", sortCached),
       ("SORT_SIMD", sortSimd)
-    ).collect { case (defineName, true) =>
-      CompilerDefine(defineName, None)
-    }
+    ).collect { case (defineName, true) => CompilerDefine(defineName, None) }
     val algoDefines = Seq(
       CompilerDefine("ITEMS_HANDLER_TYPE", Some(itemsHandlerType)),
       CompilerDefine("SORT_ALGO", Some(sortAlgoName)),
       CompilerDefine("SORT_HEADER", Some(sortHeader)),
-      CompilerDefine("SORT_MECHANICS", Some("sabmain.hpp"))) ++ sortTypeDefines
-    val compilerOptions = CompilerOptions(defines =
-      CompilerOptions.defaultDefines ++ algoDefines)
-    NativeBuildConfig(NativeSabBenchmark.components(sortHeader), "main.cpp",
-      compilerOptions)
+      CompilerDefine("SORT_MECHANICS", Some("sabmain.hpp"))
+    ) ++ sortTypeDefines
+    val compilerOptions = CompilerOptions(
+      defines = CompilerOptions.defaultDefines ++ algoDefines)
+    NativeBuildConfig(NativeSabBenchmark.components(sortHeader),
+                      "main.cpp",
+                      compilerOptions)
   }
 
-  override def forSize(n: Int, validate: Boolean,
-    buffer: Option[Array[Int]]): Long = {
-    val input = Seq(if (validate) 1 else 0, n).map(_.toString)
+  override def forSize(itemsNumber: Int,
+                       validate: Boolean,
+                       buffer: Option[Array[Int]]): FiniteDuration = {
+    val input = Seq(if (validate) 1 else 0, itemsNumber).map(_.toString)
     val execResult = nativesCache.runCachedProgram(buildConfig, input)
     val lines = execResult.stdOut.lines.toList
     if (validate) {
@@ -62,14 +73,15 @@ class NativeSabBenchmark(sortAlgoName: String, sortHeader: String,
         throw new VerificationFailedException()
       }
     }
-    parseLong(lines.head, 16)
+    val nanosTaken = parseLong(lines.head, 16)
+    Duration.fromNanos(nanosTaken)
   }
 }
 
 object NativeSabBenchmark extends NativeComponentsSupport {
   val sabNamePrefix = "/pl/tarsa/sortalgobox/sorts/natives/sab/"
 
-  def components(sortHeader: String) = {
+  def components(sortHeader: String): Seq[NativeBuildComponent] = {
     NativeMwc64x.header ++ makeResourceComponents(
       ("/pl/tarsa/sortalgobox/natives/", "macros.hpp"),
       ("/pl/tarsa/sortalgobox/natives/", "utilities.hpp"),
@@ -77,6 +89,7 @@ object NativeSabBenchmark extends NativeComponentsSupport {
       ("/pl/tarsa/sortalgobox/sorts/natives/common/", "items_handler.hpp"),
       (sabNamePrefix, "sabmain.hpp"),
       (sabNamePrefix, "sortalgocommon.hpp"),
-      (sabNamePrefix, sortHeader))
+      (sabNamePrefix, sortHeader)
+    )
   }
 }

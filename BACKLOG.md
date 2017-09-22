@@ -1,6 +1,6 @@
 Backlog:
 
- * use Duration class to express durations instead of Longs
+ * migrate JavaFX benchmark suite to actors system
  * simplify BenchmarkSuiteActor
  * use lenses from https://github.com/adamw/quicklens
  * convert native C++ sorts to use items agents

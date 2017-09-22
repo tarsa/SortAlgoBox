@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,70 +16,77 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.main
 
-import pl.tarsa.sortalgobox.core.common._
+import pl.tarsa.sortalgobox.core.common.MeasuredSortAlgorithm
 import pl.tarsa.sortalgobox.core.{Benchmark, NativeBenchmark}
-import pl.tarsa.sortalgobox.sorts.natives.sab._
 import pl.tarsa.sortalgobox.random.Mwc64x
 import pl.tarsa.sortalgobox.sorts.jre._
 import pl.tarsa.sortalgobox.sorts.natives._
+import pl.tarsa.sortalgobox.sorts.natives.sab._
 import pl.tarsa.sortalgobox.sorts.opencl._
 import pl.tarsa.sortalgobox.sorts.scala.bitonic.BitonicSort
 
+import scala.concurrent.duration.FiniteDuration
+
 object BenchmarksConfigurations {
-  val plainSorts = List[(String, AnyRef)](
-    "BitonicSort" -> new BitonicSort,
-    "SequentialArraysSort" -> SequentialArraysSort.intSort,
-    "ParallelArraySort" -> ParallelArraysSort.intSort)
+  val plainSorts: List[(String, AnyRef)] =
+    List(
+      "BitonicSort" -> new BitonicSort,
+      "SequentialArraysSort" -> SequentialArraysSort.intSort,
+      "ParallelArraySort" -> ParallelArraysSort.intSort
+    )
 
-  val measuredSorts: List[(String, MeasuredSortAlgorithm[Int])] = List(
-    "CpuBitonicSort" -> CpuBitonicSort,
-    "GpuBitonicSort" -> GpuBitonicSort,
-    "CpuQuickSort" -> CpuQuickSort) ::: plainSorts.map {
-    case (name, sortAlgorithm) =>
-      name -> MeasuringIntSortAlgorithmWrapper(sortAlgorithm)
-  }
+  val measuredSorts: List[(String, MeasuredSortAlgorithm[Int])] =
+    List(
+      "CpuBitonicSort" -> CpuBitonicSort,
+      "GpuBitonicSort" -> GpuBitonicSort,
+      "CpuQuickSort" -> CpuQuickSort
+    ) ::: plainSorts.map {
+      case (name, sortAlgorithm) =>
+        name -> MeasuringIntSortAlgorithmWrapper(sortAlgorithm)
+    }
 
-  val nativeBenchmarks: List[NativeBenchmark] = List(
-    new NativeSabHeapBinaryAheadSimpleVariantA(),
-    new NativeSabHeapBinaryAheadSimpleVariantB(),
-    new NativeSabHeapBinaryCached(),
-    new NativeSabHeapBinaryCascadingVariantA(),
-    new NativeSabHeapBinaryCascadingVariantB(),
-    new NativeSabHeapBinaryCascadingVariantC(),
-    new NativeSabHeapBinaryCascadingVariantD(),
-    new NativeSabHeapBinaryClusteredVariantA(),
-    new NativeSabHeapBinaryClusteredVariantB(),
-    new NativeSabHeapBinaryOneBasedVariantA(),
-    new NativeSabHeapBinaryOneBasedVariantB(),
-    new NativeSabHeapHybrid(),
-    new NativeSabHeapHybridCascading(),
-    new NativeSabHeapQuaternaryCascadingVariantA(),
-    new NativeSabHeapQuaternaryVariantA(),
-    new NativeSabHeapQuaternaryVariantB(),
-    new NativeSabHeapSimdDwordCascadingVariantB(),
-    new NativeSabHeapSimdDwordCascadingVariantC(),
-    new NativeSabHeapSimdDwordVariantB(),
-    new NativeSabHeapSimdDwordVariantC(),
-    new NativeSabHeapTernaryCascadingVariantA(),
-    new NativeSabHeapTernaryClusteredVariantA(),
-    new NativeSabHeapTernaryClusteredVariantB(),
-    new NativeSabHeapTernaryOneBasedVariantA(),
-    new NativeSabHeapTernaryOneBasedVariantB(),
-    new NativeSabQuickRandomized(),
-    new NativeStdSort)
+  val nativeBenchmarks: List[NativeBenchmark] =
+    List(
+      new NativeSabHeapBinaryAheadSimpleVariantA(),
+      new NativeSabHeapBinaryAheadSimpleVariantB(),
+      new NativeSabHeapBinaryCached(),
+      new NativeSabHeapBinaryCascadingVariantA(),
+      new NativeSabHeapBinaryCascadingVariantB(),
+      new NativeSabHeapBinaryCascadingVariantC(),
+      new NativeSabHeapBinaryCascadingVariantD(),
+      new NativeSabHeapBinaryClusteredVariantA(),
+      new NativeSabHeapBinaryClusteredVariantB(),
+      new NativeSabHeapBinaryOneBasedVariantA(),
+      new NativeSabHeapBinaryOneBasedVariantB(),
+      new NativeSabHeapHybrid(),
+      new NativeSabHeapHybridCascading(),
+      new NativeSabHeapQuaternaryCascadingVariantA(),
+      new NativeSabHeapQuaternaryVariantA(),
+      new NativeSabHeapQuaternaryVariantB(),
+      new NativeSabHeapSimdDwordCascadingVariantB(),
+      new NativeSabHeapSimdDwordCascadingVariantC(),
+      new NativeSabHeapSimdDwordVariantB(),
+      new NativeSabHeapSimdDwordVariantC(),
+      new NativeSabHeapTernaryCascadingVariantA(),
+      new NativeSabHeapTernaryClusteredVariantA(),
+      new NativeSabHeapTernaryClusteredVariantB(),
+      new NativeSabHeapTernaryOneBasedVariantA(),
+      new NativeSabHeapTernaryOneBasedVariantB(),
+      new NativeSabQuickRandomized(),
+      new NativeStdSort
+    )
 
-  val benchmarks: List[Benchmark] = nativeBenchmarks :::
-    measuredSorts.map {
+  val benchmarks: List[Benchmark] = {
+    nativeBenchmarks ::: measuredSorts.map {
       case (sortName: String, sort: MeasuredSortAlgorithm[Int]) =>
         new Benchmark {
-          override def forSize(n: Int, validate: Boolean,
-            buffer: Option[Array[Int]]): Long = {
-
-            val array = buffer.getOrElse(Array.ofDim[Int](n))
+          override def forSize(itemsNumber: Int,
+                               validate: Boolean,
+                               buffer: Option[Array[Int]]): FiniteDuration = {
+            val array = buffer.getOrElse(Array.ofDim[Int](itemsNumber))
             val rng = new Mwc64x
             array.indices.foreach(array(_) = rng.nextInt())
             val totalTime = sort.sort(array)
@@ -89,11 +96,11 @@ object BenchmarksConfigurations {
             totalTime
           }
 
-          def name = sortName
+          override def name: String = sortName
         }
     }
-
-  def isSorted(ints: Array[Int]): Boolean = {
-    ints.indices.tail.forall(i => ints(i - 1) <= ints(i))
   }
+
+  def isSorted(ints: Array[Int]): Boolean =
+    ints.indices.tail.forall(i => ints(i - 1) <= ints(i))
 }

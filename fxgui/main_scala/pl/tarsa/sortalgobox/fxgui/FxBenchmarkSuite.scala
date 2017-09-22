@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,13 +16,17 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.fxgui
 
 import javafx.scene.chart.XYChart.Data
 
-import pl.tarsa.sortalgobox.core._
+import pl.tarsa.sortalgobox.core.{
+  Benchmark,
+  BenchmarkResult,
+  BenchmarkSucceeded,
+  BenchmarkSuite
+}
 
 import scala.concurrent.Future
 import scalafx.application.{JFXApp, Platform}
@@ -32,12 +36,13 @@ import scalafx.scene.Scene
 import scalafx.scene.chart.{CategoryAxis, LineChart, NumberAxis, XYChart}
 
 class FxBenchmarkSuite(val benchmarks: Seq[Benchmark])
-  extends BenchmarkSuite with JFXApp {
+    extends BenchmarkSuite
+    with JFXApp {
 
   val seriesWithBuffers = benchmarks.map { benchmark: Benchmark =>
     val buffer = ObservableBuffer[Data[String, Number]]()
-    (new XYChart.Series[String, Number](
-      XYChart.Series(benchmark.name, buffer)), buffer)
+    (new XYChart.Series[String, Number](XYChart.Series(benchmark.name, buffer)),
+     buffer)
   }
 
   stage = new JFXApp.PrimaryStage {
@@ -53,16 +58,15 @@ class FxBenchmarkSuite(val benchmarks: Seq[Benchmark])
 
   var size = 0
 
-  override def newSize(size: Int): Unit = {
+  override def newSize(size: Int): Unit =
     this.size = size
-  }
 
   override def newData(sortId: Int, result: BenchmarkResult): Unit = {
     result match {
-      case BenchmarkSucceeded(timeInMs) =>
+      case BenchmarkSucceeded(runningTime) =>
         val sizeString = size.toString
         Platform.runLater {
-          val safeTime = Math.max(1.0, timeInMs)
+          val safeTime = Math.max(1.0, runningTime.toMillis)
           seriesWithBuffers(sortId)._2 +=
             XYChart.Data[String, Number](sizeString, Math.log10(safeTime))
         }

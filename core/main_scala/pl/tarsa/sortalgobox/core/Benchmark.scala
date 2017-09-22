@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,13 +16,16 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.core
 
-trait Benchmark {
-  def forSize(n: Int, validate: Boolean,
-    buffer: Option[Array[Int]] = None): Long
+import scala.concurrent.duration.FiniteDuration
 
-  def name: String
+abstract class Benchmark {
+  def forSize(itemsNumber: Int,
+              validate: Boolean,
+              buffer: Option[Array[Int]] = None): FiniteDuration
+
+  def name: String =
+    getClass.getSimpleName
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,18 +16,23 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.sorts.opencl
 
-import pl.tarsa.sortalgobox.sorts.opencl.common._
 import pl.tarsa.sortalgobox.opencl.{CLDeviceContext, FakeTimeLine}
+import pl.tarsa.sortalgobox.sorts.opencl.common.CpuSort
 import pl.tarsa.sortalgobox.sorts.scala.shell.TokudaGapSequence
 
-object CpuShellSort extends CpuSort(
-  "/pl/tarsa/sortalgobox/sorts/opencl/CpuShellSort.cl") {
-  override def sort(array: Array[Int], deviceContext: CLDeviceContext): Long = {
-    sort(array, FakeTimeLine, Nil,
-      List(TokudaGapSequence.forSize(array.length)), deviceContext)
+import scala.concurrent.duration.FiniteDuration
+
+object CpuShellSort
+    extends CpuSort("/pl/tarsa/sortalgobox/sorts/opencl/CpuShellSort.cl") {
+  override def sort(array: Array[Int],
+                    deviceContext: CLDeviceContext): FiniteDuration = {
+    sort(array,
+         FakeTimeLine,
+         Nil,
+         List(TokudaGapSequence.forSize(array.length)),
+         deviceContext)
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -19,54 +19,71 @@
  */
 package pl.tarsa.sortalgobox.sorts.natives
 
-import java.lang.Long._
+import java.lang.Long.parseLong
 import java.nio.file.Path
 
 import pl.tarsa.sortalgobox.core.NativeBenchmark
 import pl.tarsa.sortalgobox.natives.agents.ItemsAgentsBuildComponents
-import pl.tarsa.sortalgobox.natives.build._
+import pl.tarsa.sortalgobox.natives.build.{
+  CompilerDefine,
+  CompilerOptions,
+  NativeBuildComponent,
+  NativeBuildConfig,
+  NativeComponentsSupport,
+  NativesCache
+}
 import pl.tarsa.sortalgobox.random.NativeMwc64x
 
+import scala.concurrent.duration.{Duration, FiniteDuration}
+
 abstract class NativeItemsAgentSort(
-  sortAlgorithmComponent: NativeBuildComponent,
-  nativesCache: NativesCache, recordingFileOpt: Option[Path])
-  extends NativeBenchmark {
+    sortAlgorithmComponent: NativeBuildComponent,
+    nativesCache: NativesCache,
+    recordingFileOpt: Option[Path])
+    extends NativeBenchmark {
 
-  val name = getClass.getSimpleName
-
-  val buildConfig = {
+  override val buildConfig: NativeBuildConfig = {
     val algoDefines = Seq(
-      CompilerDefine("ITEMS_HANDLER_TYPE",
-        if (recordingFileOpt.isDefined) {
-          Some("ITEMS_HANDLER_AGENT_RECORDING_COMPARING")
-        } else {
-          Some("ITEMS_HANDLER_AGENT_COMPARING")
-        }),
-      CompilerDefine("SORT_MECHANICS", Some(sortAlgorithmComponent.fileName)))
-    val compilerOptions = CompilerOptions(defines =
-      CompilerOptions.defaultDefines ++ algoDefines)
-    NativeBuildConfig(sortAlgorithmComponent +:
-      NativeItemsAgentSort.components(recordingFileOpt.isDefined),
-      "main.cpp", compilerOptions)
+      CompilerDefine("ITEMS_HANDLER_TYPE", if (recordingFileOpt.isDefined) {
+        Some("ITEMS_HANDLER_AGENT_RECORDING_COMPARING")
+      } else {
+        Some("ITEMS_HANDLER_AGENT_COMPARING")
+      }),
+      CompilerDefine("SORT_MECHANICS", Some(sortAlgorithmComponent.fileName))
+    )
+    val compilerOptions = CompilerOptions(
+      defines = CompilerOptions.defaultDefines ++ algoDefines)
+    NativeBuildConfig(
+      sortAlgorithmComponent +:
+        NativeItemsAgentSort.components(recordingFileOpt.isDefined),
+      "main.cpp",
+      compilerOptions)
   }
 
-  override def forSize(n: Int, validate: Boolean,
-    buffer: Option[Array[Int]]): Long = {
+  override def forSize(itemsNumber: Int,
+                       validate: Boolean,
+                       buffer: Option[Array[Int]]): FiniteDuration = {
 
-    val input = Seq(Some(if (validate) 1 else 0), Some(n), recordingFileOpt)
-      .flatten.map(_.toString)
+    val input =
+      Seq(
+        Some(if (validate) 1 else 0),
+        Some(itemsNumber),
+        recordingFileOpt
+      ).flatten
+        .map(_.toString)
     val execResult = nativesCache.runCachedProgram(buildConfig, input)
     val lines = execResult.stdOut.lines.toList
     if (validate) {
       val valid = lines(1) == "pass"
       assert(valid)
     }
-    parseLong(lines.head, 16)
+    val nanosTaken = parseLong(lines.head, 16)
+    Duration.fromNanos(nanosTaken)
   }
 }
 
 object NativeItemsAgentSort extends NativeComponentsSupport {
-  def components(recordingEnabled: Boolean) = {
+  def components(recordingEnabled: Boolean): Seq[NativeBuildComponent] = {
     val prng = NativeMwc64x.header
     val core = makeResourceComponents(
       ("/pl/tarsa/sortalgobox/natives/", "macros.hpp"),

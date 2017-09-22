@@ -85,18 +85,13 @@ class BenchmarkSuiteActorSpec extends ActorSpecBase {
   }
 
   it must "send proper requests to worker actor" in {
-    val benchmark = new Benchmark {
-      override def name: String = ""
-
-      override def forSize(n: Int,
-                           validate: Boolean,
-                           buffer: Option[Array[Int]]): Long = {
+    val benchmark: Benchmark =
+      (n: Int, validate: Boolean, buffer: Option[Array[Int]]) => {
         n mustBe 123
         validate mustBe true
         buffer.get must have length 123
-        1234
+        1234.nanos
       }
-    }
     val focusedBenchmark =
       BenchmarksWithFocus.fromBenchmarkSuite(Seq(benchmark))
     val benchmarkRequest = focusedBenchmark
@@ -113,14 +108,8 @@ class BenchmarkSuiteActorSpec extends ActorSpecBase {
   it must "work after failures on real setup" in {
     val suiteActor = TestActorRef(BenchmarkSuiteActor.props)
     val probe = TestProbe()
-    val benchmark = new Benchmark {
-      override def forSize(n: Int,
-                           validate: Boolean,
-                           buffer: Option[Array[Int]]): Long =
-        throw testException
-
-      override def name: String = ""
-    }
+    val benchmark: Benchmark =
+      (_: Int, _: Boolean, _: Option[Array[Int]]) => throw testException
     probe.send(suiteActor, StartBenchmarking(Seq(benchmark, benchmark)))
     probe.expectMsg(BenchmarkFailed(0, warmUpArraySize))
     probe.expectMsg(BenchmarkFailed(1, warmUpArraySize))

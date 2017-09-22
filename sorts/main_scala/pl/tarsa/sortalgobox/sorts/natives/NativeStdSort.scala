@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -19,44 +19,56 @@
  */
 package pl.tarsa.sortalgobox.sorts.natives
 
-import java.lang.Long._
+import java.lang.Long.parseLong
 
 import pl.tarsa.sortalgobox.core.NativeBenchmark
-import pl.tarsa.sortalgobox.natives.build._
+import pl.tarsa.sortalgobox.natives.build.{
+  CompilerDefine,
+  CompilerOptions,
+  NativeBuildComponent,
+  NativeBuildConfig,
+  NativeComponentsSupport,
+  NativesCache
+}
 import pl.tarsa.sortalgobox.random.NativeMwc64x
 
+import scala.concurrent.duration.{Duration, FiniteDuration}
+
 class NativeStdSort(nativesCache: NativesCache = NativesCache)
-  extends NativeBenchmark {
+    extends NativeBenchmark {
 
-  val name = getClass.getSimpleName
-
-  val buildConfig = {
+  override val buildConfig: NativeBuildConfig = {
     val algoDefines = Seq(
       CompilerDefine("ITEMS_HANDLER_TYPE", Some("ITEMS_HANDLER_RAW_REFERENCE")),
       CompilerDefine("SORT_MECHANICS", Some("std__sort.hpp")))
-    val compilerOptions = CompilerOptions(defines =
-      CompilerOptions.defaultDefines ++ algoDefines)
+    val compilerOptions = CompilerOptions(
+      defines = CompilerOptions.defaultDefines ++ algoDefines)
     NativeBuildConfig(NativeStdSort.components, "main.cpp", compilerOptions)
   }
 
-  override def forSize(n: Int, validate: Boolean,
-    buffer: Option[Array[Int]]): Long = {
-    val input = Seq(if (validate) 1 else 0, n).map(_.toString)
+  override def forSize(itemsNumber: Int,
+                       validate: Boolean,
+                       buffer: Option[Array[Int]]): FiniteDuration = {
+    val input = Seq(if (validate) 1 else 0, itemsNumber).map(_.toString)
     val execResult = nativesCache.runCachedProgram(buildConfig, input)
     val lines = execResult.stdOut.lines.toList
     if (validate) {
       val valid = lines(1) == "pass"
       assert(valid)
     }
-    parseLong(lines.head, 16)
+    val nanosTaken = parseLong(lines.head, 16)
+    Duration.fromNanos(nanosTaken)
   }
 }
 
 object NativeStdSort extends NativeComponentsSupport {
-  val components = NativeMwc64x.header ++ makeResourceComponents(
-    ("/pl/tarsa/sortalgobox/natives/", "macros.hpp"),
-    ("/pl/tarsa/sortalgobox/natives/", "utilities.hpp"),
-    ("/pl/tarsa/sortalgobox/sorts/natives/common/", "main.cpp"),
-    ("/pl/tarsa/sortalgobox/sorts/natives/common/", "items_handler.hpp"),
-    ("/pl/tarsa/sortalgobox/sorts/natives/", "std__sort.hpp"))
+  val components: Seq[NativeBuildComponent] = {
+    NativeMwc64x.header ++ makeResourceComponents(
+      ("/pl/tarsa/sortalgobox/natives/", "macros.hpp"),
+      ("/pl/tarsa/sortalgobox/natives/", "utilities.hpp"),
+      ("/pl/tarsa/sortalgobox/sorts/natives/common/", "main.cpp"),
+      ("/pl/tarsa/sortalgobox/sorts/natives/common/", "items_handler.hpp"),
+      ("/pl/tarsa/sortalgobox/sorts/natives/", "std__sort.hpp")
+    )
+  }
 }

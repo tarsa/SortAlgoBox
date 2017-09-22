@@ -16,12 +16,17 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.main
 
-import pl.tarsa.sortalgobox.core.common._
 import pl.tarsa.sortalgobox.core.common.agents.implementations.ComparingIntArrayItemsAgent
+import pl.tarsa.sortalgobox.core.common.{
+  ComparisonSortAlgorithm,
+  GenericIntSortAlgorithm,
+  MeasuredSortAlgorithm
+}
+
+import scala.concurrent.duration.Duration
 
 object MeasuringIntSortAlgorithmWrapper {
   def apply(plainSortAlgorithm: AnyRef): MeasuredSortAlgorithm[Int] = {
@@ -31,9 +36,7 @@ object MeasuringIntSortAlgorithmWrapper {
       case sortAlgorithm: ComparisonSortAlgorithm =>
         wrap { intArray: Array[Int] =>
           val itemsAgent = new ComparingIntArrayItemsAgent(intArray)
-          val startTime = System.nanoTime()
           sortAlgorithm.sort(itemsAgent)
-          System.nanoTime() - startTime
         }
     }
   }
@@ -42,6 +45,7 @@ object MeasuringIntSortAlgorithmWrapper {
     (array: Array[Int]) =>
       val startTime = System.nanoTime()
       doSorting(array)
-      System.nanoTime() - startTime
+      val nanosTaken = System.nanoTime() - startTime
+      Duration.fromNanos(nanosTaken)
   }
 }

@@ -27,7 +27,7 @@ import pl.tarsa.sortalgobox.core.actors.BenchmarkWorkerActor.{
   BenchmarkSucceeded
 }
 
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.duration.FiniteDuration
 
 class BenchmarkWorkerActor extends Actor {
   var bufferOpt: Option[Array[Int]] = None
@@ -45,8 +45,7 @@ class BenchmarkWorkerActor extends Actor {
             buffer
         }
       try {
-        val totalTimeNanos = benchmarkBody(currentBuffer)
-        val totalTime = Duration.fromNanos(totalTimeNanos)
+        val totalTime = benchmarkBody(currentBuffer)
         result = BenchmarkSucceeded(id, totalTime)
       } finally {
         sender() ! result
@@ -59,7 +58,7 @@ object BenchmarkWorkerActor {
 
   case class BenchmarkRequest(id: Int,
                               bufferSize: Int,
-                              benchmarkBody: Array[Int] => Long)
+                              benchmarkBody: Array[Int] => FiniteDuration)
 
   sealed trait BenchmarkResult {
     def id: Int

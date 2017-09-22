@@ -33,7 +33,7 @@ class BenchmarkWorkerActorSpec extends ActorSpecBase {
   typeBehavior[BenchmarkWorkerActor]
 
   it must "report time of successful action" in new Fixture {
-    probe.send(workerActor, BenchmarkRequest(5, 1, _ => 2 * nanosInMilli))
+    probe.send(workerActor, BenchmarkRequest(5, 1, _ => 2.millis))
     probe.expectMsg(BenchmarkSucceeded(5, 2.millis))
   }
 
@@ -45,14 +45,14 @@ class BenchmarkWorkerActorSpec extends ActorSpecBase {
   it must "work after failure" in new Fixture {
     probe.send(workerActor, BenchmarkRequest(1, 1, _ => throw testException))
     probe.expectMsg(BenchmarkFailed(1))
-    probe.send(workerActor, BenchmarkRequest(2, 1, _ => 3000 * nanosInMilli))
+    probe.send(workerActor, BenchmarkRequest(2, 1, _ => 3000.millis))
     probe.expectMsg(BenchmarkSucceeded(2, 3.seconds))
   }
 
   it must "run action with correctly sized buffer" in new Fixture {
     probe.send(workerActor, BenchmarkRequest(4, 123, buffer => {
       buffer.length mustBe 123
-      1000
+      1000.nanos
     }))
     probe.expectMsg(BenchmarkSucceeded(4, 1.micro))
   }
@@ -61,13 +61,13 @@ class BenchmarkWorkerActorSpec extends ActorSpecBase {
     var bufferOpt: Option[Array[Int]] = None
     probe.send(workerActor, BenchmarkRequest(6, 123, buffer => {
       bufferOpt = Some(buffer)
-      0
+      0.seconds
     }))
     probe.expectMsg(BenchmarkSucceeded(6, Duration.Zero))
     bufferOpt mustBe 'defined
     probe.send(workerActor, BenchmarkRequest(7, 123, buffer => {
       assert(bufferOpt.get eq buffer)
-      0
+      0.seconds
     }))
     probe.expectMsg(BenchmarkSucceeded(7, Duration.Zero))
   }
@@ -76,13 +76,13 @@ class BenchmarkWorkerActorSpec extends ActorSpecBase {
     var bufferOpt: Option[Array[Int]] = None
     probe.send(workerActor, BenchmarkRequest(8, 123, buffer => {
       bufferOpt = Some(buffer)
-      0
+      0.seconds
     }))
     probe.expectMsg(BenchmarkSucceeded(8, Duration.Zero))
     bufferOpt mustBe 'defined
     probe.send(workerActor, BenchmarkRequest(9, 234, buffer => {
       assert(bufferOpt.get ne buffer)
-      0
+      0.seconds
     }))
     probe.expectMsg(BenchmarkSucceeded(9, Duration.Zero))
   }
@@ -101,6 +101,4 @@ class BenchmarkWorkerActorSpec extends ActorSpecBase {
 
     val probe = TestProbe()
   }
-
-  val nanosInMilli: Long = 1e6.toLong
 }

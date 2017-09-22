@@ -22,35 +22,35 @@ package pl.tarsa.sortalgobox.core
 import pl.tarsa.sortalgobox.core.exceptions.VerificationFailedException
 import pl.tarsa.sortalgobox.natives.build.NativesCache
 
+import scala.concurrent.duration._
+
 abstract class BenchmarkSuite {
   def benchmarks: Seq[Benchmark]
-
-  val nanosecondsInMillisecond = 1e6
-  val nanosecondsInSecond = 1e9
 
   def run(): Unit = {
     val activeBenchmarks = Array.fill[Boolean](benchmarks.length)(true)
     warmUp(activeBenchmarks)
-    for (size <- Iterator.iterate(4096)(x => (x * 1.3).toInt + 5)
-      .takeWhile(_ < 123456789 && activeBenchmarks.contains(true))) {
+    for (size <- Iterator
+           .iterate(4096)(x => (x * 1.3).toInt + 5)
+           .takeWhile(_ < 123456789 && activeBenchmarks.contains(true))) {
       newSize(size)
       val buffer = Array.ofDim[Int](size)
       for ((benchmark, benchmarkId) <- benchmarks.zipWithIndex
            if activeBenchmarks(benchmarkId)) {
         try {
-          var totalTime = 0L
+          var totalTime = Duration.Zero
           var iterations = 0
-          while (iterations < 20 && totalTime < nanosecondsInSecond) {
-            val currentTotalTime = benchmark.forSize(size,
-              validate = iterations == 0, Some(buffer))
+          while (iterations < 20 && totalTime < 1.second) {
+            val currentTotalTime =
+              benchmark.forSize(size, validate = iterations == 0, Some(buffer))
             totalTime += currentTotalTime
             iterations += 1
           }
-          val timeInMs = totalTime / (iterations * nanosecondsInMillisecond)
-          if (timeInMs > 1000) {
+          val averageTime = totalTime / iterations
+          if (averageTime > 1.second) {
             activeBenchmarks(benchmarkId) = false
           }
-          newData(benchmarkId, BenchmarkSucceeded(timeInMs))
+          newData(benchmarkId, BenchmarkSucceeded(averageTime))
         } catch {
           case e: VerificationFailedException =>
             activeBenchmarks(benchmarkId) = false
@@ -62,15 +62,17 @@ abstract class BenchmarkSuite {
   }
 
   def warmUp(activeBenchmarks: Array[Boolean]): Unit = {
-    benchmarks.zipWithIndex.foreach { case (benchmark, benchmarkId) =>
-      try {
-        benchmark.forSize(12345, validate = true)
-      } catch {
-        case e: VerificationFailedException =>
-          activeBenchmarks(benchmarkId) = false
-          Console.err.println(Console.RED + "FAILED" + Console.RESET +
-            " benchmark: " + benchmark.name)
-      }
+    benchmarks.zipWithIndex.foreach {
+      case (benchmark, benchmarkId) =>
+        try {
+          benchmark.forSize(12345, validate = true)
+        } catch {
+          case e: VerificationFailedException =>
+            activeBenchmarks(benchmarkId) = false
+            val message = s"${Console.RED}FAILED${Console.RESET} " +
+              s"benchmark: ${benchmark.name}"
+            Console.err.println(message)
+        }
     }
   }
 
