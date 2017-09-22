@@ -19,10 +19,11 @@
  */
 package pl.tarsa.sortalgobox.core.actors
 
-import akka.actor.{ActorRef, PoisonPill, Props}
-import akka.testkit.{TestActorRef, TestActors, TestProbe}
+import akka.actor.PoisonPill
+import akka.testkit.{TestActorRef, TestActors, TestFSMRef, TestProbe}
 import pl.tarsa.sortalgobox.core.Benchmark
 import pl.tarsa.sortalgobox.core.actors.BenchmarkSuiteActor.BenchmarkData._
+import pl.tarsa.sortalgobox.core.actors.BenchmarkSuiteActor.BenchmarkState._
 import pl.tarsa.sortalgobox.core.actors.BenchmarkSuiteActor._
 import pl.tarsa.sortalgobox.tests.ActorSpecBase
 
@@ -34,32 +35,40 @@ class BenchmarkSuiteActorSpec extends ActorSpecBase {
   it must "succeed on empty benchmark suite" in new Fixture {
     probe.send(suiteActor, StartBenchmarking(Nil))
     probe.expectMsg(BenchmarkingFinished)
+    suiteActor.stateName mustBe Idle
   }
 
   it must "report warm up failures" in new Fixture {
     probe.send(suiteActor, StartBenchmarking(Seq(null)))
+    suiteActor.stateName mustBe WarmingUp
     expectWorkerBenchmarkRequest(0, warmUpArraySize)
     workerProbe.reply(BenchmarkWorkerActor.BenchmarkFailed(0))
     probe.expectMsg(BenchmarkFailed(0, warmUpArraySize))
     probe.expectMsg(BenchmarkingFinished)
+    suiteActor.stateName mustBe Idle
   }
 
   it must "report benchmark failures" in new Fixture {
     probe.send(suiteActor, StartBenchmarking(Seq(null)))
+    suiteActor.stateName mustBe WarmingUp
     expectWorkerBenchmarkRequest(0, warmUpArraySize)
     workerProbe.reply(BenchmarkWorkerActor.BenchmarkSucceeded(0, 1.second))
+    suiteActor.stateName mustBe Benchmarking
     expectWorkerBenchmarkRequest(0, 4096)
     workerProbe.reply(BenchmarkWorkerActor.BenchmarkFailed(0))
     probe.expectMsg(BenchmarkFailed(0, 4096))
     probe.expectMsg(BenchmarkingFinished)
+    suiteActor.stateName mustBe Idle
   }
 
   it must "disable benchmarks independently" in new Fixture {
     probe.send(suiteActor, StartBenchmarking(Seq(null, null)))
+    suiteActor.stateName mustBe WarmingUp
     expectWorkerBenchmarkRequest(0, warmUpArraySize)
     workerProbe.reply(BenchmarkWorkerActor.BenchmarkSucceeded(0, 1.second))
     expectWorkerBenchmarkRequest(1, warmUpArraySize)
     workerProbe.reply(BenchmarkWorkerActor.BenchmarkSucceeded(1, 1.second))
+    suiteActor.stateName mustBe Benchmarking
     expectWorkerBenchmarkRequest(0, 4096)
     workerProbe.reply(BenchmarkWorkerActor.BenchmarkSucceeded(0, 2.seconds))
     probe.expectMsg(BenchmarkSucceeded(0, 4096, 2.seconds))
@@ -72,6 +81,7 @@ class BenchmarkSuiteActorSpec extends ActorSpecBase {
     workerProbe.reply(BenchmarkWorkerActor.BenchmarkSucceeded(1, 2.seconds))
     probe.expectMsg(BenchmarkSucceeded(1, 5329, 2.seconds))
     probe.expectMsg(BenchmarkingFinished)
+    suiteActor.stateName mustBe Idle
   }
 
   it must "send proper requests to worker actor" in {
@@ -120,9 +130,10 @@ class BenchmarkSuiteActorSpec extends ActorSpecBase {
   class Fixture {
     val workerProbe = TestProbe()
 
-    val suiteActor: ActorRef = {
+    val suiteActor
+      : TestFSMRef[BenchmarkState, BenchmarkData, BenchmarkSuiteActor] = {
       val workerProps = TestActors.forwardActorProps(workerProbe.ref)
-      actorSystem.actorOf(Props(new BenchmarkSuiteActor(workerProps)))
+      TestFSMRef(new BenchmarkSuiteActor(workerProps))
     }
 
     val probe = TestProbe()
