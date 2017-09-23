@@ -17,13 +17,24 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-package pl.tarsa.sortalgobox.core
+package pl.tarsa.sortalgobox.fxgui
 
-import scala.concurrent.duration.FiniteDuration
+import akka.actor.{Actor, ActorRef}
+import pl.tarsa.sortalgobox.core.Benchmark
+import pl.tarsa.sortalgobox.core.actors.BenchmarkSuiteActor.{
+  BenchmarkSucceeded,
+  StartBenchmarking
+}
 
-sealed trait BenchmarkResult
+class FxBenchmarkActor(updateConsumer: BenchmarkSucceeded => Unit,
+                       benchmarks: Seq[Benchmark],
+                       benchmarkSuiteActor: ActorRef)
+    extends Actor {
+  override def preStart(): Unit =
+    benchmarkSuiteActor ! StartBenchmarking(benchmarks)
 
-case class BenchmarkSucceeded(runningTime: FiniteDuration)
-    extends BenchmarkResult
-
-case class BenchmarkFailed(failedIteration: Int) extends BenchmarkResult
+  override def receive: Receive = {
+    case successResult: BenchmarkSucceeded =>
+      updateConsumer(successResult)
+  }
+}

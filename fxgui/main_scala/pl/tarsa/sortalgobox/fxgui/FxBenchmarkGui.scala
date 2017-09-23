@@ -21,29 +21,27 @@ package pl.tarsa.sortalgobox.fxgui
 
 import javafx.scene.chart.XYChart.Data
 
-import pl.tarsa.sortalgobox.core.{
-  Benchmark,
-  BenchmarkResult,
-  BenchmarkSucceeded,
-  BenchmarkSuite
-}
+import akka.actor.{ActorSystem, Props}
+import pl.tarsa.sortalgobox.core.Benchmark
+import pl.tarsa.sortalgobox.core.actors.BenchmarkSuiteActor
+import pl.tarsa.sortalgobox.core.actors.BenchmarkSuiteActor.BenchmarkSucceeded
 
-import scala.concurrent.Future
 import scalafx.application.{JFXApp, Platform}
 import scalafx.collections.ObservableBuffer
 import scalafx.geometry.Side
 import scalafx.scene.Scene
 import scalafx.scene.chart.{CategoryAxis, LineChart, NumberAxis, XYChart}
 
-class FxBenchmarkSuite(val benchmarks: Seq[Benchmark])
-    extends BenchmarkSuite
-    with JFXApp {
+class FxBenchmarkGui(benchmarks: Seq[Benchmark]) extends JFXApp {
 
-  val seriesWithBuffers = benchmarks.map { benchmark: Benchmark =>
-    val buffer = ObservableBuffer[Data[String, Number]]()
-    (new XYChart.Series[String, Number](XYChart.Series(benchmark.name, buffer)),
-     buffer)
-  }
+  val seriesWithBuffers: Seq[(XYChart.Series[String, Number],
+                              ObservableBuffer[Data[String, Number]])] =
+    benchmarks.map { benchmark =>
+      val buffer = ObservableBuffer[Data[String, Number]]()
+      (new XYChart.Series[String, Number](
+         XYChart.Series(benchmark.name, buffer)),
+       buffer)
+    }
 
   stage = new JFXApp.PrimaryStage {
     title = "Sorting Algorithms Benchmark"
@@ -56,23 +54,28 @@ class FxBenchmarkSuite(val benchmarks: Seq[Benchmark])
     }
   }
 
-  var size = 0
-
-  override def newSize(size: Int): Unit =
-    this.size = size
-
-  override def newData(sortId: Int, result: BenchmarkResult): Unit = {
-    result match {
-      case BenchmarkSucceeded(runningTime) =>
-        val sizeString = size.toString
-        Platform.runLater {
-          val safeTime = Math.max(1.0, runningTime.toMillis)
-          seriesWithBuffers(sortId)._2 +=
-            XYChart.Data[String, Number](sizeString, Math.log10(safeTime))
-        }
-      case _ =>
+  def updateConsumer(successResult: BenchmarkSucceeded): Unit = {
+    import successResult.{id, size, timeTaken}
+    Platform.runLater {
+      val safeTimeMillis = Math.max(1.0, timeTaken.toNanos / 1e6)
+      val sizeString = size.toString
+      seriesWithBuffers(id)._2 +=
+        XYChart.Data[String, Number](sizeString, Math.log10(safeTimeMillis))
     }
   }
 
-  Future(run())(scala.concurrent.ExecutionContext.Implicits.global)
+  var actorSystem: ActorSystem = _
+
+  def startUp(): Unit = {
+    actorSystem = ActorSystem("fx-benchmark-suite")
+    val benchmarkSuiteActor = actorSystem.actorOf(BenchmarkSuiteActor.props)
+    val fxBenchmarkActorProps = Props(
+      new FxBenchmarkActor(updateConsumer, benchmarks, benchmarkSuiteActor))
+    actorSystem.actorOf(fxBenchmarkActorProps)
+  }
+
+  override def stopApp(): Unit =
+    actorSystem.terminate()
+
+  startUp()
 }
