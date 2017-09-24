@@ -21,6 +21,13 @@ package pl.tarsa.sortalgobox.core.actors
 
 import akka.actor.{Actor, ActorRef}
 import pl.tarsa.sortalgobox.core.Benchmark
+import pl.tarsa.sortalgobox.core.actors.BenchmarkSuiteActor.{
+  BenchmarkFailed,
+  BenchmarkResult,
+  BenchmarkSucceeded,
+  BenchmarkingFinished,
+  StartBenchmarking
+}
 
 class CliBenchmarkClientActor(benchmarks: Seq[Benchmark],
                               benchmarkSuiteActor: ActorRef)
@@ -28,15 +35,15 @@ class CliBenchmarkClientActor(benchmarks: Seq[Benchmark],
   var lastSize: Int = -1
 
   override def preStart(): Unit =
-    benchmarkSuiteActor ! BenchmarkSuiteActor.StartBenchmarking(benchmarks)
+    benchmarkSuiteActor ! StartBenchmarking(benchmarks, listening = true)
 
   override def receive: Receive = {
-    case result: BenchmarkSuiteActor.BenchmarkResult =>
+    case result: BenchmarkResult =>
       val resultDescription =
         result match {
-          case BenchmarkSuiteActor.BenchmarkSucceeded(_, _, timeTaken) =>
+          case BenchmarkSucceeded(_, _, timeTaken) =>
             f"${timeTaken.toMicros / 1e3}%,.3f ms"
-          case BenchmarkSuiteActor.BenchmarkFailed(_, _) =>
+          case BenchmarkFailed(_, _) =>
             "FAILED"
         }
       import result.{id, size}
@@ -45,7 +52,7 @@ class CliBenchmarkClientActor(benchmarks: Seq[Benchmark],
       }
       println(f"$resultDescription%14s ${benchmarks(id).name}")
       lastSize = size
-    case BenchmarkSuiteActor.BenchmarkingFinished =>
+    case BenchmarkingFinished =>
       println("Benchmarking finished")
       context.system.terminate()
   }

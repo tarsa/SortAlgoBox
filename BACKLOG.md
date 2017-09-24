@@ -1,5 +1,8 @@
 Backlog:
 
+ * test BenchmarkSuiteActor if it stores benchmark results properly
+ * simplify BenchmarkSuiteActor
+ * use lenses from https://github.com/adamw/quicklens
  * introduce web-based GUI
  * convert native C++ sorts to use items agents
  * remove native C++ items handlers when we are left with items agents only
@@ -14,5 +17,3 @@ Backlog:
  * implement flexible central configuration
  * add support for LLVM/ Clang (that could e.g. make tests run quicker)
  * change license to Apache 2.0
- * simplify BenchmarkSuiteActor
- * use lenses from https://github.com/adamw/quicklens

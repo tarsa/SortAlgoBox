@@ -33,20 +33,20 @@ class BenchmarkWorkerActor extends Actor {
   var bufferOpt: Option[Array[Int]] = None
 
   override def receive: Receive = {
-    case BenchmarkRequest(id, bufferSize, benchmarkBody) =>
-      var result: BenchmarkResult = BenchmarkFailed(id)
+    case BenchmarkRequest(id, problemSize, benchmarkBody) =>
+      var result: BenchmarkResult = BenchmarkFailed(id, problemSize)
       val currentBuffer =
         bufferOpt match {
-          case Some(buffer) if buffer.length == bufferSize =>
+          case Some(buffer) if buffer.length == problemSize =>
             buffer
           case _ =>
-            val buffer = Array.ofDim[Int](bufferSize)
+            val buffer = Array.ofDim[Int](problemSize)
             bufferOpt = Some(buffer)
             buffer
         }
       try {
         val totalTime = benchmarkBody(currentBuffer)
-        result = BenchmarkSucceeded(id, totalTime)
+        result = BenchmarkSucceeded(id, problemSize, totalTime)
       } finally {
         sender() ! result
       }
@@ -57,15 +57,18 @@ object BenchmarkWorkerActor {
   val props: Props = Props(new BenchmarkWorkerActor())
 
   case class BenchmarkRequest(id: Int,
-                              bufferSize: Int,
+                              problemSize: Int,
                               benchmarkBody: Array[Int] => FiniteDuration)
 
   sealed trait BenchmarkResult {
     def id: Int
+    def problemSize: Int
   }
 
-  case class BenchmarkSucceeded(id: Int, timeTaken: FiniteDuration)
+  case class BenchmarkSucceeded(id: Int,
+                                problemSize: Int,
+                                timeTaken: FiniteDuration)
       extends BenchmarkResult
 
-  case class BenchmarkFailed(id: Int) extends BenchmarkResult
+  case class BenchmarkFailed(id: Int, problemSize: Int) extends BenchmarkResult
 }

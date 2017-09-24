@@ -19,7 +19,7 @@
  */
 package pl.tarsa.sortalgobox.core.actors
 
-import akka.actor.{Actor, ActorRef, FSM, PoisonPill, Props}
+import akka.actor.{ActorRef, FSM, PoisonPill, Props}
 import pl.tarsa.sortalgobox.core.Benchmark
 import pl.tarsa.sortalgobox.core.actors.BenchmarkSuiteActor.BenchmarkData._
 import pl.tarsa.sortalgobox.core.actors.BenchmarkSuiteActor.BenchmarkState._
@@ -30,107 +30,102 @@ import scala.collection.BitSet
 import scala.concurrent.duration._
 
 class BenchmarkSuiteActor(workerProps: Props)
-    extends Actor
-    with FSM[BenchmarkState, BenchmarkData] {
+    extends FSM[BenchmarkState, BenchmarkData] {
 
-  startWith(Idle, NoData)
+  startWith(Idling, IdlingData(BenchmarksWithResults.empty))
 
-  when(Idle) {
-    case Event(StartBenchmarking(benchmarks), NoData) =>
-      val initiator = sender()
-      if (benchmarks.isEmpty) {
-        initiator ! BenchmarkingFinished
-        stay()
-      } else {
-        val workerActor = context.actorOf(workerProps)
-        goto(WarmingUp) using WarmUpData(
-          Actors(initiator, workerActor),
-          BenchmarksWithFocus.fromBenchmarkSuite(benchmarks))
+  when(Idling) {
+    case Event(StartBenchmarking(benchmarks, listening), IdlingData(_)) =>
+      val listenerOpt = {
+        val initiator = sender()
+        if (listening) Some(initiator) else None
+      }
+      RunningBenchmarksWithResults.fromBenchmarkSuite(benchmarks) match {
+        case Some(runningBenchmarks) =>
+          val workerActor = context.actorOf(workerProps)
+          goto(WarmingUp) using WarmingUpData(Actors(listenerOpt, workerActor),
+                                              runningBenchmarks)
+        case None =>
+          listenerOpt.foreach(_ ! BenchmarkingFinished)
+          stay() using IdlingData(BenchmarksWithResults.empty)
       }
   }
 
   when(WarmingUp) {
     case Event(workerResponse: BenchmarkWorkerActor.BenchmarkResult,
-               WarmUpData(actors, focusedBenchmarks)) =>
-      val response =
-        BenchmarkResult.fromWorkerResult(workerResponse, warmUpArraySize)
-      val updatedFocusedBenchmarks =
+               WarmingUpData(actors, focusedBenchmarks)) =>
+      val response = BenchmarkResult.fromWorkerResult(workerResponse)
+      val updatedRunningBenchmarks =
         if (response.isFailed) {
-          actors.initiator ! response
-          focusedBenchmarks.withCurrentBenchmarkDisabled
+          actors.listenerOpt.foreach(_ ! response)
+          focusedBenchmarks.afterFailure
+            .recordCurrentBenchmarkResult(warmUpArraySize)
+            .withCurrentBenchmarkDisabled
         } else {
           focusedBenchmarks
         }
-      updatedFocusedBenchmarks.focusedOnNextBenchmark match {
-        case Some(nextWarmUpBenchmarksFocus) =>
-          goto(WarmingUp) using WarmUpData(actors, nextWarmUpBenchmarksFocus)
+      updatedRunningBenchmarks.focusedOnNextBenchmark match {
+        case Some(nextStepWarmingUpBenchmarks) =>
+          goto(WarmingUp) using WarmingUpData(actors,
+                                              nextStepWarmingUpBenchmarks)
         case None =>
-          if (updatedFocusedBenchmarks.activeBenchmarks.isEmpty) {
-            goto(Idle) using NoData
-          } else {
-            goto(Benchmarking) using BenchmarkingData(
-              actors,
-              initialBenchmarkingSize,
-              SingleBenchmarkInfo(0, Duration.Zero),
-              updatedFocusedBenchmarks.rewind)
+          updatedRunningBenchmarks.nextRoundOpt match {
+            case Some(nextRoundBenchmarks) =>
+              goto(Benchmarking) using BenchmarkingData(actors,
+                                                        initialBenchmarkingSize,
+                                                        nextRoundBenchmarks)
+            case None =>
+              goto(Idling) using IdlingData(
+                updatedRunningBenchmarks.benchmarksWithResults)
           }
       }
   }
 
   when(Benchmarking) {
     case Event(workerResponse: BenchmarkWorkerActor.BenchmarkResult,
-               BenchmarkingData(actors,
-                                currentProblemSize,
-                                currentBenchmarkInfo,
-                                focusedBenchmarks)) =>
-      val response =
-        BenchmarkResult.fromWorkerResult(workerResponse, currentProblemSize)
-      val (updatedFocusedBenchmarks, updatedCurrentBenchmarkInfo) =
+               benchmarkingData: BenchmarkingData) =>
+      import benchmarkingData._
+      val response = BenchmarkResult.fromWorkerResult(workerResponse)
+      val updatedRunningBenchmarks =
         response match {
           case BenchmarkSucceeded(_, _, timeTaken) =>
-            val updatedBenchmarkInfo =
-              SingleBenchmarkInfo(currentBenchmarkInfo.iterations + 1,
-                                  currentBenchmarkInfo.totalTime + timeTaken)
+            val withRecordedSuccess =
+              runningBenchmarksWithResults.afterSuccess(timeTaken)
             if (timeTaken >= 1.second) {
-              (focusedBenchmarks.withCurrentBenchmarkDisabled,
-               updatedBenchmarkInfo)
+              withRecordedSuccess.withCurrentBenchmarkDisabled
             } else {
-              (focusedBenchmarks, updatedBenchmarkInfo)
+              withRecordedSuccess
             }
           case BenchmarkFailed(_, _) =>
-            actors.initiator ! response
-            (focusedBenchmarks.withCurrentBenchmarkDisabled,
-             currentBenchmarkInfo)
+            runningBenchmarksWithResults.afterFailure.withCurrentBenchmarkDisabled
         }
-      if (updatedFocusedBenchmarks.isCurrentBenchmarkActive &&
-          !updatedCurrentBenchmarkInfo.hasEnoughIterations) {
-        goto(Benchmarking) using BenchmarkingData(actors,
-                                                  currentProblemSize,
-                                                  updatedCurrentBenchmarkInfo,
-                                                  updatedFocusedBenchmarks)
+      if (updatedRunningBenchmarks.currentBenchmarkStats.needsMoreIterations(
+            20)) {
+        goto(Benchmarking) using benchmarkingData.copy(
+          runningBenchmarksWithResults = updatedRunningBenchmarks)
       } else {
-        if (updatedCurrentBenchmarkInfo.hasEnoughIterations) {
-          actors.initiator ! BenchmarkSucceeded(
-            updatedFocusedBenchmarks.currentBenchmarkIndex,
-            currentProblemSize,
-            updatedCurrentBenchmarkInfo.averageTimeOpt.get) // FIXME Option.get
+        actors.listenerOpt.foreach { listener =>
+          listener ! updatedRunningBenchmarks.currentBenchmarkStats.toResult(
+            updatedRunningBenchmarks.currentBenchmarkIndex,
+            benchmarkingData.currentProblemSize)
         }
-        updatedFocusedBenchmarks.focusedOnNextBenchmark match {
-          case Some(nextWarmUpBenchmarksFocus) =>
-            goto(Benchmarking) using BenchmarkingData(
-              actors,
-              currentProblemSize,
-              SingleBenchmarkInfo(0, Duration.Zero),
-              nextWarmUpBenchmarksFocus)
+        val afterRecordingCurrentBenchmark =
+          updatedRunningBenchmarks.recordCurrentBenchmarkResult(
+            currentProblemSize)
+        afterRecordingCurrentBenchmark.focusedOnNextBenchmark match {
+          case Some(nextStepBenchmarksWithResults) =>
+            goto(Benchmarking) using benchmarkingData.copy(
+              runningBenchmarksWithResults = nextStepBenchmarksWithResults)
           case None =>
-            if (updatedFocusedBenchmarks.activeBenchmarks.isEmpty) {
-              goto(Idle) using NoData
-            } else {
-              goto(Benchmarking) using BenchmarkingData(
-                actors,
-                (currentProblemSize * 1.3).toInt + 5,
-                SingleBenchmarkInfo(0, Duration.Zero),
-                updatedFocusedBenchmarks.rewind)
+            afterRecordingCurrentBenchmark.nextRoundOpt match {
+              case Some(nextRoundBenchmarks) =>
+                goto(Benchmarking) using BenchmarkingData(
+                  actors,
+                  (currentProblemSize * 1.3).toInt + 5,
+                  nextRoundBenchmarks)
+              case None =>
+                goto(Idling) using IdlingData(
+                  updatedRunningBenchmarks.benchmarksWithResults)
             }
         }
       }
@@ -139,8 +134,9 @@ class BenchmarkSuiteActor(workerProps: Props)
   onTransition {
     case _ -> WarmingUp =>
       nextStateData match {
-        case warmUpData: WarmUpData =>
-          warmUpData.actors.worker ! warmUpData.focusedBenchmarks
+        case warmingUpData: WarmingUpData =>
+          import warmingUpData._
+          actors.worker ! runningBenchmarksWithResults
             .currentBenchmarkRequest(warmUpArraySize, validate = true)
         case _ => illegalState()
       }
@@ -148,19 +144,20 @@ class BenchmarkSuiteActor(workerProps: Props)
       nextStateData match {
         case benchmarkingData: BenchmarkingData =>
           import benchmarkingData._
-          actors.worker ! focusedBenchmarks.currentBenchmarkRequest(
+          import runningBenchmarksWithResults._
+          actors.worker ! currentBenchmarkRequest(
             currentProblemSize,
-            currentBenchmarkInfo.iterations == 0)
+            currentBenchmarkStats.iterations == 0)
         case _ => illegalState()
       }
   }
 
   onTransition {
-    case state -> Idle if state != Idle =>
+    case state -> Idling if state != Idling =>
       stateData match {
         case activeStateData: ActiveStateData =>
           val actors = activeStateData.actors
-          actors.initiator ! BenchmarkingFinished
+          actors.listenerOpt.foreach(_ ! BenchmarkingFinished)
           actors.worker ! PoisonPill
           NativesCache.cleanup()
         case _ => illegalState()
@@ -185,85 +182,156 @@ object BenchmarkSuiteActor {
 
   sealed trait BenchmarkState
   object BenchmarkState {
-    case object Idle extends BenchmarkState
-    case object WarmingUp extends BenchmarkState
-    case object Benchmarking extends BenchmarkState
+    case object Idling extends BenchmarkState
+    sealed trait ActiveState extends BenchmarkState
+    case object WarmingUp extends ActiveState
+    case object Benchmarking extends ActiveState
   }
 
-  sealed trait BenchmarkData
+  sealed trait BenchmarkData {
+    def benchmarksWithResults: BenchmarksWithResults
+  }
 
   object BenchmarkData {
 
-    case class Actors(initiator: ActorRef, worker: ActorRef)
+    case class Actors(listenerOpt: Option[ActorRef], worker: ActorRef)
 
-    case class BenchmarksWithFocus(benchmarkSuite: Seq[Benchmark],
-                                   currentBenchmarkIndex: Int,
-                                   activeBenchmarks: BitSet) {
+    case class SingleBenchmarkStats(iterations: Int,
+                                    totalTime: FiniteDuration,
+                                    hasFailed: Boolean) {
+      def needsMoreIterations(maxIterations: Int): Boolean =
+        !hasFailed && iterations < maxIterations && totalTime < 1.second
+
+      def withSuccess(timeTaken: FiniteDuration): SingleBenchmarkStats =
+        copy(iterations = iterations + 1, totalTime = totalTime + timeTaken)
+
+      def withFailure: SingleBenchmarkStats =
+        copy(hasFailed = true)
+
+      def toResult(id: Int, problemSize: Int): BenchmarkResult = {
+        if (hasFailed) {
+          BenchmarkFailed(id, problemSize)
+        } else {
+          val averageTime = totalTime / iterations
+          BenchmarkSucceeded(id, problemSize, averageTime)
+        }
+      }
+    }
+
+    object SingleBenchmarkStats {
+      val zero = SingleBenchmarkStats(0, Duration.Zero, hasFailed = false)
+    }
+
+    case class BenchmarksWithResults(benchmarksSuite: Seq[Benchmark],
+                                     benchmarksResults: Seq[BenchmarkResult])
+
+    object BenchmarksWithResults {
+      val empty = BenchmarksWithResults(Nil, Nil)
+    }
+
+    case class RunningBenchmarksWithResults(
+        benchmarksWithResults: BenchmarksWithResults,
+        currentBenchmarkIndex: Int,
+        currentBenchmarkStats: SingleBenchmarkStats,
+        activeBenchmarks: BitSet) {
+      import benchmarksWithResults.{benchmarksSuite, benchmarksResults}
+
       def currentBenchmarkRequest(
-          bufferSize: Int,
+          problemSize: Int,
           validate: Boolean): BenchmarkWorkerActor.BenchmarkRequest = {
-        val benchmark = benchmarkSuite(currentBenchmarkIndex)
+        val benchmark = benchmarksSuite(currentBenchmarkIndex)
         BenchmarkWorkerActor.BenchmarkRequest(
           currentBenchmarkIndex,
-          bufferSize,
-          buffer => benchmark.forSize(bufferSize, validate, Some(buffer))
+          problemSize,
+          buffer => benchmark.forSize(problemSize, validate, Some(buffer))
         )
       }
 
-      def withCurrentBenchmarkDisabled: BenchmarksWithFocus =
+      def afterSuccess(
+          timeTaken: FiniteDuration): RunningBenchmarksWithResults = {
+        copy(
+          currentBenchmarkStats = currentBenchmarkStats.withSuccess(timeTaken))
+      }
+
+      def afterFailure: RunningBenchmarksWithResults =
+        copy(currentBenchmarkStats = currentBenchmarkStats.withFailure)
+
+      def recordCurrentBenchmarkResult(
+          problemSize: Int): RunningBenchmarksWithResults = {
+        copy(
+          benchmarksWithResults = benchmarksWithResults.copy(
+            benchmarksResults = benchmarksResults :+ currentBenchmarkStats
+              .toResult(currentBenchmarkIndex, problemSize)))
+      }
+
+      def withCurrentBenchmarkDisabled: RunningBenchmarksWithResults =
         copy(activeBenchmarks = activeBenchmarks - currentBenchmarkIndex)
 
-      def focusedOnNextBenchmark: Option[BenchmarksWithFocus] = {
+      def focusedOnNextBenchmark: Option[RunningBenchmarksWithResults] = {
         activeBenchmarks.from(currentBenchmarkIndex + 1).headOption.map {
           nextBenchmarkIndex =>
-            copy(currentBenchmarkIndex = nextBenchmarkIndex)
+            copy(currentBenchmarkIndex = nextBenchmarkIndex,
+                 currentBenchmarkStats = SingleBenchmarkStats.zero)
         }
       }
 
-      def rewind: BenchmarksWithFocus =
-        copy(currentBenchmarkIndex = activeBenchmarks.min)
+      def nextRoundOpt: Option[RunningBenchmarksWithResults] = {
+        activeBenchmarks.headOption.map { firstActiveBenchmarkIndex =>
+          copy(currentBenchmarkIndex = firstActiveBenchmarkIndex,
+               currentBenchmarkStats = SingleBenchmarkStats.zero)
+        }
+      }
 
       def isCurrentBenchmarkActive: Boolean =
         activeBenchmarks.contains(currentBenchmarkIndex)
     }
 
-    object BenchmarksWithFocus {
+    object RunningBenchmarksWithResults {
       def fromBenchmarkSuite(
-          benchmarks: Seq[Benchmark]): BenchmarksWithFocus = {
-        BenchmarksWithFocus(benchmarks, 0, BitSet(benchmarks.indices: _*))
+          benchmarks: Seq[Benchmark]): Option[RunningBenchmarksWithResults] = {
+        if (benchmarks.isEmpty) {
+          None
+        } else {
+          Some(
+            RunningBenchmarksWithResults(
+              BenchmarksWithResults(benchmarks, Vector.empty),
+              0,
+              SingleBenchmarkStats.zero,
+              BitSet(benchmarks.indices: _*)))
+        }
       }
     }
 
-    case class SingleBenchmarkInfo(iterations: Int, totalTime: FiniteDuration) {
-      def hasEnoughIterations: Boolean =
-        iterations >= 20 || totalTime >= 1.second
-
-      def averageTimeOpt: Option[FiniteDuration] = {
-        if (iterations == 0) None
-        else Some(totalTime / iterations)
-      }
+    case class IdlingData(lastBenchmarkResults: BenchmarksWithResults)
+        extends BenchmarkData {
+      override def benchmarksWithResults: BenchmarksWithResults =
+        lastBenchmarkResults
     }
 
-    case object NoData extends BenchmarkData
-
-    sealed trait ActiveStateData extends BenchmarkData {
+    sealed abstract class ActiveStateData extends BenchmarkData {
       def actors: Actors
+      def runningBenchmarksWithResults: RunningBenchmarksWithResults
+
+      override def benchmarksWithResults: BenchmarksWithResults =
+        runningBenchmarksWithResults.benchmarksWithResults
     }
 
-    case class WarmUpData(actors: Actors,
-                          focusedBenchmarks: BenchmarksWithFocus)
-        extends ActiveStateData
+    case class WarmingUpData(
+        actors: Actors,
+        runningBenchmarksWithResults: RunningBenchmarksWithResults
+    ) extends ActiveStateData
 
-    case class BenchmarkingData(actors: Actors,
-                                currentProblemSize: Int,
-                                currentBenchmarkInfo: SingleBenchmarkInfo,
-                                focusedBenchmarks: BenchmarksWithFocus)
-        extends ActiveStateData
+    case class BenchmarkingData(
+        actors: Actors,
+        currentProblemSize: Int,
+        runningBenchmarksWithResults: RunningBenchmarksWithResults
+    ) extends ActiveStateData
   }
 
   sealed trait BenchmarkMessage
 
-  case class StartBenchmarking(benchmarkSuite: Seq[Benchmark])
+  case class StartBenchmarking(benchmarkSuite: Seq[Benchmark],
+                               listening: Boolean)
       extends BenchmarkMessage
 
   case object BenchmarkingFinished extends BenchmarkMessage
@@ -281,13 +349,14 @@ object BenchmarkSuiteActor {
       extends BenchmarkResult(isFailed = true)
 
   object BenchmarkResult {
-    def fromWorkerResult(workerResult: BenchmarkWorkerActor.BenchmarkResult,
-                         size: Int): BenchmarkResult = {
+    private val BWA = BenchmarkWorkerActor
+
+    def fromWorkerResult(workerResult: BWA.BenchmarkResult): BenchmarkResult = {
       workerResult match {
-        case BenchmarkWorkerActor.BenchmarkSucceeded(id, timeTaken) =>
-          BenchmarkSucceeded(id, size, timeTaken)
-        case BenchmarkWorkerActor.BenchmarkFailed(id) =>
-          BenchmarkFailed(id, size)
+        case BWA.BenchmarkSucceeded(id, problemSize, timeTaken) =>
+          BenchmarkSucceeded(id, problemSize, timeTaken)
+        case BWA.BenchmarkFailed(id, problemSize) =>
+          BenchmarkFailed(id, problemSize)
       }
     }
   }

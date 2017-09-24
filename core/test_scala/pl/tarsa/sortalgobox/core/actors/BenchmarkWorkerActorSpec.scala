@@ -34,19 +34,19 @@ class BenchmarkWorkerActorSpec extends ActorSpecBase {
 
   it must "report time of successful action" in new Fixture {
     probe.send(workerActor, BenchmarkRequest(5, 1, _ => 2.millis))
-    probe.expectMsg(BenchmarkSucceeded(5, 2.millis))
+    probe.expectMsg(BenchmarkSucceeded(5, 1, 2.millis))
   }
 
   it must "report failure" in new Fixture {
     probe.send(workerActor, BenchmarkRequest(3, 1, _ => throw testException))
-    probe.expectMsg(BenchmarkFailed(3))
+    probe.expectMsg(BenchmarkFailed(3, 1))
   }
 
   it must "work after failure" in new Fixture {
     probe.send(workerActor, BenchmarkRequest(1, 1, _ => throw testException))
-    probe.expectMsg(BenchmarkFailed(1))
+    probe.expectMsg(BenchmarkFailed(1, 1))
     probe.send(workerActor, BenchmarkRequest(2, 1, _ => 3000.millis))
-    probe.expectMsg(BenchmarkSucceeded(2, 3.seconds))
+    probe.expectMsg(BenchmarkSucceeded(2, 1, 3.seconds))
   }
 
   it must "run action with correctly sized buffer" in new Fixture {
@@ -54,7 +54,7 @@ class BenchmarkWorkerActorSpec extends ActorSpecBase {
       buffer.length mustBe 123
       1000.nanos
     }))
-    probe.expectMsg(BenchmarkSucceeded(4, 1.micro))
+    probe.expectMsg(BenchmarkSucceeded(4, 123, 1.micro))
   }
 
   it must "reuse previously created buffer of same size" in new Fixture {
@@ -63,13 +63,13 @@ class BenchmarkWorkerActorSpec extends ActorSpecBase {
       bufferOpt = Some(buffer)
       0.seconds
     }))
-    probe.expectMsg(BenchmarkSucceeded(6, Duration.Zero))
+    probe.expectMsg(BenchmarkSucceeded(6, 123, Duration.Zero))
     bufferOpt mustBe 'defined
     probe.send(workerActor, BenchmarkRequest(7, 123, buffer => {
       assert(bufferOpt.get eq buffer)
       0.seconds
     }))
-    probe.expectMsg(BenchmarkSucceeded(7, Duration.Zero))
+    probe.expectMsg(BenchmarkSucceeded(7, 123, Duration.Zero))
   }
 
   it must "create new buffer if old one has different size" in new Fixture {
@@ -78,13 +78,13 @@ class BenchmarkWorkerActorSpec extends ActorSpecBase {
       bufferOpt = Some(buffer)
       0.seconds
     }))
-    probe.expectMsg(BenchmarkSucceeded(8, Duration.Zero))
+    probe.expectMsg(BenchmarkSucceeded(8, 123, Duration.Zero))
     bufferOpt mustBe 'defined
     probe.send(workerActor, BenchmarkRequest(9, 234, buffer => {
       assert(bufferOpt.get ne buffer)
       0.seconds
     }))
-    probe.expectMsg(BenchmarkSucceeded(9, Duration.Zero))
+    probe.expectMsg(BenchmarkSucceeded(9, 234, Duration.Zero))
   }
 
   it must "bubble exception from benchmark body" in new Fixture {
@@ -92,7 +92,7 @@ class BenchmarkWorkerActorSpec extends ActorSpecBase {
       workerActor.receive(BenchmarkRequest(-1, 0, _ => throw testException),
                           probe.ref)
     }
-    probe.expectMsg(BenchmarkFailed(-1))
+    probe.expectMsg(BenchmarkFailed(-1, 0))
   }
 
   class Fixture {

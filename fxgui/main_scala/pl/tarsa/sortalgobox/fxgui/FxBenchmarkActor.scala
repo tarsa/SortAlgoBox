@@ -31,7 +31,7 @@ class FxBenchmarkActor(updateConsumer: BenchmarkSucceeded => Unit,
                        benchmarkSuiteActor: ActorRef)
     extends Actor {
   override def preStart(): Unit =
-    benchmarkSuiteActor ! StartBenchmarking(benchmarks)
+    benchmarkSuiteActor ! StartBenchmarking(benchmarks, listening = true)
 
   override def receive: Receive = {
     case successResult: BenchmarkSucceeded =>
