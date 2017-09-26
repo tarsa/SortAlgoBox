@@ -152,6 +152,14 @@ class BenchmarkSuiteActor(workerProps: Props)
       }
   }
 
+  whenUnhandled {
+    case Event(GetCurrentBenchmarkResults, stateData) =>
+      sender() ! CurrentBenchmarkResults(
+        stateData.benchmarksWithResults,
+        benchmarkingInProgress = stateName != Idling)
+      stay()
+  }
+
   initialize()
 
   private def illegalState(): Nothing =
@@ -292,15 +300,12 @@ object BenchmarkSuiteActor {
     object RunningBenchmarksWithResults {
       def fromBenchmarkSuite(
           benchmarks: Seq[Benchmark]): Option[RunningBenchmarksWithResults] = {
-        if (benchmarks.isEmpty) {
-          None
-        } else {
-          Some(
-            RunningBenchmarksWithResults(
-              BenchmarksWithResults(benchmarks, Vector.empty),
-              0,
-              SingleBenchmarkStats.zero,
-              BitSet(benchmarks.indices: _*)))
+        benchmarks.headOption.map { _ =>
+          RunningBenchmarksWithResults(
+            BenchmarksWithResults(benchmarks, Vector.empty),
+            0,
+            SingleBenchmarkStats.zero,
+            BitSet(benchmarks.indices: _*))
         }
       }
     }
@@ -338,6 +343,13 @@ object BenchmarkSuiteActor {
       extends BenchmarkMessage
 
   case object BenchmarkingFinished extends BenchmarkMessage
+
+  case object GetCurrentBenchmarkResults extends BenchmarkMessage
+
+  case class CurrentBenchmarkResults(
+      benchmarksWithResults: BenchmarksWithResults,
+      benchmarkingInProgress: Boolean)
+      extends BenchmarkMessage
 
   sealed abstract class BenchmarkResult(val isFailed: Boolean)
       extends BenchmarkMessage {

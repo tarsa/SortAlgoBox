@@ -34,56 +34,61 @@ class BenchmarkSuiteActorSpec extends ActorSpecBase {
 
   private val BWA = BenchmarkWorkerActor
 
-  it must "succeed on empty benchmark suite" in new Fixture {
-    probe.send(suiteActor, StartBenchmarking(Nil, listening = true))
+  it must "succeed on empty benchmark suite" in new Fixture(0) {
+    startBenchmarking()
     probe.expectMsg(BenchmarkingFinished)
     suiteActor.stateName mustBe Idling
+    queryCurrentResults(expectedInProgress = false) mustBe Nil
   }
 
-  it must "report warm up failures" in new Fixture {
-    probe.send(suiteActor, StartBenchmarking(Seq(null), listening = true))
+  it must "report warm up failures" in new Fixture(1) {
+    startBenchmarking()
     suiteActor.stateName mustBe WarmingUp
-    expectWorkerBenchmarkRequest(0, warmUpArraySize)
-    workerProbe.reply(BWA.BenchmarkFailed(0, warmUpArraySize))
+    queryCurrentResults(expectedInProgress = true) mustBe Nil
+    workerRequestAndReply(0, warmUpArraySize, None)
     probe.expectMsg(BenchmarkFailed(0, warmUpArraySize))
     probe.expectMsg(BenchmarkingFinished)
     suiteActor.stateName mustBe Idling
+    queryCurrentResults(expectedInProgress = false) mustBe
+      Seq(BenchmarkFailed(0, warmUpArraySize))
   }
 
-  it must "report benchmark failures" in new Fixture {
-    probe.send(suiteActor, StartBenchmarking(Seq(null), listening = true))
+  it must "report benchmark failures" in new Fixture(1) {
+    startBenchmarking()
     suiteActor.stateName mustBe WarmingUp
-    expectWorkerBenchmarkRequest(0, warmUpArraySize)
-    workerProbe.reply(BWA.BenchmarkSucceeded(0, warmUpArraySize, 1.second))
+    queryCurrentResults(expectedInProgress = true) mustBe Nil
+    workerRequestAndReply(0, warmUpArraySize, Some(1.second))
     suiteActor.stateName mustBe Benchmarking
-    expectWorkerBenchmarkRequest(0, 4096)
-    workerProbe.reply(BWA.BenchmarkFailed(0, 4096))
+    queryCurrentResults(expectedInProgress = true) mustBe Nil
+    workerRequestAndReply(0, 4096, None)
     probe.expectMsg(BenchmarkFailed(0, 4096))
     probe.expectMsg(BenchmarkingFinished)
     suiteActor.stateName mustBe Idling
+    queryCurrentResults(expectedInProgress = false) mustBe
+      Seq(BenchmarkFailed(0, 4096))
   }
 
-  it must "disable benchmarks independently" in new Fixture {
-    probe.send(suiteActor, StartBenchmarking(Seq(null, null), listening = true))
+  it must "disable benchmarks independently" in new Fixture(2) {
+    startBenchmarking()
     suiteActor.stateName mustBe WarmingUp
-    expectWorkerBenchmarkRequest(0, warmUpArraySize)
-    workerProbe.reply(BWA.BenchmarkSucceeded(0, warmUpArraySize, 1.second))
-    expectWorkerBenchmarkRequest(1, warmUpArraySize)
-    workerProbe.reply(BWA.BenchmarkSucceeded(1, warmUpArraySize, 1.second))
+    queryCurrentResults(expectedInProgress = true) mustBe Nil
+    workerRequestAndReply(0, warmUpArraySize, Some(1.second))
+    workerRequestAndReply(1, warmUpArraySize, Some(1.second))
     suiteActor.stateName mustBe Benchmarking
-    expectWorkerBenchmarkRequest(0, 4096)
-    workerProbe.reply(BWA.BenchmarkSucceeded(0, 4096, 2.seconds))
+    queryCurrentResults(expectedInProgress = true) mustBe Nil
+    workerRequestAndReply(0, 4096, Some(2.seconds))
     probe.expectMsg(BenchmarkSucceeded(0, 4096, 2.seconds))
-    expectWorkerBenchmarkRequest(1, 4096)
-    workerProbe.reply(BWA.BenchmarkSucceeded(1, 4096, 0.5.seconds))
-    expectWorkerBenchmarkRequest(1, 4096)
-    workerProbe.reply(BWA.BenchmarkSucceeded(1, 4096, 0.5.seconds))
+    workerRequestAndReply(1, 4096, Some(0.5.seconds))
+    workerRequestAndReply(1, 4096, Some(0.5.seconds))
     probe.expectMsg(BenchmarkSucceeded(1, 4096, 0.5.seconds))
-    expectWorkerBenchmarkRequest(1, 5329)
-    workerProbe.reply(BWA.BenchmarkSucceeded(1, 5329, 2.seconds))
+    workerRequestAndReply(1, 5329, Some(2.seconds))
     probe.expectMsg(BenchmarkSucceeded(1, 5329, 2.seconds))
     probe.expectMsg(BenchmarkingFinished)
     suiteActor.stateName mustBe Idling
+    queryCurrentResults(expectedInProgress = false) mustBe Seq(
+      BenchmarkSucceeded(0, 4096, 2.seconds),
+      BenchmarkSucceeded(1, 4096, 0.5.seconds),
+      BenchmarkSucceeded(1, 5329, 2.seconds))
   }
 
   it must "send proper requests to worker actor" in {
@@ -119,7 +124,7 @@ class BenchmarkSuiteActorSpec extends ActorSpecBase {
     probe.expectMsg(BenchmarkingFinished)
   }
 
-  class Fixture {
+  class Fixture(benchmarksNumber: Int) {
     val workerProbe = TestProbe()
 
     val suiteActor
@@ -130,10 +135,31 @@ class BenchmarkSuiteActorSpec extends ActorSpecBase {
 
     val probe = TestProbe()
 
-    def expectWorkerBenchmarkRequest(id: Int, bufferSize: Int): Unit = {
-      workerProbe.expectMsgPF() {
-        case BWA.BenchmarkRequest(`id`, `bufferSize`, _) =>
+    def startBenchmarking(): Unit = {
+      probe.send(
+        suiteActor,
+        StartBenchmarking(Seq.fill(benchmarksNumber)(null), listening = true))
+    }
+
+    def workerRequestAndReply(
+        id: Int,
+        bufferSize: Int,
+        timeTakenIfSuccess: Option[FiniteDuration]): Unit = {
+      workerProbe.expectMsgType[BWA.BenchmarkRequest] must matchPattern {
+        case BenchmarkWorkerActor.BenchmarkRequest(`id`, `bufferSize`, _) =>
       }
+      val workerReply = timeTakenIfSuccess
+        .map(timeTaken => BWA.BenchmarkSucceeded(id, bufferSize, timeTaken))
+        .getOrElse(BWA.BenchmarkFailed(id, bufferSize))
+      workerProbe.reply(workerReply)
+    }
+
+    def queryCurrentResults(
+        expectedInProgress: Boolean): Seq[BenchmarkResult] = {
+      probe.send(suiteActor, GetCurrentBenchmarkResults)
+      val currentBenchmarkResults = probe.expectMsgType[CurrentBenchmarkResults]
+      currentBenchmarkResults.benchmarkingInProgress mustBe expectedInProgress
+      currentBenchmarkResults.benchmarksWithResults.benchmarksResults
     }
   }
 }

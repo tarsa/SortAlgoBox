@@ -1,6 +1,5 @@
 Backlog:
 
- * test BenchmarkSuiteActor if it stores benchmark results properly
  * introduce web-based GUI
  * convert native C++ sorts to use items agents
  * remove native C++ items handlers when we are left with items agents only
