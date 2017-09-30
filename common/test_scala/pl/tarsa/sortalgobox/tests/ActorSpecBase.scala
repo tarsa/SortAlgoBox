@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,26 +16,30 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.tests
 
 import akka.actor.ActorSystem
 import akka.testkit.TestProbe
+import com.typesafe.config.ConfigFactory
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.MustMatchers._
+import pl.tarsa.sortalgobox.tests.ActorSpecBase.config
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-abstract class ActorSpecBase
-    extends CommonUnitSpecBase
-    with BeforeAndAfterAll
-    with AkkaSpecMixin {
+abstract class ActorSpecBase extends CommonUnitSpecBase with BeforeAndAfterAll {
+  implicit var actorSystem: ActorSystem = _
+
   override protected def beforeAll(): Unit = {
     ActorSpecBase.warmUpAkka
-    super.beforeAll()
+    val safeName = getClass.getSimpleName
+    actorSystem = ActorSystem(safeName, ConfigFactory.parseString(config))
   }
+
+  override protected def afterAll(): Unit =
+    actorSystem.terminate()
 }
 
 object ActorSpecBase {
@@ -43,8 +47,15 @@ object ActorSpecBase {
     implicit val actorSystem: ActorSystem = ActorSystem("WarmUpActorSystem")
     val probe = TestProbe()
     probe.msgAvailable mustBe false
-    probe.expectNoMsg(1.millisecond)
+    probe.expectNoMessage(1.millisecond)
     val termination = actorSystem.terminate()
     Await.ready(termination, 10.seconds)
   }
+
+  val config: String =
+    """akka {
+      |  # actor.debug.fsm = true
+      |  # loglevel = "DEBUG"
+      |}
+    """.stripMargin
 }

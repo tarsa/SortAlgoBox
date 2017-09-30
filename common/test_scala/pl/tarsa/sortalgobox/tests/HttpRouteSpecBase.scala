@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,32 +16,44 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.tests
 
-import akka.actor.ActorSystem
-import com.typesafe.config.ConfigFactory
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.testkit.{
+  RouteTest,
+  ScalatestRouteTest,
+  TestFrameworkInterface
+}
 import org.scalatest.BeforeAndAfterAll
-import pl.tarsa.sortalgobox.tests.AkkaSpecMixin.config
+import org.scalatest.MustMatchers._
 
-trait AkkaSpecMixin { self: BeforeAndAfterAll =>
-  implicit var actorSystem: ActorSystem = _
-
+abstract class HttpRouteSpecBase
+    extends CommonUnitSpecBase
+    with ScalatestRouteTest
+    with BeforeAndAfterAll {
   override protected def beforeAll(): Unit = {
-    val safeName = getClass.getSimpleName
-    actorSystem = ActorSystem(safeName, ConfigFactory.parseString(config))
+    HttpRouteSpecBase.warmUpAkkaHttp
+    super.beforeAll()
   }
-
-  override protected def afterAll(): Unit =
-    actorSystem.terminate()
 }
 
-object AkkaSpecMixin {
-  val config: String =
-    """akka {
-      |  # actor.debug.fsm = true
-      |  # loglevel = "DEBUG"
-      |}
-    """.stripMargin
+object HttpRouteSpecBase {
+  lazy val warmUpAkkaHttp: Unit = {
+    ActorSpecBase.warmUpAkka
+    val testRoute = path("test")(get(complete("ok")))
+    val tester =
+      new (() => Unit) with RouteTest with TestFrameworkInterface {
+        def apply(): Unit = {
+          Get("/test") ~> testRoute ~> {
+            check(responseAs[String] mustBe "ok")
+          }
+        }
+
+        override def failTest(msg: String): Nothing =
+          fail(msg)
+      }
+    tester()
+    tester.cleanUp()
+  }
 }

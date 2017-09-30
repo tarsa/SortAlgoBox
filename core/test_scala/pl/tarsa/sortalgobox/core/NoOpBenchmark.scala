@@ -17,10 +17,14 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
+package pl.tarsa.sortalgobox.core
 
-object Versions {
-  val theScala = "2.12.3"
+import scala.concurrent.duration.FiniteDuration
 
-  val akka = "2.5.6"
-  val akkaHttp = "10.0.10"
+case class NoOpBenchmark(override val name: String, result: FiniteDuration)
+    extends Benchmark {
+  override def forSize(itemsNumber: Int,
+                       validate: Boolean,
+                       buffer: Option[Array[Int]]): FiniteDuration =
+    result
 }

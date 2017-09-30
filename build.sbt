@@ -36,6 +36,10 @@ lazy val commonSettings =
     conflictManager := ConflictManager.strict,
     scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked"),
     dependencyOverrides ++= Seq(
+      "com.typesafe.akka" %% "akka-actor" % Versions.akka,
+      "com.typesafe.akka" %% "akka-stream" % Versions.akka,
+      "com.typesafe.akka" %% "akka-stream-testkit" % Versions.akka % Test,
+      "com.typesafe.akka" %% "akka-testkit" % Versions.akka % Test,
       "org.scala-lang" % "scala-library" % Versions.theScala,
       "org.scala-lang" % "scala-reflect" % Versions.theScala,
       "org.scala-lang.modules" %% "scala-xml" % "1.0.6",
@@ -53,11 +57,13 @@ lazy val deps =
       libraryDependencies ++= Seq(
         // production libraries
         "com.typesafe.akka" %% "akka-actor" % Versions.akka,
+        "com.typesafe.akka" %% "akka-http" % Versions.akkaHttp,
         "com.jsuereth" %% "scala-arm" % "2.0",
         "commons-io" % "commons-io" % "2.5",
         "org.apache.commons" % "commons-math3" % "3.6.1",
         "org.scalafx" %% "scalafx" % "8.0.102-R11",
         // test libraries
+        "com.typesafe.akka" %% "akka-http-testkit" % Versions.akkaHttp % Test,
         "com.typesafe.akka" %% "akka-testkit" % Versions.akka % Test,
         "org.scalatest" %% "scalatest" % "3.0.1" % Test
       )
