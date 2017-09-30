@@ -20,6 +20,7 @@
 package pl.tarsa.sortalgobox.main.app.server
 
 import akka.actor.ActorRef
+import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
@@ -46,10 +47,21 @@ class BenchmarkSuiteController(benchmarks: Seq[Benchmark],
 
   val route: Route = {
     routes(
+      pathSingleSlash {
+        get {
+          complete {
+            val content = IndexPage.render()
+            HttpEntity(ContentTypes.`text/html(UTF-8)`, content)
+          }
+        }
+      },
       path("start") {
         get {
-          benchmarkSuiteActor ! StartBenchmarking(benchmarks, listening = false)
-          complete("triggered")
+          complete {
+            benchmarkSuiteActor ! StartBenchmarking(benchmarks,
+                                                    listening = false)
+            "triggered"
+          }
         }
       },
       path("status") {

@@ -56,6 +56,7 @@ lazy val deps =
     .settings(
       libraryDependencies ++= Seq(
         // production libraries
+        "com.lihaoyi" %% "scalatags" % "0.6.7",
         "com.typesafe.akka" %% "akka-actor" % Versions.akka,
         "com.typesafe.akka" %% "akka-http" % Versions.akkaHttp,
         "com.jsuereth" %% "scala-arm" % "2.0",
