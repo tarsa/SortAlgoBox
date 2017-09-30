@@ -92,6 +92,8 @@ lazy val boot =
   Project("boot", file("./boot"))
     .settings(commonSettings: _*)
     .dependsOn(bootDeps.map(p => ClasspathDependency(p, Some(fullDep))): _*)
+    .settings(mainClass in reStart := Some(
+      "pl.tarsa.sortalgobox.main.app.WebServerBenchmarkSuiteApp"))
 
 //noinspection SbtReplaceProjectWithProjectIn
 lazy val common =
