@@ -17,6 +17,7 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
+import org.scalajs.sbtplugin.cross.CrossProject
 
 lazy val directoriesLayoutSettings =
   Seq(
@@ -56,7 +57,6 @@ lazy val deps =
     .settings(
       libraryDependencies ++= Seq(
         // production libraries
-        "com.lihaoyi" %% "scalatags" % "0.6.7",
         "com.typesafe.akka" %% "akka-actor" % Versions.akka,
         "com.typesafe.akka" %% "akka-http" % Versions.akkaHttp,
         "com.jsuereth" %% "scala-arm" % "2.0",
@@ -86,15 +86,32 @@ lazy val root = Project("SortingAlgorithmsToolbox", file("."))
   }: _*)
 
 lazy val bootDeps =
-  Seq(common, core, crossVerify, fxGui, natives, openCl, random, sorts)
+  Seq(common,
+      core,
+      crossVerify,
+      fxGui,
+      natives,
+      openCl,
+      random,
+      sharedJvm,
+      sorts)
 
 //noinspection SbtReplaceProjectWithProjectIn
 lazy val boot =
   Project("boot", file("./boot"))
     .settings(commonSettings: _*)
-    .dependsOn(bootDeps.map(p => ClasspathDependency(p, Some(fullDep))): _*)
     .settings(mainClass in reStart := Some(
       "pl.tarsa.sortalgobox.main.app.WebServerBenchmarkSuiteApp"))
+    .settings(
+      scalaJSProjects := Seq(frontend),
+      pipelineStages in Assets := Seq(scalaJSPipeline),
+      // triggers scalaJSPipeline when using compile or continuous compilation
+      compile in Compile := ((compile in Compile) dependsOn scalaJSPipeline).value,
+      WebKeys.packagePrefix in Assets := "public/",
+      managedClasspath in Runtime += (packageBin in Assets).value
+    )
+    .enablePlugins(SbtWeb)
+    .dependsOn(bootDeps.map(p => ClasspathDependency(p, Some(fullDep))): _*)
 
 //noinspection SbtReplaceProjectWithProjectIn
 lazy val common =
@@ -156,3 +173,31 @@ lazy val sorts =
     .dependsOn(commonCp, coreCp, nativesCp)
 
 lazy val sortsCp = sorts % fullDep
+
+lazy val shared =
+  CrossProject("shared", file("./shared"), CrossType.Pure)
+    .settings(commonSettings: _*)
+    .settings(
+      libraryDependencies ++= Seq(
+        // production libraries
+        "com.lihaoyi" %%% "scalatags" % "0.6.7"
+      ))
+
+lazy val sharedJvm = shared.jvm
+
+lazy val sharedJvmCp = sharedJvm % fullDep
+
+lazy val sharedJs = shared.js
+
+lazy val sharedJsCp = sharedJs % fullDep
+
+//noinspection SbtReplaceProjectWithProjectIn
+lazy val frontend =
+  Project("frontend", file("./frontend"))
+    .settings(commonSettings: _*)
+    .settings(dependencyOverrides += "org.scala-js" %%% "scalajs-dom" % "0.9.3")
+    .settings(libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.3")
+    .settings(scalaJSUseMainModuleInitializer := true,
+              scalaJSUseMainModuleInitializer in Test := false)
+    .enablePlugins(ScalaJSPlugin, ScalaJSWeb)
+    .dependsOn(sharedJsCp)

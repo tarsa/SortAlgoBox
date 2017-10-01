@@ -17,28 +17,8 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-package pl.tarsa.sortalgobox.main.app.server
+package pl.tarsa.sortalgobox.shared
 
-import scalatags.Text.{attrs => ^, tags => <, tags2 => <<}
-import scalatags.Text.implicits._
-
-object IndexPage {
-  def render(): String = {
-    <.html(
-      <.head(
-        <<.title("SortAlgoBox")
-      ),
-      <.body(
-        <.div(^.style := "color: darkgreen",
-              "Welcome in Sorting Algorithms Toolbox!"),
-        <.a(^.target := "status", ^.href := "/start", "Start"),
-        " ",
-        <.a(^.target := "status", ^.href := "/status", "Status"),
-        " ",
-        <.a(^.target := "status", ^.href := "/shutdown", "Shutdown"),
-        <.br(),
-        <.iframe(^.name := "status", ^.widthA := "100%", ^.heightA := "80%")
-      )
-    ).render
-  }
+object TinyLocator {
+  val theOnlyElementIdWeNeed = "sort_algo_box"
 }

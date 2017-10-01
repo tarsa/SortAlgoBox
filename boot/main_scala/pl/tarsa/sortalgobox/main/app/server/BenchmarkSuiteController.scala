@@ -42,15 +42,39 @@ class BenchmarkSuiteController(benchmarks: Seq[Benchmark],
                                shutdownAction: () => Future[Unit]) {
   import akka.http.scaladsl.server.Directives._
 
+  // this is used to throttle the pinging from clients
+  private val registeredClientsIds =
+    new java.util.concurrent.ConcurrentSkipListSet[String]()
+
+  private val serverVersion: String =
+    java.util.UUID.randomUUID().toString
+
   def routes(head: Route, tail: Route*): Route =
     tail.foldLeft(head)(_ ~ _)
 
   val route: Route = {
     routes(
+      post(
+        path("register")(
+          entity(as[String]) { clientId =>
+            if (registeredClientsIds.contains(clientId)) {
+              withoutRequestTimeout {
+                complete(Future.never: Future[String])
+              }
+            } else {
+              registeredClientsIds.add(clientId)
+              complete(serverVersion)
+            }
+          }
+        )
+      ),
+      pathPrefix("assets" / Remaining) { file =>
+        getFromResource(s"public/$file")
+      },
       pathSingleSlash {
         get {
           complete {
-            val content = IndexPage.render()
+            val content = SpaMain.render()
             HttpEntity(ContentTypes.`text/html(UTF-8)`, content)
           }
         }
