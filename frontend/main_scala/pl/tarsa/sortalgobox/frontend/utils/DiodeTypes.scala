@@ -17,23 +17,11 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-package pl.tarsa.sortalgobox.main.app.server
+package pl.tarsa.sortalgobox.frontend.utils
 
-import pl.tarsa.sortalgobox.shared.TinyLocator
-import scalatags.Text.implicits._
-import scalatags.Text.{attrs => ^, tags => <, tags2 => <<}
+import diode.react.ReactConnectProps
+import japgolly.scalajs.react.component.Generic.UnmountedWithRoot
 
-object SpaMain {
-  def render(): String = {
-    <.html(
-      <.head(
-        <<.title("SortAlgoBox")
-      ),
-      <.body(
-        <.div(^.id := TinyLocator.theOnlyElementIdWeNeed, "Loading..."),
-        <.script(^.tpe := "text/javascript", ^.src := "assets/frontend-jsdeps.js"),
-        <.script(^.tpe := "text/javascript", ^.src := "assets/frontend-fastopt.js")
-      )
-    ).render
-  }
+object DiodeTypes {
+  type DiodeWrapperU[A] = UnmountedWithRoot[ReactConnectProps[A], _, _, _]
 }

@@ -195,9 +195,31 @@ lazy val sharedJsCp = sharedJs % fullDep
 lazy val frontend =
   Project("frontend", file("./frontend"))
     .settings(commonSettings: _*)
-    .settings(dependencyOverrides += "org.scala-js" %%% "scalajs-dom" % "0.9.3")
-    .settings(libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.3")
     .settings(scalaJSUseMainModuleInitializer := true,
               scalaJSUseMainModuleInitializer in Test := false)
+    .settings(
+      dependencyOverrides ++= Seq(
+        "com.github.japgolly.scalajs-react" %%% "core" % "1.1.0",
+        "org.scala-js" %% "scalajs-library" % "0.6.19",
+        "org.scala-js" %%% "scalajs-dom" % "0.9.3"))
+    .settings(
+      libraryDependencies ++= Seq(
+        "com.github.japgolly.scalajs-react" %%% "core" % "1.1.0",
+        "io.suzaku" %%% "diode" % "1.1.2",
+        "io.suzaku" %%% "diode-react" % "1.1.2",
+        "org.scala-js" %%% "scalajs-dom" % "0.9.3"
+      ),
+      jsDependencies ++= Seq(
+        "org.webjars.bower" % "react" % "15.6.1"
+          / "react-with-addons.js"
+          minified "react-with-addons.min.js"
+          commonJSName "React",
+        "org.webjars.bower" % "react" % "15.6.1"
+          / "react-dom.js"
+          minified "react-dom.min.js"
+          dependsOn "react-with-addons.js"
+          commonJSName "ReactDOM"
+      )
+    )
     .enablePlugins(ScalaJSPlugin, ScalaJSWeb)
     .dependsOn(sharedJsCp)

@@ -17,23 +17,17 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-package pl.tarsa.sortalgobox.main.app.server
+package pl.tarsa.sortalgobox.frontend.state
 
-import pl.tarsa.sortalgobox.shared.TinyLocator
-import scalatags.Text.implicits._
-import scalatags.Text.{attrs => ^, tags => <, tags2 => <<}
+import diode.Circuit
+import diode.react.ReactConnector
 
-object SpaMain {
-  def render(): String = {
-    <.html(
-      <.head(
-        <<.title("SortAlgoBox")
-      ),
-      <.body(
-        <.div(^.id := TinyLocator.theOnlyElementIdWeNeed, "Loading..."),
-        <.script(^.tpe := "text/javascript", ^.src := "assets/frontend-jsdeps.js"),
-        <.script(^.tpe := "text/javascript", ^.src := "assets/frontend-fastopt.js")
-      )
-    ).render
-  }
+class MainStateHolder
+    extends Circuit[MainModel]
+    with ReactConnector[MainModel] {
+  override protected def initialModel: MainModel =
+    MainModel("no result")
+
+  override protected def actionHandler: HandlerFunction =
+    new MainActionHandler(zoomRW(identity)((_, m) => m))
 }

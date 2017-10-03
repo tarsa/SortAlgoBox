@@ -17,25 +17,29 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-package pl.tarsa.sortalgobox.frontend
+package pl.tarsa.sortalgobox.frontend.utils
 
 import org.scalajs.dom
 
-import scalatags.JsDom.implicits._
-import scalatags.JsDom.{attrs => ^, tags => <, tags2 => <<}
+import scala.concurrent.duration._
+import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 
-object IndexPage {
-  def render(): dom.Element = {
-    <.div(
-      <.div(^.style := "color: darkgreen",
-            "Welcome in Sorting Algorithms Toolbox!"),
-      <.a(^.target := "status", ^.href := "/start", "Start"),
-      " ",
-      <.a(^.target := "status", ^.href := "/status", "Status"),
-      " ",
-      <.a(^.target := "status", ^.href := "/shutdown", "Shutdown"),
-      <.br(),
-      <.iframe(^.name := "status", ^.widthA := "100%", ^.heightA := "80%")
-    ).render
+class BrowserRevolver(token: String) {
+  private val timeout = 10.minutes.toMillis.toInt
+
+  private var savedServerVersion = Option.empty[String]
+
+  def refreshIfNeeded(): Unit = {
+    val serverVersionFut = dom.ext.Ajax
+      .post("/register", timeout = timeout, data = token)
+      .map(_.responseText)
+    serverVersionFut.onComplete {
+      case util.Success(serverVersion)
+          if savedServerVersion.exists(_ != serverVersion) =>
+        dom.window.location.reload(true)
+      case result =>
+        savedServerVersion = savedServerVersion.orElse(result.toOption)
+        dom.window.setTimeout(() => refreshIfNeeded(), 1000)
+    }
   }
 }

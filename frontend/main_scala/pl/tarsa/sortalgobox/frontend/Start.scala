@@ -20,36 +20,32 @@
 package pl.tarsa.sortalgobox.frontend
 
 import org.scalajs.dom
-import scala.concurrent.duration._
-import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
+import pl.tarsa.sortalgobox.frontend.state.{MainModel, MainStateHolder}
+import pl.tarsa.sortalgobox.frontend.utils.BrowserRevolver
+import pl.tarsa.sortalgobox.frontend.utils.DiodeTypes.DiodeWrapperU
+import pl.tarsa.sortalgobox.frontend.views.MainView
 import pl.tarsa.sortalgobox.shared.TinyLocator
 
 object Start {
-  private val token = java.util.UUID.randomUUID().toString
-  private val timeout = 10.minutes.toMillis.toInt
-
-  var savedServerVersion = Option.empty[String]
-
-  def checkRefresh(): Unit = {
-    val serverVersionFut = dom.ext.Ajax
-      .post("/register", timeout = timeout, data = token)
-      .map(_.responseText)
-    serverVersionFut.onComplete {
-      case util.Success(serverVersion)
-          if savedServerVersion.exists(_ != serverVersion) =>
-        dom.window.location.reload(true)
-      case result =>
-        savedServerVersion = savedServerVersion.orElse(result.toOption)
-        dom.window.setTimeout(() => checkRefresh(), 1000)
-    }
+  def main(args: Array[String]): Unit = {
+    setupRefresh()
+    plugInReact()
   }
 
-  def main(args: Array[String]): Unit = {
+  private def setupRefresh(): Unit = {
+    val token = java.util.UUID.randomUUID().toString
     println(s"token = $token")
-    checkRefresh()
+    new BrowserRevolver(token).refreshIfNeeded()
+  }
+
+  private def plugInReact(): Unit = {
     val mainDivId = TinyLocator.theOnlyElementIdWeNeed
-    val mainDiv = dom.document.getElementById(mainDivId)
-    mainDiv.innerHTML = ""
-    mainDiv.appendChild(IndexPage.render())
+    val diodeCircuit = new MainStateHolder()
+    val mainViewProxyConstructor = diodeCircuit.connect(identity[MainModel] _)
+    val mainView: DiodeWrapperU[MainModel] =
+      mainViewProxyConstructor { modelProxy =>
+        MainView(modelProxy).vdomElement
+      }
+    mainView.renderIntoDOM(dom.document.getElementById(mainDivId))
   }
 }
