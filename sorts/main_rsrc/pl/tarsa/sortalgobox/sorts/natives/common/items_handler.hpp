@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -61,9 +61,9 @@ struct items_handler_t {
 #if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_RECORDING_COMPARING
     tarsa::BufferedWriter * writer;
     tarsa::NumberEncoder * numberEncoder;
-    tarsa::ComparingArrayItemsAgent<int32_t> * basicAgent;
+    tarsa::ComparingArrayItemsAgent<item_t> * basicAgent;
     tarsa::RecordingComparingItemsAgentSetup<tarsa::ComparingArrayItemsAgent>::
-        Result<int32_t> * agent;
+        Result<item_t> * agent;
 #endif
 #if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_RAW || \
     ITEMS_HANDLER_TYPE == ITEMS_HANDLER_RAW_REFERENCE || \
@@ -97,7 +97,7 @@ items_handler_t<item_t> sortItemsHandlerPrepare(item_t * const input,
         new tarsa::ComparingArrayItemsAgent<item_t>(input, size));
     itemsHandler.agent = checkNonNull(new tarsa::
         RecordingComparingItemsAgentSetup<tarsa::ComparingArrayItemsAgent>::
-        Result<int32_t>(itemsHandler.numberEncoder, *itemsHandler.basicAgent));
+        Result<item_t>(itemsHandler.numberEncoder, *itemsHandler.basicAgent));
 #endif
 #if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_RAW || \
     ITEMS_HANDLER_TYPE == ITEMS_HANDLER_RAW_REFERENCE || \
@@ -137,7 +137,8 @@ void sortItemsHandlerReleasePostValidation(
 #endif
 }
 
-bool sortValidate(items_handler_t<int32_t> const &itemsHandler) {
+template<typename item_t>
+bool sortValidate(items_handler_t<item_t> const &itemsHandler) {
 #if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_COMPARING
 #define compareItemsLt(index1, index2) \
     itemsHandler.agent->compareLt0(index1, index2)
@@ -151,7 +152,7 @@ bool sortValidate(items_handler_t<int32_t> const &itemsHandler) {
 #if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_RAW || \
     ITEMS_HANDLER_TYPE == ITEMS_HANDLER_RAW_REFERENCE || \
     ITEMS_HANDLER_TYPE == ITEMS_HANDLER_SAB_CACHED
-    int32_t const * const work = itemsHandler.input;
+    item_t const * const work = itemsHandler.input;
 #define compareItemsLt(index1, index2) (work[index1] < work[index2])
 #define getItem(index) work[index]
 #endif
@@ -167,9 +168,8 @@ bool sortValidate(items_handler_t<int32_t> const &itemsHandler) {
     size_t const size = itemsHandler.size;
 #endif
 #if ITEMS_HANDLER_TYPE != ITEMS_HANDLER_RAW_REFERENCE
-    int32_t * reference;
-    checkZero(posix_memalign((void**) &reference, 128,
-            sizeof (int32_t) * size));
+    item_t * reference;
+    checkZero(posix_memalign((void**) &reference, 128, sizeof (item_t) * size));
     mwc64xFill(reference, size);
     std::sort(reference, reference + size);
 #endif
