@@ -1,6 +1,7 @@
 Backlog:
 
  * convert native C++ sorts to use items agents
+ * add ActorRef wrappers with typed `tell` forwarders
  * remove native C++ items handlers when we are left with items agents only
  * make witness classes for native C++ items agents instead of useless
    inheritance of empty methods
