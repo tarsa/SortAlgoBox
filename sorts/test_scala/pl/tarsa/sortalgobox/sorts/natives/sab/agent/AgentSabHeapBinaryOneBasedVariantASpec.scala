@@ -17,14 +17,15 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-package pl.tarsa.sortalgobox.sorts.natives.sab.classic
+package pl.tarsa.sortalgobox.sorts.natives.sab.agent
 
-import pl.tarsa.sortalgobox.natives.build.NativesCache
+import pl.tarsa.sortalgobox.tests.NativesUnitSpecBase
 
-class ClassicSabHeapBinaryOneBasedVariantA(
-    nativesCache: NativesCache = NativesCache)
-    extends ClassicSabBenchmark(
-      sortAlgoName = "ClassicOneBasedBinaryHeapSortVariantA",
-      sortHeader = "sortheapbinaryonebasedvarianta.hpp",
-      nativesCache
-    )
+class AgentSabHeapBinaryOneBasedVariantASpec extends NativesUnitSpecBase {
+  typeBehavior[AgentSabHeapBinaryOneBasedVariantA]
+
+  it must "sort and validate" in {
+    val sort = new AgentSabHeapBinaryOneBasedVariantA(testNativesCache)
+    sort.forSize(12345, validate = true)
+  }
+}

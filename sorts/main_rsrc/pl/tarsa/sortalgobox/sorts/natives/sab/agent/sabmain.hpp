@@ -17,14 +17,16 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-package pl.tarsa.sortalgobox.sorts.natives.sab.classic
+#ifndef SABMAIN_HPP
+#define SABMAIN_HPP
 
-import pl.tarsa.sortalgobox.natives.build.NativesCache
+#include xstr(SORT_HEADER)
 
-class ClassicSabHeapBinaryOneBasedVariantA(
-    nativesCache: NativesCache = NativesCache)
-    extends ClassicSabBenchmark(
-      sortAlgoName = "ClassicOneBasedBinaryHeapSortVariantA",
-      sortHeader = "sortheapbinaryonebasedvarianta.hpp",
-      nativesCache
-    )
+using namespace tarsa;
+
+template<typename item_t>
+void sortPerform(items_handler_t<item_t> &itemsHandler) {
+    tarsa::SORT_ALGO(*itemsHandler.agent);
+}
+
+#endif /* SABMAIN_HPP */

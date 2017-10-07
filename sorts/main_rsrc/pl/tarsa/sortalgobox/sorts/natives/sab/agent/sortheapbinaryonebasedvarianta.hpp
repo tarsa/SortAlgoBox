@@ -1,6 +1,6 @@
-/* 
+/*
  * sortheapbinaryonebasedvarianta.hpp -- sorting algorithms benchmark
- * 
+ *
  * Copyright (C) 2014 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  *  This software is provided 'as-is', without any express or implied
@@ -28,8 +28,8 @@ namespace tarsa {
 
     namespace privateOneBasedBinaryHeapSortVariantA {
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void siftDown(ItemType * const a, ssize_t const start,
+        template<template<typename, size_t> class ItemsAgent, typename item_t>
+        void siftDown(ItemsAgent<item_t, 1> agent, ssize_t const start,
                 ssize_t const end) {
             ssize_t root = start;
             while (true) {
@@ -37,65 +37,63 @@ namespace tarsa {
                 ssize_t const right = left + 1;
 
                 if (right <= end) {
-                    if (compOp(a[root], Below, a[left])) {
-                        if (compOp(a[left], Below, a[right])) {
-                            std::swap(a[root], a[right]);
+                    if (agent.compareLt0(root, left)) {
+                        if (agent.compareLt0(left, right)) {
+                            agent.swap0(root, right);
                             root = right;
                         } else {
-                            std::swap(a[root], a[left]);
+                            agent.swap0(root, left);
                             root = left;
                         }
                     } else {
-                        if (compOp(a[root], Below, a[right])) {
-                            std::swap(a[root], a[right]);
+                        if (agent.compareLt0(root, right)) {
+                            agent.swap0(root, right);
                             root = right;
                         } else {
                             return;
                         }
                     }
                 } else {
-                    if (left == end && compOp(a[root], Below, a[left])) {
-                        std::swap(a[root], a[left]);
+                    if (left == end && agent.compareLt0(root, left)) {
+                        agent.swap0(root, left);
                     }
                     return;
                 }
             }
         }
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void heapify(ItemType * const a, ssize_t const count) {
+        template<template<typename, size_t> class ItemsAgent, typename item_t>
+        void heapify(ItemsAgent<item_t, 1> agent) {
+            size_t const count = agent.size0();
             for (ssize_t item = count / 2; item >= 1; item--) {
-                siftDown<ItemType, compOp>(a, item, count);
+                siftDown(agent, item, count);
             }
         }
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void drainHeap(ItemType * const a, ssize_t const count) {
+        template<template<typename, size_t> class ItemsAgent, typename item_t>
+        void drainHeap(ItemsAgent<item_t, 1> agent) {
+            size_t const count = agent.size0();
             for (ssize_t next = count; next > 1; next--) {
-                std::swap(a[next], a[1]);
-                siftDown<ItemType, compOp>(a, 1, next - 1);
+                agent.swap0(next, 1);
+                siftDown(agent, 1, next - 1);
             }
         }
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void heapsort(ItemType * const a, ssize_t const count) {
-            heapify<ItemType, compOp>(a, count);
-            drainHeap<ItemType, compOp>(a, count);
+        template<template<typename, size_t> class ItemsAgent, typename item_t>
+        void heapsort(ItemsAgent<item_t, 1> agent) {
+            heapify(agent);
+            drainHeap(agent);
         }
     }
 
-    template<typename ItemType, ComparisonOperator<ItemType> compOp>
-    void ClassicOneBasedBinaryHeapSortVariantA(ItemType * const a,
-            ssize_t const count) {
-        privateOneBasedBinaryHeapSortVariantA::heapsort<ItemType, compOp>(
-                a - 1, count);
+    template<template<typename, size_t> class ItemsAgent, typename item_t>
+    void OneBasedBinaryHeapSortVariantA(ItemsAgent<item_t, 1> agent) {
+        privateOneBasedBinaryHeapSortVariantA::heapsort(agent);
     }
 
-    template<typename ItemType>
-    void ClassicOneBasedBinaryHeapSortVariantA(ItemType * const a,
-            ssize_t const count) {
-        ClassicOneBasedBinaryHeapSortVariantA<ItemType,
-            genericComparisonOperator>(a, count);
+    template<template<typename, size_t> class ItemsAgent, typename item_t>
+    void OneBasedBinaryHeapSortVariantA(ItemsAgent<item_t, 0> agent) {
+        OneBasedBinaryHeapSortVariantA(agent.withBase1());
     }
 }
 
