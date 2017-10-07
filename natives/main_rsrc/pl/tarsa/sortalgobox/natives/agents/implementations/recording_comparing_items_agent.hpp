@@ -43,10 +43,9 @@ namespace tarsa {
                 recorder(recorder), underlying(underlying) {
             }
 
-            template<size_t newBase>
-            RecordingComparingItemsAgent<item_t, newBase> withBase() const {
-                RecordingComparingItemsAgent(recorder,
-                    underlying.withBase<newBase>());
+            RecordingComparingItemsAgent<item_t, 1> withBase1() const {
+                return RecordingComparingItemsAgent<item_t, 1>(recorder,
+                    underlying.withBase1());
             }
 
             size_t size0() const {

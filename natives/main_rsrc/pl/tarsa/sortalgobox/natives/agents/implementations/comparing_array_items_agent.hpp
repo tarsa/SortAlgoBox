@@ -37,10 +37,8 @@ namespace tarsa {
             array(array - base), count(count) {
         }
 
-        template<size_t newBase>
-        ComparingArrayItemsAgent<item_t, newBase> withBase() const {
-            ComparingArrayItemsAgent<item_t, newBase>(array + base - newBase,
-                count);
+        ComparingArrayItemsAgent<item_t, 1> withBase1() const {
+            return ComparingArrayItemsAgent<item_t, 1>(array + base, count);
         }
 
         size_t size0() const {
