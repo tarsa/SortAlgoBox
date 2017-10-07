@@ -24,7 +24,7 @@ import pl.tarsa.sortalgobox.core.{Benchmark, NativeBenchmark}
 import pl.tarsa.sortalgobox.random.Mwc64x
 import pl.tarsa.sortalgobox.sorts.jre._
 import pl.tarsa.sortalgobox.sorts.natives._
-import pl.tarsa.sortalgobox.sorts.natives.sab._
+import pl.tarsa.sortalgobox.sorts.natives.sab.classic._
 import pl.tarsa.sortalgobox.sorts.opencl._
 import pl.tarsa.sortalgobox.sorts.scala.bitonic.BitonicSort
 
