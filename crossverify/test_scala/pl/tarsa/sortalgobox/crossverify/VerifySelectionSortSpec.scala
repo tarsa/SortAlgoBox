@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -23,7 +23,10 @@ import java.nio.file.Files
 
 import org.apache.commons.io.IOUtils
 import pl.tarsa.sortalgobox.common.SortAlgoBoxConfiguration._
-import pl.tarsa.sortalgobox.core.common.agents.implementations.{ComparingIntArrayItemsAgent, VerifyingComparingIntArrayItemsAgent}
+import pl.tarsa.sortalgobox.core.common.agents.implementations.{
+  ComparingIntArrayItemsAgent,
+  VerifyingComparingIntArrayItemsAgent
+}
 import pl.tarsa.sortalgobox.core.crossverify.PureNumberDecoder
 import pl.tarsa.sortalgobox.random.Mwc64x
 import pl.tarsa.sortalgobox.sorts.natives.NativeSelectionSort
@@ -36,14 +39,20 @@ class VerifySelectionSortSpec extends NativesUnitSpecBase {
     "take steps identical to Scala Selection Sort" in {
     val recordingFilePath =
       Files.createTempFile(rootTempDir, "recording", ".bin")
-    new NativeSelectionSort(testNativesCache, Some(recordingFilePath))
-      .forSize(1234, validate = false)
-    val stream = IOUtils.buffer(Files.newInputStream(recordingFilePath))
-    val replayer = new PureNumberDecoder(stream)
-    val generator = Mwc64x()
-    val array = Array.fill[Int](1234)(generator.nextInt())
-    val itemsAgent = new VerifyingComparingIntArrayItemsAgent(replayer,
-      new ComparingIntArrayItemsAgent(array), b => assert(b))
-    new SelectionSort().sort(itemsAgent)
+    try {
+      new NativeSelectionSort(testNativesCache, Some(recordingFilePath))
+        .forSize(1234, validate = false)
+      val stream = IOUtils.buffer(Files.newInputStream(recordingFilePath))
+      val replayer = new PureNumberDecoder(stream)
+      val generator = Mwc64x()
+      val array = Array.fill[Int](1234)(generator.nextInt())
+      val itemsAgent = new VerifyingComparingIntArrayItemsAgent(
+        replayer,
+        new ComparingIntArrayItemsAgent(array),
+        b => assert(b))
+      new SelectionSort().sort(itemsAgent)
+    } finally {
+      Files.delete(recordingFilePath)
+    }
   }
 }
