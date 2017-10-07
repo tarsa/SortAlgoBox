@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -27,14 +27,20 @@
 
 namespace tarsa {
 
-    template<typename item_t>
-    class ComparingArrayItemsAgent : public ComparingItemsAgent<item_t> {
+    template<typename item_t, size_t base = 0>
+    class ComparingArrayItemsAgent : public ComparingItemsAgent<item_t, base> {
         item_t * const array;
         size_t const count;
 
     public:
         ComparingArrayItemsAgent(item_t * const array, size_t const count):
-            array(array), count(count) {
+            array(array - base), count(count) {
+        }
+
+        template<size_t newBase>
+        ComparingArrayItemsAgent<item_t, newBase> withBase() const {
+            ComparingArrayItemsAgent<item_t, newBase>(array + base - newBase,
+                count);
         }
 
         size_t size0() const {

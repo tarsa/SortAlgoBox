@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -24,9 +24,12 @@
 
 namespace tarsa {
 
-    template<typename item_t>
+    template<typename item_t, size_t base = 0>
     class ItemsAgent {
     public:
+        template<size_t newBase>
+        ItemsAgent<item_t, newBase> withBase() const {}
+
         size_t size0() const {}
 
         item_t get0(size_t const i) const {}

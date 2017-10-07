@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -30,9 +30,12 @@ namespace tarsa {
         CompareBelow, CompareEqual, CompareAbove
     };
 
-    template<typename item_t>
-    class ComparingItemsAgent : public ItemsAgent<item_t> {
+    template<typename item_t, size_t base = 0>
+    class ComparingItemsAgent : public ItemsAgent<item_t, base> {
     public:
+        template<size_t newBase>
+        ComparingItemsAgent<item_t, newBase> withBase() const {}
+
         compare_t compare(item_t const a, item_t const b) const {}
 
         bool compareLt(item_t const a, item_t const b) const {}

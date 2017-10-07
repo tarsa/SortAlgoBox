@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -24,8 +24,8 @@
 
 #include "items_handler.hpp"
 
-template<template<typename> class ItemsAgent, typename item_t>
-void sort(ItemsAgent<item_t> agent) {
+template<template<typename, size_t> class ItemsAgent, typename item_t>
+void sort(ItemsAgent<item_t, 0> agent) {
     for (size_t i = agent.size0() - 1; i >= 1; i--) {
         for (size_t j = 0; j < i; j++) {
             if (agent.compare0(j, j + 1) == tarsa::CompareAbove) {

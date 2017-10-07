@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -28,19 +28,25 @@
 
 namespace tarsa {
 
-    template<template<typename> class UnderlyingItemsAgent>
+    template<template<typename, size_t> class UnderlyingItemsAgent>
     struct RecordingComparingItemsAgentSetup {
 
-        template<typename item_t>
+        template<typename item_t, size_t base = 0>
         class RecordingComparingItemsAgent :
-                public ComparingItemsAgent<item_t> {
+                public ComparingItemsAgent<item_t, base> {
             NumberEncoder * const recorder;
-            UnderlyingItemsAgent<item_t> const underlying;
+            UnderlyingItemsAgent<item_t, base> const underlying;
 
         public:
             RecordingComparingItemsAgent(NumberEncoder * const recorder,
-                    UnderlyingItemsAgent<item_t> const underlying):
+                    UnderlyingItemsAgent<item_t, base> const underlying):
                 recorder(recorder), underlying(underlying) {
+            }
+
+            template<size_t newBase>
+            RecordingComparingItemsAgent<item_t, newBase> withBase() const {
+                RecordingComparingItemsAgent(recorder,
+                    underlying.withBase<newBase>());
             }
 
             size_t size0() const {
