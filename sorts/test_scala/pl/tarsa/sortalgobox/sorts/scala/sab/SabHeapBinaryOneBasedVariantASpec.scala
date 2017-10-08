@@ -17,16 +17,29 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-package pl.tarsa.sortalgobox.core.common.agents
+package pl.tarsa.sortalgobox.sorts.scala.sab
 
-abstract class ComparingItemsAgent[ItemType] extends ItemsAgent[ItemType] {
-  override type SelfType <: ComparingItemsAgent[ItemType]
+import pl.tarsa.sortalgobox.sorts.tests.SortChecker
+import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
-  def compare(a: ItemType, b: ItemType): Int
+class SabHeapBinaryOneBasedVariantASpec extends CommonUnitSpecBase {
+  typeBehavior[SabHeapBinaryOneBasedVariantA]
 
-  def compare0(i: Int, j: Int): Int =
-    compare(get0(i), get0(j))
+  def sort = new SabHeapBinaryOneBasedVariantA
 
-  def compareLt0(i: Int, j: Int): Boolean =
-    compare0(i, j) < 0
+  it must "handle empty array" in {
+    SortChecker(sort).forEmptyArray()
+  }
+
+  it must "handle single element array" in {
+    SortChecker(sort).forSingleElementArray()
+  }
+
+  it must "sort small array" in {
+    SortChecker(sort).forFewElementsArray()
+  }
+
+  it must "sort random array" in {
+    SortChecker(sort).forArrayOfSize(100)
+  }
 }
