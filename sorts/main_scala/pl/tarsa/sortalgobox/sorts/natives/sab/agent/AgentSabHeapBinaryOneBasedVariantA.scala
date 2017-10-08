@@ -24,7 +24,7 @@ import java.nio.file.Path
 import pl.tarsa.sortalgobox.natives.build.NativesCache
 
 class AgentSabHeapBinaryOneBasedVariantA(
-    nativesCache: NativesCache,
+    nativesCache: NativesCache = NativesCache,
     recordingFileOpt: Option[Path] = None
 ) extends AgentSabBenchmark(
       "OneBasedBinaryHeapSortVariantA",
