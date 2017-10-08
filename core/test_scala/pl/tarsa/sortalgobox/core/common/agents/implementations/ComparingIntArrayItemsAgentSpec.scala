@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,12 +16,11 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.core.common.agents.implementations
 
-class ComparingIntArrayItemsAgentSpec extends BaseSingleIntArrayItemsAgentSpec(
-  new ComparingIntArrayItemsAgent(_)) {
+class ComparingIntArrayItemsAgentSpec
+    extends BaseSingleIntArrayItemsAgentSpec(new ComparingIntArrayItemsAgent(_)) {
   typeBehavior[ComparingIntArrayItemsAgent]
 
   it must "return correct size for empty array" in {
@@ -37,7 +36,8 @@ class ComparingIntArrayItemsAgentSpec extends BaseSingleIntArrayItemsAgentSpec(
       a => assert(a.get0(0) == 5),
       a => assert(a.get0(1) == 3),
       a => assert(a.get0(2) == 2),
-      a => assert(a.get0(3) == 8))
+      a => assert(a.get0(3) == 8)
+    )
   }
 
   it must "set proper cells" in {
@@ -74,6 +74,19 @@ class ComparingIntArrayItemsAgentSpec extends BaseSingleIntArrayItemsAgentSpec(
       a => assert(a.compare0(0, 1) == 1),
       a => assert(a.compare0(2, 3) == -1),
       a => assert(a.compare0(0, 4) == 0)
+    )
+  }
+
+  it must "work with different indexing bases" in {
+    readTest(5, 3, 2, 8)(
+      a => assert(a.withBase(0) eq a),
+      a => assert(a.withBase(1).get0(1) == 5),
+      a => assert(a.withBase(1).get0(4) == 8),
+      a => assert(a.withBase(-1).get0(-1) == 5),
+      a => assert(a.withBase(-1).get0(2) == 8),
+      a => assert(a.withBase(-1).withBase(1).get0(1) == 5),
+      a => assert(a.withBase(-1).withBase(2).get0(2) == 5),
+      a => assert(a.withBase(-1).withBase(2).get0(3) == 3)
     )
   }
 }

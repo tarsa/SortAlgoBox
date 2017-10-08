@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,25 +16,23 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.core.common.agents.implementations
 
 import pl.tarsa.sortalgobox.core.common.agents.ItemsAgent
 import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
-class BaseSingleIntArrayItemsAgentSpec[AgentType <: ItemsAgent[_]](
-  builder: Array[Int] => AgentType) extends CommonUnitSpecBase {
+abstract class BaseSingleIntArrayItemsAgentSpec[AgentType <: ItemsAgent[_]](
+    builder: Array[Int] => AgentType)
+    extends CommonUnitSpecBase {
 
-  def readTest(inputItems: Int*)
-    (operations: (AgentType => Unit)*) {
+  def readTest(inputItems: Int*)(operations: (AgentType => Unit)*) {
     val agent = builder(inputItems.toArray)
     operations.foreach(_(agent))
   }
 
-  def writeTest(inputItems: Int*)
-    (operations: (AgentType => Unit)*)
-    (outputItems: Int*) {
+  def writeTest(inputItems: Int*)(operations: (AgentType => Unit)*)(
+      outputItems: Int*) {
     val array = inputItems.toArray
     val agent = builder(array)
     operations.foreach(_(agent))

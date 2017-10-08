@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,24 +16,26 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.core.common.agents.implementations
 
-class RadixSortIntArrayItemsAgentSpec extends BaseDoubleIntArrayItemsAgentSpec(
-  new RadixSortIntArrayItemsAgent(_, _)) {
+class RadixSortIntArrayItemsAgentSpec
+    extends BaseDoubleIntArrayItemsAgentSpec(
+      new RadixSortIntArrayItemsAgent(_, _)) {
   typeBehavior[RadixSortIntArrayItemsAgent]
 
   it must "return correct size for empty array" in {
     readTest()()(
       a => assert(a.size0 == 0),
-      a => assert(a.size1 == 0))
+      a => assert(a.size1 == 0)
+    )
   }
 
   it must "return correct size for non-empty items array" in {
     readTest(1, 2, 3)(4, 5, 6, 7)(
       a => assert(a.size0 == 3),
-      a => assert(a.size1 == 4))
+      a => assert(a.size1 == 4)
+    )
   }
 
   it must "get proper values" in {
@@ -45,7 +47,8 @@ class RadixSortIntArrayItemsAgentSpec extends BaseDoubleIntArrayItemsAgentSpec(
       a => assert(a.get1(0) == 4),
       a => assert(a.get1(1) == 9),
       a => assert(a.get1(2) == 2),
-      a => assert(a.get1(3) == 1))
+      a => assert(a.get1(3) == 1)
+    )
   }
 
   it must "set proper cells" in {
@@ -122,15 +125,15 @@ class RadixSortIntArrayItemsAgentSpec extends BaseDoubleIntArrayItemsAgentSpec(
   }
 
   it must "return proper key size" in {
-    pureTest(
-      a => assert(a.keySizeInBits == 32))
+    pureTest(a => assert(a.keySizeInBits == 32))
   }
 
   it must "extract slices properly from values" in {
     pureTest(
       a => assert(a.getItemSlice(123, 1, 3) == 5),
       a => assert(a.getItemSlice(1234, 0, 5) == 18),
-      a => assert(a.getItemSlice(12345, 1, 3) == 4))
+      a => assert(a.getItemSlice(12345, 1, 3) == 4)
+    )
   }
 
   it must "extract slices properly from cells" in {
@@ -140,6 +143,33 @@ class RadixSortIntArrayItemsAgentSpec extends BaseDoubleIntArrayItemsAgentSpec(
       a => assert(a.getItemSlice0(2, 1, 3) == 4),
       a => assert(a.getItemSlice1(0, 2, 3) == 2),
       a => assert(a.getItemSlice1(1, 0, 5) == 9),
-      a => assert(a.getItemSlice1(2, 3, 3) == 4))
+      a => assert(a.getItemSlice1(2, 3, 3) == 4)
+    )
+  }
+
+  it must "work with different indexing bases for items" in {
+    readTest(5, 3, 2, 8, 5)(4, 9, 2, 1, 4)(
+      a => assert(a.withBase(0) eq a),
+      a => assert(a.withBase(1).get0(1) == 5),
+      a => assert(a.withBase(1).get0(4) == 8),
+      a => assert(a.withBase(-1).get0(-1) == 5),
+      a => assert(a.withBase(-1).get0(2) == 8),
+      a => assert(a.withBase(-1).withBase(1).get0(1) == 5),
+      a => assert(a.withBase(-1).withBase(2).get0(2) == 5),
+      a => assert(a.withBase(-1).withBase(2).get0(3) == 3)
+    )
+  }
+
+  it must "work with different indexing bases for buffer" in {
+    readTest(5, 3, 2, 8, 5)(4, 9, 2, 1, 4)(
+      a => assert(a.withBase(0) eq a),
+      a => assert(a.withBase(1).get1(1) == 4),
+      a => assert(a.withBase(1).get1(4) == 1),
+      a => assert(a.withBase(-1).get1(-1) == 4),
+      a => assert(a.withBase(-1).get1(2) == 1),
+      a => assert(a.withBase(-1).withBase(1).get1(1) == 4),
+      a => assert(a.withBase(-1).withBase(2).get1(2) == 4),
+      a => assert(a.withBase(-1).withBase(2).get1(3) == 9)
+    )
   }
 }

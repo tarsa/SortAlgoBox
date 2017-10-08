@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,23 +16,32 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.core.common.agents.implementations
 
 import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
 
-class ComparingIntArrayItemsAgent(items: Array[Int])
-  extends ComparingItemsAgent[Int] {
+class ComparingIntArrayItemsAgent(items: Array[Int], base: Int = 0)
+    extends ComparingItemsAgent[Int] {
+  override type SelfType = ComparingIntArrayItemsAgent
 
-  override def size0: Int = items.length
+  override def withBase(newIndexingBase: Int): SelfType = {
+    if (base == newIndexingBase) this
+    else new ComparingIntArrayItemsAgent(items, newIndexingBase)
+  }
 
-  override def get0(i: Int): Int = items(i)
+  override def size0: Int =
+    items.length
 
-  override def set0(i: Int, v: Int): Unit = items(i) = v
+  override def get0(i: Int): Int =
+    items(i - base)
+
+  override def set0(i: Int, v: Int): Unit =
+    items(i - base) = v
 
   override def copy0(i: Int, j: Int, n: Int): Unit =
-    System.arraycopy(items, i, items, j, n)
+    System.arraycopy(items, i - base, items, j - base, n)
 
-  override def compare(a: Int, b: Int): Int = Ordering.Int.compare(a, b)
+  override def compare(a: Int, b: Int): Int =
+    Ordering.Int.compare(a, b)
 }

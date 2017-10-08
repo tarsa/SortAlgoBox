@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -23,9 +23,21 @@ import pl.tarsa.sortalgobox.common.crossverify.TrackingEnums.ActionTypes._
 import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
 import pl.tarsa.sortalgobox.core.crossverify.PureNumberDecoder
 
-class VerifyingComparingIntArrayItemsAgent(replayer: PureNumberDecoder,
-  underlying: ComparingIntArrayItemsAgent, verify: Boolean => Unit)
-  extends ComparingItemsAgent[Int] {
+class VerifyingComparingIntArrayItemsAgent(
+    replayer: PureNumberDecoder,
+    underlying: ComparingIntArrayItemsAgent,
+    verify: Boolean => Unit)
+    extends ComparingItemsAgent[Int] {
+  override type SelfType = VerifyingComparingIntArrayItemsAgent
+
+  override def withBase(newIndexingBase: Int): SelfType = {
+    val newUnderlying = underlying.withBase(newIndexingBase)
+    if (underlying eq newUnderlying) {
+      this
+    } else {
+      new VerifyingComparingIntArrayItemsAgent(replayer, newUnderlying, verify)
+    }
+  }
 
   import replayer._
 
@@ -52,8 +64,8 @@ class VerifyingComparingIntArrayItemsAgent(replayer: PureNumberDecoder,
 
   @inline
   private def recordedP(actionType: ActionType,
-    action: ComparingIntArrayItemsAgent => Unit,
-    parameters: Int*): Unit = {
+                        action: ComparingIntArrayItemsAgent => Unit,
+                        parameters: Int*): Unit = {
     verify(deserializeInt() == actionType.id)
     parameters.foreach(parameter => verify(deserializeInt() == parameter))
     action(underlying)
@@ -61,8 +73,8 @@ class VerifyingComparingIntArrayItemsAgent(replayer: PureNumberDecoder,
 
   @inline
   private def recordedF(actionType: ActionType,
-    action: ComparingIntArrayItemsAgent => Int,
-    parameters: Int*): Int = {
+                        action: ComparingIntArrayItemsAgent => Int,
+                        parameters: Int*): Int = {
     verify(deserializeInt() == actionType.id)
     parameters.foreach(parameter => verify(deserializeInt() == parameter))
     action(underlying)

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -30,15 +30,11 @@ class RecordingComparingIntArrayItemsAgentSpec extends CommonUnitSpecBase {
   typeBehavior[RecordingComparingIntArrayItemsAgent]
 
   it must "return correct size for empty array" in {
-    readTest()(
-      a => assert(a.size0 == 0))(
-        Size0.id)
+    readTest()(a => assert(a.size0 == 0))(Size0.id)
   }
 
   it must "return correct size for non-empty array" in {
-    readTest(1, 2, 3)(
-      a => assert(a.size0 == 3))(
-        Size0.id)
+    readTest(1, 2, 3)(a => assert(a.size0 == 3))(Size0.id)
   }
 
   it must "get proper values" in {
@@ -46,8 +42,8 @@ class RecordingComparingIntArrayItemsAgentSpec extends CommonUnitSpecBase {
       a => assert(a.get0(0) == 5),
       a => assert(a.get0(1) == 3),
       a => assert(a.get0(2) == 2),
-      a => assert(a.get0(3) == 8))(
-        Get0.id, 0, Get0.id, 1, Get0.id, 2, Get0.id, 3)
+      a => assert(a.get0(3) == 8)
+    )(Get0.id, 0, Get0.id, 1, Get0.id, 2, Get0.id, 3)
   }
 
   it must "set proper cells" in {
@@ -56,52 +52,62 @@ class RecordingComparingIntArrayItemsAgentSpec extends CommonUnitSpecBase {
       _.set0(1, 2),
       _.set0(0, 9),
       _.set0(3, 7)
-    )(9, 2, 2, 7)(
-        Set0.id, 3, Set0.id, 1, Set0.id, 0, Set0.id, 3)
+    )(9, 2, 2, 7)(Set0.id, 3, Set0.id, 1, Set0.id, 0, Set0.id, 3)
   }
 
   it must "copy proper cells" in {
     writeTest(5, 3, 2, 8)(
       _.copy0(1, 0, 2)
-    )(3, 2, 2, 8)(
-        Copy0.id, 1, 0, 2)
+    )(3, 2, 2, 8)(Copy0.id, 1, 0, 2)
   }
 
   it must "swap proper cells" in {
     writeTest(5, 3, 2, 8)(
       _.swap0(3, 0)
-    )(8, 3, 2, 5)(
-        Swap0.id, 3, 0)
+    )(8, 3, 2, 5)(Swap0.id, 3, 0)
   }
 
   it must "compare values properly" in {
     pureTest(
       a => assert(a.compare(1, 2) == -1),
       a => assert(a.compare(2, 1) == 1),
-      a => assert(a.compare(1, 1) == 0))(
-        Compare.id, Compare.id, Compare.id)
+      a => assert(a.compare(1, 1) == 0)
+    )(Compare.id, Compare.id, Compare.id)
   }
 
   it must "compare cells properly" in {
     readTest(5, 3, 2, 8, 5)(
       a => assert(a.compare0(0, 1) == 1),
       a => assert(a.compare0(2, 3) == -1),
-      a => assert(a.compare0(0, 4) == 0))(
-        Compare0.id, 0, 1, Compare0.id, 2, 3, Compare0.id, 0, 4)
+      a => assert(a.compare0(0, 4) == 0)
+    )(Compare0.id, 0, 1, Compare0.id, 2, 3, Compare0.id, 0, 4)
   }
 
-  def buildRecordingAgent(inputItems: Array[Int]): (ByteArrayOutputStream,
-    ComparingItemsAgent[Int]) = {
+  it must "work with different indexing bases" in {
+    readTest(5, 3, 2, 8)(
+      a => assert(a.withBase(0) eq a),
+      a => assert(a.withBase(1).get0(1) == 5),
+      a => assert(a.withBase(1).get0(4) == 8),
+      a => assert(a.withBase(-1).get0(0) == 3),
+      a => assert(a.withBase(-1).get0(2) == 8),
+      a => assert(a.withBase(-1).withBase(1).get0(1) == 5),
+      a => assert(a.withBase(-1).withBase(2).get0(2) == 5),
+      a => assert(a.withBase(-1).withBase(2).get0(3) == 3)
+    )(Seq(1, 4, 0, 2, 1, 2, 3).flatMap(Seq(Get0.id, _)): _*)
+  }
+
+  def buildRecordingAgent(inputItems: Array[Int])
+    : (ByteArrayOutputStream, ComparingItemsAgent[Int]) = {
     val recordingStream = new ByteArrayOutputStream()
     val recorder = new PureNumberEncoder(recordingStream)
     val underlying = new ComparingIntArrayItemsAgent(inputItems)
-    val recordingAgent = new RecordingComparingIntArrayItemsAgent(
-      recorder, underlying)
+    val recordingAgent =
+      new RecordingComparingIntArrayItemsAgent(recorder, underlying)
     (recordingStream, recordingAgent)
   }
 
   def assertRecordedBytes(recordingStream: ByteArrayOutputStream,
-    expectedBytes: Seq[Int]): Unit = {
+                          expectedBytes: Seq[Int]): Unit = {
     val recordedBytes = recordingStream.toByteArray
     assert(recordedBytes.length == expectedBytes.length)
     for ((expectedValue, recordedValue) <- expectedBytes.zip(recordedBytes)) {
@@ -109,17 +115,17 @@ class RecordingComparingIntArrayItemsAgentSpec extends CommonUnitSpecBase {
     }
   }
 
-  def readTest(inputItems: Int*)
-    (operations: (ComparingItemsAgent[Int] => Unit)*)
-    (expectedRecordedBytes: Int*): Unit = {
+  def readTest(inputItems: Int*)(
+      operations: (ComparingItemsAgent[Int] => Unit)*)(
+      expectedRecordedBytes: Int*): Unit = {
     val (buffer, agent) = buildRecordingAgent(inputItems.toArray)
     operations.foreach(_(agent))
     assertRecordedBytes(buffer, expectedRecordedBytes)
   }
 
-  def writeTest(inputItems: Int*)
-    (operations: (ComparingItemsAgent[Int] => Unit)*)
-    (outputItems: Int*)(expectedRecordedBytes: Int*): Unit = {
+  def writeTest(inputItems: Int*)(
+      operations: (ComparingItemsAgent[Int] => Unit)*)(outputItems: Int*)(
+      expectedRecordedBytes: Int*): Unit = {
     val array = inputItems.toArray
     val (buffer, agent) = buildRecordingAgent(array)
     operations.foreach(_(agent))
@@ -127,8 +133,8 @@ class RecordingComparingIntArrayItemsAgentSpec extends CommonUnitSpecBase {
     assertRecordedBytes(buffer, expectedRecordedBytes)
   }
 
-  def pureTest(operations: (ComparingItemsAgent[Int] => Unit)*)
-    (expectedRecordedBytes: Int*): Unit = {
+  def pureTest(operations: (ComparingItemsAgent[Int] => Unit)*)(
+      expectedRecordedBytes: Int*): Unit = {
     val (buffer, agent) = buildRecordingAgent(null)
     operations.foreach(_(agent))
     assertRecordedBytes(buffer, expectedRecordedBytes)
