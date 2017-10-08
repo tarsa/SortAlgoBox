@@ -22,6 +22,8 @@ package pl.tarsa.sortalgobox.sorts.scala.sab
 import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
 import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
 
+import scala.annotation.tailrec
+
 class SabHeapBinaryOneBasedVariantA extends ComparisonSortAlgorithm {
   override def sort[ItemType](agent: ComparingItemsAgent[ItemType]): Unit = {
     heapsort(agent.withBase(1))
@@ -33,8 +35,7 @@ class SabHeapBinaryOneBasedVariantA extends ComparisonSortAlgorithm {
   }
 
   private def heapify[ItemType](agent: ComparingItemsAgent[ItemType]): Unit = {
-    import agent._
-    val count = size0
+    val count = agent.size0
     for (item <- (count / 2) to 1 by -1) {
       siftDown(agent, item, count)
     }
@@ -44,8 +45,9 @@ class SabHeapBinaryOneBasedVariantA extends ComparisonSortAlgorithm {
                                  start: Int,
                                  end: Int): Unit = {
     import agent._
-    var root = start
-    while (true) {
+
+    @tailrec
+    def siftStep(root: Int): Unit = {
       val left = root * 2
       val right = left + 1
 
@@ -53,34 +55,32 @@ class SabHeapBinaryOneBasedVariantA extends ComparisonSortAlgorithm {
         if (compareLt0(root, left)) {
           if (compareLt0(left, right)) {
             swap0(root, right)
-            root = right
+            siftStep(right)
           } else {
             swap0(root, left)
-            root = left
+            siftStep(left)
           }
         } else {
           if (compareLt0(root, right)) {
             swap0(root, right)
-            root = right
-          } else {
-            return
+            siftStep(right)
           }
         }
       } else {
         if (left == end && compareLt0(root, left)) {
           swap0(root, left)
         }
-        return
       }
     }
+
+    siftStep(start)
   }
 
   private def drainHeap[ItemType](
       agent: ComparingItemsAgent[ItemType]): Unit = {
-    import agent._
-    val count = size0
+    val count = agent.size0
     for (next <- count until 1 by -1) {
-      swap0(next, 1)
+      agent.swap0(next, 1)
       siftDown(agent, 1, next - 1)
     }
   }
