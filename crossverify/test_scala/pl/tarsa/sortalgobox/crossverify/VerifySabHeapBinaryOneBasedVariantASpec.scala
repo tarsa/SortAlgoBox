@@ -19,41 +19,14 @@
  */
 package pl.tarsa.sortalgobox.crossverify
 
-import java.nio.file.Files
-
-import org.apache.commons.io.IOUtils
-import pl.tarsa.sortalgobox.common.SortAlgoBoxConfiguration.rootTempDir
-import pl.tarsa.sortalgobox.core.common.agents.implementations.{
-  ComparingIntArrayItemsAgent,
-  VerifyingComparingIntArrayItemsAgent
-}
-import pl.tarsa.sortalgobox.core.crossverify.PureNumberDecoder
-import pl.tarsa.sortalgobox.random.Mwc64x
+import pl.tarsa.sortalgobox.crossverify.infrastructure.CrossVerifySpecBase
 import pl.tarsa.sortalgobox.sorts.natives.sab.agent.AgentSabHeapBinaryOneBasedVariantA
 import pl.tarsa.sortalgobox.sorts.scala.sab.SabHeapBinaryOneBasedVariantA
-import pl.tarsa.sortalgobox.tests.NativesUnitSpecBase
 
-class VerifySabHeapBinaryOneBasedVariantASpec extends NativesUnitSpecBase {
+class VerifySabHeapBinaryOneBasedVariantASpec extends CrossVerifySpecBase {
 
-  "Native SabHeapBinaryOneBasedVariantA sort" must
-    "take steps identical to Scala one" in {
-    val recordingFilePath =
-      Files.createTempFile(rootTempDir, "recording", ".bin")
-    try {
-      new AgentSabHeapBinaryOneBasedVariantA(testNativesCache,
-                                             Some(recordingFilePath))
-        .forSize(12345, validate = false)
-      val stream = IOUtils.buffer(Files.newInputStream(recordingFilePath))
-      val replayer = new PureNumberDecoder(stream)
-      val generator = Mwc64x()
-      val array = Array.fill[Int](12345)(generator.nextInt())
-      val itemsAgent = new VerifyingComparingIntArrayItemsAgent(
-        replayer,
-        new ComparingIntArrayItemsAgent(array),
-        b => assert(b))
-      new SabHeapBinaryOneBasedVariantA().sort(itemsAgent)
-    } finally {
-      Files.delete(recordingFilePath)
-    }
-  }
+  registerCrossVerifyTest("SabHeapBinaryOneBasedVariantA",
+                          12345,
+                          new AgentSabHeapBinaryOneBasedVariantA(_, _),
+                          new SabHeapBinaryOneBasedVariantA)
 }

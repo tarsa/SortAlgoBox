@@ -19,40 +19,14 @@
  */
 package pl.tarsa.sortalgobox.crossverify
 
-import java.nio.file.Files
-
-import org.apache.commons.io.IOUtils
-import pl.tarsa.sortalgobox.common.SortAlgoBoxConfiguration._
-import pl.tarsa.sortalgobox.core.common.agents.implementations.{
-  ComparingIntArrayItemsAgent,
-  VerifyingComparingIntArrayItemsAgent
-}
-import pl.tarsa.sortalgobox.core.crossverify.PureNumberDecoder
-import pl.tarsa.sortalgobox.random.Mwc64x
+import pl.tarsa.sortalgobox.crossverify.infrastructure.CrossVerifySpecBase
 import pl.tarsa.sortalgobox.sorts.natives.NativeInsertionSort
 import pl.tarsa.sortalgobox.sorts.scala.insertion.InsertionSort
-import pl.tarsa.sortalgobox.tests.NativesUnitSpecBase
 
-class VerifyInsertionSortSpec extends NativesUnitSpecBase {
+class VerifyInsertionSortSpec extends CrossVerifySpecBase {
 
-  "Native Insertion Sort" must
-    "take steps identical to Scala Insertion Sort" in {
-    val recordingFilePath =
-      Files.createTempFile(rootTempDir, "recording", ".bin")
-    try {
-      new NativeInsertionSort(testNativesCache, Some(recordingFilePath))
-        .forSize(1234, validate = false)
-      val stream = IOUtils.buffer(Files.newInputStream(recordingFilePath))
-      val replayer = new PureNumberDecoder(stream)
-      val generator = Mwc64x()
-      val array = Array.fill[Int](1234)(generator.nextInt())
-      val itemsAgent = new VerifyingComparingIntArrayItemsAgent(
-        replayer,
-        new ComparingIntArrayItemsAgent(array),
-        b => assert(b))
-      new InsertionSort().sort(itemsAgent)
-    } finally {
-      Files.delete(recordingFilePath)
-    }
-  }
+  registerCrossVerifyTest("Insertion Sort",
+                          1234,
+                          new NativeInsertionSort(_, _),
+                          new InsertionSort)
 }

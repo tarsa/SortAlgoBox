@@ -19,39 +19,14 @@
  */
 package pl.tarsa.sortalgobox.crossverify
 
-import java.nio.file.Files
-
-import org.apache.commons.io.IOUtils
-import pl.tarsa.sortalgobox.common.SortAlgoBoxConfiguration.rootTempDir
-import pl.tarsa.sortalgobox.core.common.agents.implementations.{
-  ComparingIntArrayItemsAgent,
-  VerifyingComparingIntArrayItemsAgent
-}
-import pl.tarsa.sortalgobox.core.crossverify.PureNumberDecoder
-import pl.tarsa.sortalgobox.random.Mwc64x
+import pl.tarsa.sortalgobox.crossverify.infrastructure.CrossVerifySpecBase
 import pl.tarsa.sortalgobox.sorts.natives.NativeBubbleSort
 import pl.tarsa.sortalgobox.sorts.scala.bubble.BubbleSort
-import pl.tarsa.sortalgobox.tests.NativesUnitSpecBase
 
-class VerifyBubbleSortSpec extends NativesUnitSpecBase {
+class VerifyBubbleSortSpec extends CrossVerifySpecBase {
 
-  "Native Bubble Sort" must "take steps identical to Scala Bubble Sort" in {
-    val recordingFilePath =
-      Files.createTempFile(rootTempDir, "recording", ".bin")
-    try {
-      new NativeBubbleSort(testNativesCache, Some(recordingFilePath))
-        .forSize(1234, validate = false)
-      val stream = IOUtils.buffer(Files.newInputStream(recordingFilePath))
-      val replayer = new PureNumberDecoder(stream)
-      val generator = Mwc64x()
-      val array = Array.fill[Int](1234)(generator.nextInt())
-      val itemsAgent = new VerifyingComparingIntArrayItemsAgent(
-        replayer,
-        new ComparingIntArrayItemsAgent(array),
-        b => assert(b))
-      new BubbleSort().sort(itemsAgent)
-    } finally {
-      Files.delete(recordingFilePath)
-    }
-  }
+  registerCrossVerifyTest("Bubble Sort",
+                          1234,
+                          new NativeBubbleSort(_, _),
+                          new BubbleSort)
 }
