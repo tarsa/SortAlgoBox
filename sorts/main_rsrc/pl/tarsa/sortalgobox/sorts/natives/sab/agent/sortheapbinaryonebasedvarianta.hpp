@@ -26,11 +26,28 @@
 
 namespace tarsa {
 
-    namespace privateOneBasedBinaryHeapSortVariantA {
+    template<template<typename, size_t> class ItemsAgent, typename item_t>
+    class privateOneBasedBinaryHeapSortVariantA {
+        ItemsAgent<item_t, 1> agent;
 
-        template<template<typename, size_t> class ItemsAgent, typename item_t>
-        void siftDown(ItemsAgent<item_t, 1> agent, ssize_t const start,
-                ssize_t const end) {
+    public:
+        privateOneBasedBinaryHeapSortVariantA(
+            ItemsAgent<item_t, 1> agent): agent(agent) {
+        }
+
+        void heapsort() {
+            heapify();
+            drainHeap();
+        }
+
+        void heapify() {
+            size_t const count = agent.size0();
+            for (ssize_t item = count / 2; item >= 1; item--) {
+                siftDown(item, count);
+            }
+        }
+
+        void siftDown(ssize_t const start, ssize_t const end) {
             ssize_t root = start;
             while (true) {
                 ssize_t const left = root * 2;
@@ -62,33 +79,19 @@ namespace tarsa {
             }
         }
 
-        template<template<typename, size_t> class ItemsAgent, typename item_t>
-        void heapify(ItemsAgent<item_t, 1> agent) {
-            size_t const count = agent.size0();
-            for (ssize_t item = count / 2; item >= 1; item--) {
-                siftDown(agent, item, count);
-            }
-        }
-
-        template<template<typename, size_t> class ItemsAgent, typename item_t>
-        void drainHeap(ItemsAgent<item_t, 1> agent) {
+        void drainHeap() {
             size_t const count = agent.size0();
             for (ssize_t next = count; next > 1; next--) {
                 agent.swap0(next, 1);
-                siftDown(agent, 1, next - 1);
+                siftDown(1, next - 1);
             }
         }
-
-        template<template<typename, size_t> class ItemsAgent, typename item_t>
-        void heapsort(ItemsAgent<item_t, 1> agent) {
-            heapify(agent);
-            drainHeap(agent);
-        }
-    }
+    };
 
     template<template<typename, size_t> class ItemsAgent, typename item_t>
     void OneBasedBinaryHeapSortVariantA(ItemsAgent<item_t, 1> agent) {
-        privateOneBasedBinaryHeapSortVariantA::heapsort(agent);
+        privateOneBasedBinaryHeapSortVariantA<ItemsAgent, item_t>(agent)
+            .heapsort();
     }
 
     template<template<typename, size_t> class ItemsAgent, typename item_t>
