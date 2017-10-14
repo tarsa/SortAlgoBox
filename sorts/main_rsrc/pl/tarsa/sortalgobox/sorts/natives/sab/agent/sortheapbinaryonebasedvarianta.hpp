@@ -27,12 +27,11 @@
 namespace tarsa {
 
     template<template<typename, size_t> class ItemsAgent, typename item_t>
-    class privateOneBasedBinaryHeapSortVariantA {
+    class TheSorter {
         ItemsAgent<item_t, 1> agent;
 
     public:
-        privateOneBasedBinaryHeapSortVariantA(
-            ItemsAgent<item_t, 1> agent): agent(agent) {
+        TheSorter(ItemsAgent<item_t, 1> agent): agent(agent) {
         }
 
         void heapsort() {
@@ -90,8 +89,7 @@ namespace tarsa {
 
     template<template<typename, size_t> class ItemsAgent, typename item_t>
     void OneBasedBinaryHeapSortVariantA(ItemsAgent<item_t, 1> agent) {
-        privateOneBasedBinaryHeapSortVariantA<ItemsAgent, item_t>(agent)
-            .heapsort();
+        TheSorter<ItemsAgent, item_t>(agent).heapsort();
     }
 
     template<template<typename, size_t> class ItemsAgent, typename item_t>
