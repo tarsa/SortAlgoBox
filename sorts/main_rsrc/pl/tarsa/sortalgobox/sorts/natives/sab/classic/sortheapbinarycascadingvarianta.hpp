@@ -1,7 +1,7 @@
 /* 
  * sortheapbinarycascadingvarianta.hpp -- sorting algorithms benchmark
  * 
- * Copyright (C) 2014 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2014 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  *  This software is provided 'as-is', without any express or implied
  *  warranty.  In no event will the author be held liable for any damages
@@ -18,7 +18,6 @@
  *  2. Altered source versions must be plainly marked as such, and must not be
  *     misrepresented as being the original software.
  *  3. This notice may not be removed or altered from any source distribution.
- * 
  */
 #ifndef SORTHEAPBINARYCASCADINGVARIANTA_HPP
 #define	SORTHEAPBINARYCASCADINGVARIANTA_HPP
@@ -27,13 +26,17 @@
 
 namespace tarsa {
 
-    namespace privateBinaryHeapSortCascadingVariantA {
+    ssize_t constexpr QueueSize = 64;
 
-        ssize_t constexpr QueueSize = 64;
+    template<typename ItemType, ComparisonOperator<ItemType> compOp>
+    class TheSorter {
+        ItemType * const a;
+        ssize_t const count;
+        ssize_t queueLength;
+        ssize_t queueStoreIndex;
+        ssize_t queue[QueueSize];
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void siftDown(ItemType * const a, ssize_t const start,
-                ssize_t const end) {
+        void siftDown(ssize_t const start, ssize_t const end) {
             ssize_t root = start;
             while (true) {
                 ssize_t const left = root * 2;
@@ -65,17 +68,14 @@ namespace tarsa {
             }
         }
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void heapify(ItemType * const a, ssize_t const count) {
+        void heapify() {
             for (ssize_t item = count / 2; item >= 1; item--) {
-                siftDown<ItemType, compOp>(a, item, count);
+                siftDown(item, count);
             }
         }
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        bool siftDownSingleStep(ItemType * const a, ssize_t const end,
-                ssize_t * const queueSlot) {
-            ssize_t const root = *queueSlot;
+        void siftDownSingleStep(ssize_t const end, ssize_t const queueIndex) {
+            ssize_t const root = queue[queueIndex];
             ssize_t const left = root * 2;
             ssize_t const right = left + 1;
 
@@ -84,56 +84,50 @@ namespace tarsa {
                         + compOp(a[left], Below, a[right]);
                 if (compOp(a[root], Below, a[maxChild])) {
                     std::swap(a[root], a[maxChild]);
-                    *queueSlot = maxChild;
+                    queue[queueStoreIndex] = maxChild;
+                    queueStoreIndex++;
                     prefetch(a + std::min(maxChild * 2, end));
-                    return true;
                 }
             } else {
                 if (left == end && compOp(a[root], Below, a[left])) {
                     std::swap(a[root], a[left]);
                 }
             }
-            return false;
         }
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        ssize_t siftDownCascaded(ItemType * const a, ssize_t const start,
-                ssize_t * const queue, ssize_t queueLength, ssize_t const end) {
+        void siftDownCascaded(ssize_t const start, ssize_t const end) {
             queue[queueLength] = start;
             queueLength++;
-            ssize_t queueStoreIndex = 0;
-            for (ssize_t queueIndex = queue[0] * 2 > end;
-                    queueIndex < queueLength; queueIndex++) {
-                queue[queueStoreIndex] = queue[queueIndex];
-                queueStoreIndex += siftDownSingleStep<ItemType, compOp>(a, end,
-                        queue + queueStoreIndex);
+            for (ssize_t queueIndex = 0; queueIndex < queueLength;
+                    queueIndex++) {
+                siftDownSingleStep(end, queueIndex);
             }
-            return queueStoreIndex;
         }
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void drainHeap(ItemType * const a, ssize_t const count) {
-            ssize_t queue[QueueSize];
-            ssize_t queueLength = 0;
+        void drainHeap() {
+            queueLength = 0;
             for (ssize_t next = count; next > 1; next--) {
                 std::swap(a[next], a[1]);
-                queueLength = siftDownCascaded<ItemType, compOp>(a, 1, queue,
-                        queueLength, next - 1);
+                queueStoreIndex = 0;
+                siftDownCascaded(1, next - 1);
+                queueLength = queueStoreIndex;
             }
         }
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void heapsort(ItemType * const a, ssize_t const count) {
-            heapify<ItemType, compOp>(a, count);
-            drainHeap<ItemType, compOp>(a, count);
+    public:
+        TheSorter(ItemType * const a, ssize_t const count): a(a), count(count) {
         }
-    }
+
+        void heapsort() {
+            heapify();
+            drainHeap();
+        }
+    };
 
     template<typename ItemType, ComparisonOperator<ItemType> compOp>
     void BinaryHeapSortCascadingVariantA(ItemType * const a,
             ssize_t const count) {
-        privateBinaryHeapSortCascadingVariantA::heapsort<ItemType, compOp>(
-                a - 1, count);
+        TheSorter<ItemType, compOp>(a - 1, count).heapsort();
     }
 
     template<typename ItemType>
