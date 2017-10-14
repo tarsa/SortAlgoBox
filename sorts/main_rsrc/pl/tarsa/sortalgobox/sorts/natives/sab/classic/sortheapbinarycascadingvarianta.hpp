@@ -74,8 +74,7 @@ namespace tarsa {
             }
         }
 
-        void siftDownSingleStep(ssize_t const end, ssize_t const queueIndex) {
-            ssize_t const root = queue[queueIndex];
+        void siftDownSingleStep(ssize_t const end, ssize_t const root) {
             ssize_t const left = root * 2;
             ssize_t const right = left + 1;
 
@@ -100,7 +99,7 @@ namespace tarsa {
             queueLength++;
             for (ssize_t queueIndex = 0; queueIndex < queueLength;
                     queueIndex++) {
-                siftDownSingleStep(end, queueIndex);
+                siftDownSingleStep(end, queue[queueIndex]);
             }
         }
 
