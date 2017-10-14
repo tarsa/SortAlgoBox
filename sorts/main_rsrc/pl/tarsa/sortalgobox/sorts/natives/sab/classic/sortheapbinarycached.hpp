@@ -1,7 +1,7 @@
 /* 
  * sortheapbinarycached.hpp -- sorting algorithms benchmark
  * 
- * Copyright (C) 2014 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2014 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  *  This software is provided 'as-is', without any express or implied
  *  warranty.  In no event will the author be held liable for any damages
@@ -18,7 +18,6 @@
  *  2. Altered source versions must be plainly marked as such, and must not be
  *     misrepresented as being the original software.
  *  3. This notice may not be removed or altered from any source distribution.
- * 
  */
 #ifndef SORTHEAPBINARYCACHED_HPP
 #define	SORTHEAPBINARYCACHED_HPP
@@ -26,46 +25,50 @@
 #include "sortalgocommon.hpp"
 
 namespace tarsa {
-    namespace privateCachedComparisonsBinaryHeapSort {
-        
-        using namespace privateClusteredHeapsorts;
 
-        ssize_t constexpr Arity = 2;
-        ssize_t constexpr ClusterLevels = 3;
-        ssize_t constexpr ClusterLastLevelStart =
-                computeClusterSize<ClusterLevels>(Arity) - 1;
-        ssize_t constexpr ClusterLastLevelSize =
-                computeClusterLevelSize<ClusterLevels>(Arity);
-        ssize_t constexpr ClusterSize =
-                ClusterLastLevelStart + ClusterLastLevelSize;
-        ssize_t constexpr ClusterArity = ClusterLastLevelSize;
-        
-        using namespace compileTimeConstArrays;
+    using namespace privateClusteredHeapsorts;
 
-        int8_t constexpr compMax2(ssize_t cachedComparisons) {
-            return ((cachedComparisons & 1) + 1) * Arity + 
-                    ((cachedComparisons >> ((cachedComparisons & 1) + 1)) & 1);
-        }
+    ssize_t constexpr Arity = 2;
+    ssize_t constexpr ClusterLevels = 3;
+    ssize_t constexpr ClusterLastLevelStart =
+            computeClusterSize<ClusterLevels>(Arity) - 1;
+    ssize_t constexpr ClusterLastLevelSize =
+            computeClusterLevelSize<ClusterLevels>(Arity);
+    ssize_t constexpr ClusterSize =
+            ClusterLastLevelStart + ClusterLastLevelSize;
+    ssize_t constexpr ClusterArity = ClusterLastLevelSize;
 
-        int8_t constexpr compMax3(ssize_t cachedComparisons) {
-            return (compMax2(cachedComparisons) + 1) * Arity + 
-                    ((cachedComparisons >> (compMax2(cachedComparisons) 
-                    + 1)) & 1);
-        }
-        
-        int8_t constexpr compFilteredComparisons(ssize_t cachedComparisons) {
-            return cachedComparisons & ~((1) | (1 << ((cachedComparisons & 1)
-                    + 1)) | (1 << (compMax2(cachedComparisons) + 1)));
-        }
-        
-        ComputedArray<1 << 7, int8_t> getMax2(gen_seq<1 << 7>(), compMax2);
-        ComputedArray<1 << 7, int8_t> getMax3(gen_seq<1 << 7>(), compMax3);        
-        ComputedArray<1 << (7 + 2), int8_t> getFilteredComparisons(
-                gen_seq<1 << (7 + 2)>(), compFilteredComparisons);
+    using namespace compileTimeConstArrays;
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void siftDownUncached(ItemType * const a, ssize_t const count,
-                ssize_t clusterStart, ssize_t current, ssize_t level) {
+    int8_t constexpr compMax2(ssize_t cachedComparisons) {
+        return ((cachedComparisons & 1) + 1) * Arity +
+                ((cachedComparisons >> ((cachedComparisons & 1) + 1)) & 1);
+    }
+
+    int8_t constexpr compMax3(ssize_t cachedComparisons) {
+        return (compMax2(cachedComparisons) + 1) * Arity +
+                ((cachedComparisons >> (compMax2(cachedComparisons)
+                + 1)) & 1);
+    }
+
+    int8_t constexpr compFilteredComparisons(ssize_t cachedComparisons) {
+        return cachedComparisons & ~((1) | (1 << ((cachedComparisons & 1)
+                + 1)) | (1 << (compMax2(cachedComparisons) + 1)));
+    }
+
+    ComputedArray<1 << 7, int8_t> getMax2(gen_seq<1 << 7>(), compMax2);
+    ComputedArray<1 << 7, int8_t> getMax3(gen_seq<1 << 7>(), compMax3);
+    ComputedArray<1 << (7 + 2), int8_t> getFilteredComparisons(
+            gen_seq<1 << (7 + 2)>(), compFilteredComparisons);
+
+    template<typename ItemType, ComparisonOperator<ItemType> compOp>
+    class TheSorter {
+        ItemType * const a;
+        ssize_t const count;
+        int8_t * const cachedComparisonsTable;
+        
+        void siftDownUncached(ssize_t clusterStart, ssize_t current,
+                ssize_t level) {
             assert(clusterStart % ClusterSize == 0);
             assert(current >= 0);
             assert(current < ClusterSize);
@@ -149,25 +152,21 @@ namespace tarsa {
             }
         }
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void heapify(ItemType * const a, ssize_t const count) {
+        void heapify() {
             ssize_t const last = count - 1;
             ssize_t positionInCluster = last % ClusterSize;
             ssize_t clusterStart = last - positionInCluster;
             while (clusterStart >= 0) {
                 while (positionInCluster >= Arity + Arity * Arity) {
-                    siftDownUncached<ItemType, compOp>(a, count,
-                            clusterStart, positionInCluster, 3);
+                    siftDownUncached(clusterStart, positionInCluster, 3);
                     positionInCluster--;
                 }
                 while (positionInCluster >= Arity) {
-                    siftDownUncached<ItemType, compOp>(a, count,
-                            clusterStart, positionInCluster, 2);
+                    siftDownUncached(clusterStart, positionInCluster, 2);
                     positionInCluster--;
                 }
                 while (positionInCluster >= 0) {
-                    siftDownUncached<ItemType, compOp>(a, count,
-                            clusterStart, positionInCluster, 1);
+                    siftDownUncached(clusterStart, positionInCluster, 1);
                     positionInCluster--;
                 }
                 positionInCluster = ClusterSize - 1;
@@ -175,15 +174,13 @@ namespace tarsa {
             }
         }
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void initCachedComparisons(ItemType * const a, ssize_t const count,
-                int8_t * const cachedComparisons) {
+        void initCachedComparisons() {
             ssize_t const last = count - 1;
             ssize_t cacheIndex = last / ClusterSize;
             ssize_t clusterStart = cacheIndex * ClusterSize;
             ssize_t positionInCluster = last - clusterStart;
             if (positionInCluster == 0) {
-                cachedComparisons[cacheIndex] = 0;
+                cachedComparisonsTable[cacheIndex] = 0;
                 cacheIndex--;
                 clusterStart -= ClusterSize;
                 positionInCluster = ClusterSize - 1;
@@ -202,7 +199,7 @@ namespace tarsa {
                     positionInCluster -= 2;
                 }
                 assert(positionInCluster == -1);
-                cachedComparisons[cacheIndex] = localCachedComparisons;
+                cachedComparisonsTable[cacheIndex] = localCachedComparisons;
                 cacheIndex--;
                 clusterStart -= ClusterSize;
                 positionInCluster = ClusterSize - 1;
@@ -211,17 +208,16 @@ namespace tarsa {
 
 #ifndef NDEBUG
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void checkHeapState(ItemType * const a, ssize_t const count,
-                int8_t * const cachedComparisons) {
+        void checkHeapState() {
             ssize_t const last = count - 1;
             ssize_t cacheIndex = last / ClusterSize;
             ssize_t clusterStart = cacheIndex * ClusterSize;
             ssize_t positionInCluster = last - clusterStart;
-            assert(cachedComparisons[cacheIndex]
+            assert(cachedComparisonsTable[cacheIndex]
                     < (1 << ((positionInCluster + 1) / 2)));
             while (clusterStart >= 0) {
-                int8_t const cachedComparison = cachedComparisons[cacheIndex];
+                int8_t const cachedComparison =
+                    cachedComparisonsTable[cacheIndex];
                 ItemType * const cluster = a + clusterStart;
                 while (positionInCluster >= Arity + Arity * Arity) {
                     ssize_t const childClusterStart = (positionInCluster
@@ -238,7 +234,7 @@ namespace tarsa {
                             Below, childCluster[child2]));
                     if (childClusterStart < count) {
                         int8_t const childCachedComparison =
-                                cachedComparisons[childClusterStart
+                                cachedComparisonsTable[childClusterStart
                                 / ClusterSize];
                         if (childClusterStart + child1 == last) {
                             assert(!(childCachedComparison & 1));
@@ -275,14 +271,13 @@ namespace tarsa {
                 positionInCluster = ClusterSize - 1;
             }
             if (count >= 2) {
-                assert((cachedComparisons[0] & 1) == compOp(a[0], Below, a[1]));
+                assert((cachedComparisonsTable[0] & 1) ==
+                    compOp(a[0], Below, a[1]));
             }
         }
 #endif
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void siftDown(ItemType * const a, ssize_t const next,
-                int8_t * const cachedComparisonsTable) {
+        void siftDown(ssize_t const next) {
             if (next < 2) {
                 if (next == 1 && compOp(a[1], Below, a[0])) {
                     std::swap(a[0], a[1]);
@@ -386,28 +381,26 @@ namespace tarsa {
             }
         }
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void drainHeap(ItemType * const a, ssize_t const count,
-                int8_t * const cachedComparisons) {
+        void drainHeap() {
             ssize_t next = count - 1;
             ssize_t cacheIndex = next / ClusterSize;
             ssize_t clusterStart = cacheIndex * ClusterSize;
             ssize_t positionInCluster = next - clusterStart;
             if ((positionInCluster & 1) == 0) {
-                siftDown<ItemType, compOp>(a, next, cachedComparisons);
+                siftDown(next);
                 next--;
                 positionInCluster--;
             }
             while (clusterStart >= 0) {
                 assert((positionInCluster & 1) == 1);
                 while (positionInCluster >= 0) {
-                    cachedComparisons[cacheIndex] &=
+                    cachedComparisonsTable[cacheIndex] &=
                             (1 << (positionInCluster / 2)) - 1;
-                    siftDown<ItemType, compOp>(a, next, cachedComparisons);
+                    siftDown(next);
                     next--;
-                    cachedComparisons[cacheIndex] &=
+                    cachedComparisonsTable[cacheIndex] &=
                             (1 << ((positionInCluster / 2) - 1)) - 1;
-                    siftDown<ItemType, compOp>(a, next, cachedComparisons);
+                    siftDown(next);
                     next--;
                     positionInCluster -= 2;
                 }
@@ -418,24 +411,26 @@ namespace tarsa {
             }
         }
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void heapsort(ItemType * const a, ssize_t const count,
-                int8_t * const cachedComparisons) {
-            heapify<ItemType, compOp>(a, count);
-            initCachedComparisons<ItemType, compOp>(a, count,
-                    cachedComparisons);
-#ifndef NDEBUG     
-            checkHeapState<ItemType, compOp>(a, count, cachedComparisons);
-#endif
-            drainHeap<ItemType, compOp>(a, count, cachedComparisons);
+    public:
+        TheSorter(ItemType * const a, ssize_t const count,
+            int8_t * const cachedComparisonsTable):
+            a(a), count(count), cachedComparisonsTable(cachedComparisonsTable) {
         }
-    }
+
+        void heapsort() {
+            heapify();
+            initCachedComparisons();
+#ifndef NDEBUG     
+            checkHeapState();
+#endif
+            drainHeap();
+        }
+    };
 
     template<typename ItemType, ComparisonOperator<ItemType> compOp>
     void CachedComparisonsBinaryHeapSort(ItemType * const a,
             ssize_t const count, int8_t * const scratchpad) {
-        privateCachedComparisonsBinaryHeapSort::heapsort<ItemType, compOp>(
-                a, count, scratchpad);
+        TheSorter<ItemType, compOp>(a, count, scratchpad).heapsort();
     }
 
     template<typename ItemType>
