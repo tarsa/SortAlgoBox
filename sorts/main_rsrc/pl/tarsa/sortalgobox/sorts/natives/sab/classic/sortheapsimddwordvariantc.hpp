@@ -57,27 +57,6 @@ namespace tarsa {
             return a > b;
         }
 
-        template<typename ItemType, bool Signed, bool Ascending, bool Payload>
-        void siftUp(ItemType * const a, ssize_t const start) {
-            ssize_t current = start;
-            while (current >= Arity) {
-                ssize_t const parent = current / Arity - 1;
-                if (ordered<ItemType, Ascending>(a[parent], a[current])) {
-                    std::swap(a[parent], a[current]);
-                    current = parent;
-                } else {
-                    return;
-                }
-            }
-        }
-
-        template<typename ItemType, bool Signed, bool Ascending, bool Payload>
-        void heapify(ItemType * const a, ssize_t const count) {
-            for (ssize_t item = Arity; item < count; item++) {
-                siftUp<ItemType, Signed, Ascending, Payload>(a, item);
-            }
-        }
-
         template<bool Signed, bool Ascending>
         __m128i verticalLeaderSelect(__m128i const a, __m128i const b) {
         }
@@ -153,6 +132,14 @@ namespace tarsa {
                     std::swap(a[root], a[leader]);
                     return;
                 }
+            }
+        }
+
+        template<typename ItemType, bool Signed, bool Ascending, bool Payload>
+        void heapify(ItemType * const a, ssize_t const count) {
+            for (ssize_t item = count / Arity - 1; item >= 0; item--) {
+                siftDown<ItemType, Signed, Ascending, Payload>(a, item,
+                    (item + 1) * Arity, count);
             }
         }
 

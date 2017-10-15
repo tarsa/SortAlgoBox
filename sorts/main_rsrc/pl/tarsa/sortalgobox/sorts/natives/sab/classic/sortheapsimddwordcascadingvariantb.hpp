@@ -59,27 +59,6 @@ namespace tarsa {
             return a > b;
         }
 
-        template<typename ItemType, bool Signed, bool Ascending, bool Payload>
-        void siftUp(ItemType * const a, ssize_t const start) {
-            ssize_t current = start;
-            while (current >= Arity) {
-                ssize_t const parent = current / Arity - 1;
-                if (ordered<ItemType, Ascending>(a[parent], a[current])) {
-                    std::swap(a[parent], a[current]);
-                    current = parent;
-                } else {
-                    return;
-                }
-            }
-        }
-
-        template<typename ItemType, bool Signed, bool Ascending, bool Payload>
-        void heapify(ItemType * const a, ssize_t const count) {
-            for (ssize_t item = Arity; item < count; item++) {
-                siftUp<ItemType, Signed, Ascending, Payload>(a, item);
-            }
-        }
-
         template<bool Signed, bool Ascending>
         __m256i verticalLeaderSelect(__m256i const a, __m256i const b) {
         }
@@ -170,6 +149,42 @@ namespace tarsa {
             queueStoreIndex += siftDownSingleStep<ItemType, Signed, Ascending,
                     Payload>(a, count, queue + queueStoreIndex, 0);
             return queueStoreIndex;
+        }
+
+        template<typename ItemType, bool Signed, bool Ascending, bool Payload>
+        void siftDown(ItemType * const a, ssize_t root, ssize_t child1,
+                ssize_t const count) {
+            while (child1 < count) {
+                if (child1 + Arity - 1 < count) {
+                    ssize_t const leader = child1 + leaderIndex<ItemType,
+                            Signed, Ascending>(a + child1);
+                    if (ordered<ItemType, Ascending>(a[root], a[leader])) {
+                        std::swap(a[root], a[leader]);
+                        root = leader;
+                        child1 = (root + 1) * Arity;
+                    } else {
+                        return;
+                    }
+                } else {
+                    ssize_t leader = root;
+                    ssize_t lastChild = std::min(child1 + Arity - 1, count - 1);
+                    for (ssize_t child = child1; child <= lastChild; child++) {
+                        if (ordered<ItemType, Ascending>(a[leader], a[child])) {
+                            leader = child;
+                        }
+                    }
+                    std::swap(a[root], a[leader]);
+                    return;
+                }
+            }
+        }
+
+        template<typename ItemType, bool Signed, bool Ascending, bool Payload>
+        void heapify(ItemType * const a, ssize_t const count) {
+            for (ssize_t item = count / Arity - 1; item >= 0; item--) {
+                siftDown<ItemType, Signed, Ascending, Payload>(a, item,
+                    (item + 1) * Arity, count);
+            }
         }
 
         template<typename ItemType, bool Signed, bool Ascending, bool Payload>
