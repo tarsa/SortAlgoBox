@@ -56,8 +56,6 @@ object BenchmarksConfigurations {
       new ClassicSabHeapBinaryCached(),
       new ClassicSabHeapBinaryCascadingVariantA(),
       new ClassicSabHeapBinaryCascadingVariantB(),
-      new ClassicSabHeapBinaryCascadingVariantC(),
-      new ClassicSabHeapBinaryCascadingVariantD(),
       new ClassicSabHeapBinaryClusteredVariantA(),
       new ClassicSabHeapBinaryClusteredVariantB(),
       new ClassicSabHeapBinaryOneBasedVariantA(),
