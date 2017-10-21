@@ -26,11 +26,12 @@
 
 namespace tarsa {
 
-    namespace privateOneBasedBinaryHeapSortVariantA {
+    template<typename ItemType, ComparisonOperator<ItemType> compOp>
+    class TheSorter {
+        ItemType * const a;
+        ssize_t const count;
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void siftDown(ItemType * const a, ssize_t const start,
-                ssize_t const end) {
+        void siftDown(ssize_t const start, ssize_t const end) {
             ssize_t root = start;
             while (true) {
                 ssize_t const left = root * 2;
@@ -62,33 +63,33 @@ namespace tarsa {
             }
         }
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void heapify(ItemType * const a, ssize_t const count) {
+        void heapify() {
             for (ssize_t item = count / 2; item >= 1; item--) {
-                siftDown<ItemType, compOp>(a, item, count);
+                siftDown(item, count);
             }
         }
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void drainHeap(ItemType * const a, ssize_t const count) {
+        void drainHeap() {
             for (ssize_t next = count; next > 1; next--) {
                 std::swap(a[next], a[1]);
-                siftDown<ItemType, compOp>(a, 1, next - 1);
+                siftDown(1, next - 1);
             }
         }
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void heapsort(ItemType * const a, ssize_t const count) {
-            heapify<ItemType, compOp>(a, count);
-            drainHeap<ItemType, compOp>(a, count);
+    public:
+        TheSorter(ItemType * const a, ssize_t const count): a(a), count(count) {
         }
-    }
+
+        void heapsort() {
+            heapify();
+            drainHeap();
+        }
+    };
 
     template<typename ItemType, ComparisonOperator<ItemType> compOp>
     void ClassicOneBasedBinaryHeapSortVariantA(ItemType * const a,
             ssize_t const count) {
-        privateOneBasedBinaryHeapSortVariantA::heapsort<ItemType, compOp>(
-                a - 1, count);
+        TheSorter<ItemType, compOp>(a - 1, count).heapsort();
     }
 
     template<typename ItemType>
