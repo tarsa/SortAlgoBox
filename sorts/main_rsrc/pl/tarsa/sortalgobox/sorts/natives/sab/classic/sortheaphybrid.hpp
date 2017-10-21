@@ -1,7 +1,7 @@
 /* 
  * sortheaphybrid.hpp -- sorting algorithms benchmark
  * 
- * Copyright (C) 2014 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2014 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  *  This software is provided 'as-is', without any express or implied
  *  warranty.  In no event will the author be held liable for any damages
@@ -18,7 +18,6 @@
  *  2. Altered source versions must be plainly marked as such, and must not be
  *     misrepresented as being the original software.
  *  3. This notice may not be removed or altered from any source distribution.
- * 
  */
 #ifndef SORTHEAPHYBRID_HPP
 #define	SORTHEAPHYBRID_HPP
@@ -27,28 +26,30 @@
 
 namespace tarsa {
 
-    namespace privateHybridHeapSort {
+    using namespace privateClusteredHeapsorts;
 
-        using namespace privateClusteredHeapsorts;
+    ssize_t constexpr topClusterStepArity = 3;
+    ssize_t constexpr topClusterLevels = 8;
+    ssize_t constexpr topClusterSize = computeClusterSize<topClusterLevels>(
+            topClusterStepArity);
+    ssize_t constexpr topClusterTotalArity = computeClusterLevelSize<
+            topClusterLevels - 1 > (topClusterStepArity);
+    ssize_t constexpr topClusterLastLevelStart =
+            computeClusterSize<topClusterLevels - 1 > (topClusterStepArity);
 
-        ssize_t constexpr topClusterStepArity = 3;
-        ssize_t constexpr topClusterLevels = 8;
-        ssize_t constexpr topClusterSize = computeClusterSize<topClusterLevels>(
-                topClusterStepArity);
-        ssize_t constexpr topClusterTotalArity = computeClusterLevelSize<
-                topClusterLevels - 1 > (topClusterStepArity);
-        ssize_t constexpr topClusterLastLevelStart =
-                computeClusterSize<topClusterLevels - 1 > (topClusterStepArity);
+    ssize_t constexpr smallClusterLevels = 2;
+    ssize_t constexpr smallClusterArities[] = {3, 4};
+    ssize_t constexpr smallClusterSize = 4 * (3 + 1);
+    ssize_t constexpr smallClusterTotalArity = 4 * 3;
+    ssize_t constexpr smallClusterSecondLevelStart = 4;
 
-        ssize_t constexpr smallClusterLevels = 2;
-        ssize_t constexpr smallClusterArities[] = {3, 4};
-        ssize_t constexpr smallClusterSize = 4 * (3 + 1);
-        ssize_t constexpr smallClusterTotalArity = 4 * 3;
-        ssize_t constexpr smallClusterSecondLevelStart = 4;
+    template<typename ItemType, ComparisonOperator<ItemType> compOp>
+    class TheSorter {
+        ItemType * const a;
+        ssize_t const count;
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void siftDownFromLongLink(ItemType * const a, ssize_t const end,
-                ssize_t root, ssize_t clusterStart, ssize_t relativeChild1) {
+        void siftDownFromLongLink(ssize_t const end, ssize_t root,
+                ssize_t clusterStart, ssize_t relativeChild1) {
             ssize_t const last = end - 1;
             while (true) {
                 ItemType * const cluster = a + clusterStart;
@@ -269,9 +270,8 @@ namespace tarsa {
             }
         }
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void siftDownFromShortLink(ItemType * const a, ssize_t const end,
-                ssize_t root, ssize_t clusterStart, ssize_t relativeChild1) {
+        void siftDownFromShortLink(ssize_t const end, ssize_t root,
+                ssize_t clusterStart, ssize_t relativeChild1) {
             ssize_t const last = end - 1;
             ItemType * cluster = a + clusterStart;
             ssize_t relativeRoot = root - clusterStart;
@@ -495,8 +495,7 @@ namespace tarsa {
             }
         }
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void siftDownTip(ItemType * const a, ssize_t root, ssize_t const end) {
+        void siftDownTip(ssize_t root, ssize_t const end) {
             while (root < topClusterLastLevelStart) {
                 ssize_t const first = root * 3 + 1;
                 ssize_t const middle = first + 1;
@@ -552,14 +551,13 @@ namespace tarsa {
                 }
             }
             if (root >= topClusterLastLevelStart && end >= topClusterSize) {
-                siftDownFromLongLink<ItemType, compOp>(a, end, root,
+                siftDownFromLongLink(end, root,
                         (root - topClusterLastLevelStart) * smallClusterSize
                         + topClusterSize, 0);
             }
         }
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void heapify(ItemType * const a, ssize_t const count) {
+        void heapify() {
             ssize_t const end = count;
             ssize_t item = count - 1;
 
@@ -582,14 +580,13 @@ namespace tarsa {
                 while (item >= topClusterSize) {
                     while (item >= clusterStart
                             + smallClusterSecondLevelStart) {
-                        siftDownFromLongLink<ItemType, compOp>(a, end, item,
-                                childClusterStart, 0);
+                        siftDownFromLongLink(end, item, childClusterStart, 0);
                         item--;
                         childClusterStart -= smallClusterSize;
                     }
                     while (item >= clusterStart) {
-                        siftDownFromShortLink<ItemType, compOp>(a, end, item,
-                                clusterStart, relativeLeft);
+                        siftDownFromShortLink(end, item, clusterStart,
+                            relativeLeft);
                         item--;
                         relativeLeft -= smallClusterArities[0];
                     }
@@ -599,29 +596,30 @@ namespace tarsa {
             }
             for (ssize_t start = std::min(topClusterSize - 1, count - 1);
                     start >= 0; start--) {
-                siftDownTip<ItemType, compOp>(a, start, count);
+                siftDownTip(start, count);
             }
         }
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void drainHeap(ItemType * const a, ssize_t const count) {
+        void drainHeap() {
             for (ssize_t next = count - 1; next > 0; next--) {
                 std::swap(a[next], a[0]);
-                siftDownTip<ItemType, compOp>(a, 0, next);
+                siftDownTip(0, next);
             }
         }
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp>
-        void heapsort(ItemType * const a, ssize_t const count) {
-            heapify<ItemType, compOp>(a, count);
-            drainHeap<ItemType, compOp>(a, count);
+    public:
+        TheSorter(ItemType * const a, ssize_t const count): a(a), count(count) {
         }
-    }
+
+        void heapsort() {
+            heapify();
+            drainHeap();
+        }
+    };
 
     template<typename ItemType, ComparisonOperator<ItemType> compOp>
     void HybridHeapSort(ItemType * const a, ssize_t const count) {
-        privateHybridHeapSort::heapsort<ItemType, compOp>(
-                a, count);
+        TheSorter<ItemType, compOp>(a, count).heapsort();
     }
 
     template<typename ItemType>
