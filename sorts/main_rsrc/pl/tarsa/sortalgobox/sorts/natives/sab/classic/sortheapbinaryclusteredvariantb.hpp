@@ -1,7 +1,7 @@
 /* 
  * sortheapbinaryclusteredvariantb.hpp -- sorting algorithms benchmark
  * 
- * Copyright (C) 2014 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2014 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  *  This software is provided 'as-is', without any express or implied
  *  warranty.  In no event will the author be held liable for any damages
@@ -18,7 +18,6 @@
  *  2. Altered source versions must be plainly marked as such, and must not be
  *     misrepresented as being the original software.
  *  3. This notice may not be removed or altered from any source distribution.
- * 
  */
 #ifndef SORTHEAPBINARYCLUSTEREDVARIANTB_HPP
 #define	SORTHEAPBINARYCLUSTEREDVARIANTB_HPP
@@ -27,17 +26,18 @@
 
 namespace tarsa {
 
-    namespace privateClusteredBinaryHeapSortVariantB {
+    using namespace privateClusteredHeapsorts;
 
-        using namespace privateClusteredHeapsorts;
+    ssize_t constexpr arity = 2;
 
-        ssize_t constexpr arity = 2;
-
-        template<typename ItemType, ComparisonOperator<ItemType> compOp,
+    template<typename ItemType, ComparisonOperator<ItemType> compOp,
         ssize_t clusterLevels>
-        void siftDownInit(ItemType * const a, ssize_t root,
-                ssize_t relativeLeft, ssize_t const count,
-                ssize_t clusterStart) {
+    class TheSorter {
+        ItemType * const a;
+        ssize_t const count;
+
+        void siftDownInit(ssize_t root, ssize_t relativeLeft,
+                ssize_t const count, ssize_t clusterStart) {
             ssize_t constexpr clusterSize =
                     computeClusterSize < clusterLevels + 1 > (arity) - 1;
             ssize_t constexpr clusterArity =
@@ -126,10 +126,8 @@ namespace tarsa {
             }
         }
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp,
-        ssize_t clusterLevels>
-        void siftDownLast(ItemType * const a, ssize_t root,
-                ssize_t left, ssize_t const count, ssize_t clusterStart) {
+        void siftDownLast(ssize_t root, ssize_t left, ssize_t const count,
+                ssize_t clusterStart) {
             ssize_t constexpr clusterSize =
                     computeClusterSize < clusterLevels + 1 > (arity) - 1;
             ssize_t constexpr clusterArity =
@@ -219,9 +217,7 @@ namespace tarsa {
             }
         }
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp,
-        ssize_t clusterLevels>
-        void heapify(ItemType * const a, ssize_t const count) {
+        void heapify() {
             ssize_t const end = count;
             ssize_t constexpr clusterSize =
                     computeClusterSize < clusterLevels + 1 > (arity) - 1;
@@ -242,14 +238,12 @@ namespace tarsa {
             }
             while (item >= 0) {
                 while (item >= localClusterStart + relativeLastLevelStart) {
-                    siftDownLast<ItemType, compOp, clusterLevels>(a,
-                            item, left, count, localClusterStart);
+                    siftDownLast(item, left, count, localClusterStart);
                     item--;
                     left -= clusterSize;
                 }
                 while (item >= localClusterStart) {
-                    siftDownInit<ItemType, compOp, clusterLevels>(a, item,
-                            relativeLeft, end, localClusterStart);
+                    siftDownInit(item, relativeLeft, end, localClusterStart);
                     item--;
                     relativeLeft -= arity;
                 }
@@ -258,29 +252,27 @@ namespace tarsa {
             }
         }
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp,
-        ssize_t clusterLevels>
-        void drainHeap(ItemType * const a, ssize_t const count) {
+        void drainHeap() {
             for (ssize_t next = count - 1; next > 0; next--) {
-                siftDownInit<ItemType, compOp, clusterLevels>
-                        (a, next, 0, next, 0);
+                siftDownInit(next, 0, next, 0);
             }
         }
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp,
-        ssize_t clusterLevels>
-        void heapsort(ItemType * const a, ssize_t const count) {
-            heapify<ItemType, compOp, clusterLevels>(a, count);
-            drainHeap<ItemType, compOp, clusterLevels>(a, count);
+    public:
+        TheSorter(ItemType * const a, ssize_t const count): a(a), count(count) {
         }
-    }
+
+        void heapsort() {
+            heapify();
+            drainHeap();
+        }
+    };
 
     template<typename ItemType, ComparisonOperator<ItemType> compOp,
     ssize_t clusterLevels = 5 >
     void ClusteredBinaryHeapSortVariantB(ItemType * const a,
             ssize_t const count) {
-        privateClusteredBinaryHeapSortVariantB::
-                heapsort<ItemType, compOp, clusterLevels>(a, count);
+        TheSorter<ItemType, compOp, clusterLevels>(a, count).heapsort();
     }
 
     template<typename ItemType>
