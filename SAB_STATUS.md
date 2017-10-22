@@ -15,18 +15,8 @@ Parameters of SortingAlgorithmsBenchmark's sorts and their porting status
 |sortheapbinaryclusteredvariantb|No|1 \* N|
 |sortheapbinaryonebasedvarianta|Yes|1 \* N|
 |sortheapbinaryonebasedvariantb|No|1 \* N|
-|sortheaphybrid|No|1 \* N|
-|sortheaphybridcascading|No|1 \* N|(64 - 8) \* 5 \* 2 + 64|
-|sortheapquaternarycascadingvarianta|No|1 \* N|64|
-|sortheapquaternaryvarianta|No|1 \* N|
-|sortheapquaternaryvariantb|No|1 \* N|
 |sortheapsimddwordcascadingvariantb|No|1 \* N|64|
 |sortheapsimddwordcascadingvariantc|No|1 \* N|64|
 |sortheapsimddwordvariantb|No|1 \* N|
 |sortheapsimddwordvariantc|No|1 \* N|
-|sortheapternarycascadingvarianta|No|1 \* N|64|
-|sortheapternaryclusteredvarianta|No|1 \* N|
-|sortheapternaryclusteredvariantb|No|1 \* N|
-|sortheapternaryonebasedvarianta|No|1 \* N|
-|sortheapternaryonebasedvariantb|No|1 \* N|
 |sortquickrandomized|No|1 \* N|
