@@ -1,7 +1,7 @@
 /* 
  * sortheapsimddwordvariantc.hpp -- sorting algorithms benchmark
  * 
- * Copyright (C) 2014 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2014 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  *  This software is provided 'as-is', without any express or implied
  *  warranty.  In no event will the author be held liable for any damages
@@ -18,7 +18,6 @@
  *  2. Altered source versions must be plainly marked as such, and must not be
  *     misrepresented as being the original software.
  *  3. This notice may not be removed or altered from any source distribution.
- * 
  */
 #ifndef SORTHEAPSIMDDWORDVARIANTC_HPP
 #define	SORTHEAPSIMDDWORDVARIANTC_HPP
@@ -29,66 +28,68 @@
 
 namespace tarsa {
 
-    namespace privateSimdDwordHeapSortVariantC {
+    ssize_t constexpr Arity = 8;
 
-        ssize_t constexpr Arity = 8;
+    template<typename ItemType, bool Ascending>
+    bool ordered(ItemType const &a, ItemType const &b) {
+    }
 
-        template<typename ItemType, bool Ascending>
-        bool ordered(ItemType const &a, ItemType const &b) {
-        }
+    template<>
+    bool ordered<int32_t, true>(int32_t const &a, int32_t const &b) {
+        return a < b;
+    }
 
-        template<>
-        bool ordered<int32_t, true>(int32_t const &a, int32_t const &b) {
-            return a < b;
-        }
+    template<>
+    bool ordered<uint32_t, true>(uint32_t const &a, uint32_t const &b) {
+        return a < b;
+    }
 
-        template<>
-        bool ordered<uint32_t, true>(uint32_t const &a, uint32_t const &b) {
-            return a < b;
-        }
+    template<>
+    bool ordered<int32_t, false>(int32_t const &a, int32_t const &b) {
+        return a > b;
+    }
 
-        template<>
-        bool ordered<int32_t, false>(int32_t const &a, int32_t const &b) {
-            return a > b;
-        }
+    template<>
+    bool ordered<uint32_t, false>(uint32_t const &a, uint32_t const &b) {
+        return a > b;
+    }
 
-        template<>
-        bool ordered<uint32_t, false>(uint32_t const &a, uint32_t const &b) {
-            return a > b;
-        }
+    template<bool Signed, bool Ascending>
+    __m128i verticalLeaderSelect(__m128i const a, __m128i const b) {
+    }
 
-        template<bool Signed, bool Ascending>
-        __m128i verticalLeaderSelect(__m128i const a, __m128i const b) {
-        }
+    template<>
+    __m128i verticalLeaderSelect<true, true>(
+            const __m128i a, const __m128i b) {
+        return _mm_max_epi32(a, b);
+    }
 
-        template<>
-        __m128i verticalLeaderSelect<true, true>(
-                const __m128i a, const __m128i b) {
-            return _mm_max_epi32(a, b);
-        }
+    template<>
+    __m128i verticalLeaderSelect<false, true>(
+            const __m128i a, const __m128i b) {
+        return _mm_max_epu32(a, b);
+    }
 
-        template<>
-        __m128i verticalLeaderSelect<false, true>(
-                const __m128i a, const __m128i b) {
-            return _mm_max_epu32(a, b);
-        }
+    template<>
+    __m128i verticalLeaderSelect<true, false>(
+            const __m128i a, const __m128i b) {
+        return _mm_min_epi32(a, b);
+    }
 
-        template<>
-        __m128i verticalLeaderSelect<true, false>(
-                const __m128i a, const __m128i b) {
-            return _mm_min_epi32(a, b);
-        }
+    template<>
+    __m128i verticalLeaderSelect<false, false>(
+            const __m128i a, const __m128i b) {
+        return _mm_min_epu32(a, b);
+    }
 
-        template<>
-        __m128i verticalLeaderSelect<false, false>(
-                const __m128i a, const __m128i b) {
-            return _mm_min_epu32(a, b);
-        }
+    template<typename ItemType, bool Signed, bool Ascending, bool Payload>
+    class TheSorter {
+        ItemType * const a;
+        ssize_t const count;
 
         /*
          * based on: http://stackoverflow.com/a/23593786/492749
          */
-        template<typename ItemType, bool Signed, bool Ascending>
         ssize_t leaderIndex(ItemType const * const a) {
             __m256i vec = _mm256_load_si256((__m256i *) a);
             __m128i lo = _mm256_castsi256_si128(vec);
@@ -107,13 +108,10 @@ namespace tarsa {
             return __builtin_ctz(_mm_movemask_epi8(tmp));
         }
 
-        template<typename ItemType, bool Signed, bool Ascending, bool Payload>
-        void siftDown(ItemType * const a, ssize_t root, ssize_t child1,
-                ssize_t const count) {
+        void siftDown(ssize_t root, ssize_t child1, ssize_t const count) {
             while (child1 < count) {
                 if (child1 + Arity - 1 < count) {
-                    ssize_t const leader = child1 + leaderIndex<ItemType,
-                            Signed, Ascending>(a + child1);
+                    ssize_t const leader = child1 + leaderIndex(a + child1);
                     if (ordered<ItemType, Ascending>(a[root], a[leader])) {
                         std::swap(a[root], a[leader]);
                         root = leader;
@@ -135,28 +133,27 @@ namespace tarsa {
             }
         }
 
-        template<typename ItemType, bool Signed, bool Ascending, bool Payload>
-        void heapify(ItemType * const a, ssize_t const count) {
+        void heapify() {
             for (ssize_t item = count / Arity - 1; item >= 0; item--) {
-                siftDown<ItemType, Signed, Ascending, Payload>(a, item,
-                    (item + 1) * Arity, count);
+                siftDown(item, (item + 1) * Arity, count);
             }
         }
 
-        template<typename ItemType, bool Signed, bool Ascending, bool Payload>
-        void drainHeap(ItemType * const a, ssize_t const count) {
+        void drainHeap() {
             for (ssize_t next = count - 1; next > 0; next--) {
-                siftDown<ItemType, Signed, Ascending, Payload>(a,
-                        next, 0, next);
+                siftDown(next, 0, next);
             }
         }
 
-        template<typename ItemType, bool Signed, bool Ascending, bool Payload>
-        void heapsort(ItemType * const a, ssize_t const count) {
-            heapify<ItemType, Signed, Ascending, Payload>(a, count);
-            drainHeap<ItemType, Signed, Ascending, Payload>(a, count);
+    public:
+        TheSorter(ItemType * const a, ssize_t const count): a(a), count(count) {
         }
-    }
+
+        void heapsort() {
+            heapify();
+            drainHeap();
+        }
+    };
 
     template<typename ItemType, bool Ascending = true, bool Payload = false >
     void SimdDwordHeapSortVariantC(ItemType * const a,
@@ -165,9 +162,8 @@ namespace tarsa {
         bool constexpr ok = std::is_same<ItemType, int32_t>::value
                 || std::is_same<ItemType, uint32_t>::value;
         static_assert(ok, "parameters invalid or specialization missing");
-        privateSimdDwordHeapSortVariantC::heapsort<ItemType,
-                std::is_same<ItemType, int32_t>::value, Ascending, Payload>(
-                a, count);
+        TheSorter<ItemType, std::is_same<ItemType, int32_t>::value, Ascending,
+                Payload>(a, count).heapsort();
     }
 }
 
