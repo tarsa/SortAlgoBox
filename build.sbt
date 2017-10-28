@@ -44,7 +44,7 @@ lazy val commonSettings =
       "org.scala-lang" % "scala-library" % Versions.theScala,
       "org.scala-lang" % "scala-reflect" % Versions.theScala,
       "org.scala-lang.modules" %% "scala-xml" % "1.0.6",
-      "org.scalatest" %% "scalatest" % "3.0.1" % Test
+      "org.scalatest" %% "scalatest" % Versions.scalaTest % Test
     )
   ) ++ directoriesLayoutSettings ++ Special.commonSettings
 
@@ -62,11 +62,11 @@ lazy val deps =
         "com.jsuereth" %% "scala-arm" % "2.0",
         "commons-io" % "commons-io" % "2.5",
         "org.apache.commons" % "commons-math3" % "3.6.1",
-        "org.scalafx" %% "scalafx" % "8.0.102-R11",
+        "org.scalafx" %% "scalafx" % Versions.scalaFx,
         // test libraries
         "com.typesafe.akka" %% "akka-http-testkit" % Versions.akkaHttp % Test,
         "com.typesafe.akka" %% "akka-testkit" % Versions.akka % Test,
-        "org.scalatest" %% "scalatest" % "3.0.1" % Test
+        "org.scalatest" %% "scalatest" % Versions.scalaTest % Test
       )
     )
     .settings(Special.depsSettings: _*)
