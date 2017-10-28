@@ -34,13 +34,17 @@ import pl.tarsa.sortalgobox.random.NativeMwc64x
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
-class NativeStdSort(nativesCache: NativesCache = NativesCache)
+class NativeStdSort(parallel: Boolean,
+                    nativesCache: NativesCache = NativesCache)
     extends NativeBenchmark {
+  override def name: String =
+    s"${super.name}(parallel=$parallel)"
 
   override val buildConfig: NativeBuildConfig = {
     val algoDefines = Seq(
       CompilerDefine("ITEMS_HANDLER_TYPE", Some("ITEMS_HANDLER_RAW_REFERENCE")),
-      CompilerDefine("SORT_MECHANICS", Some("std__sort.hpp")))
+      CompilerDefine("SORT_MECHANICS", Some("std__sort.hpp"))) ++
+      Some(CompilerDefine("_GLIBCXX_PARALLEL", None)).filter(_ => parallel)
     val compilerOptions = CompilerOptions(
       defines = CompilerOptions.defaultDefines ++ algoDefines)
     NativeBuildConfig(NativeStdSort.components, "main.cpp", compilerOptions)

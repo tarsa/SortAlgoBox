@@ -66,7 +66,8 @@ object BenchmarksConfigurations {
       new ClassicSabHeapSimdDwordVariantC(),
       new ClassicSabQuickRandomized(),
       new AgentSabHeapBinaryOneBasedVariantA(),
-      new NativeStdSort
+      new NativeStdSort(parallel = false),
+      new NativeStdSort(parallel = true)
     )
 
   val benchmarks: List[Benchmark] = {

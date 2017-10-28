@@ -1,7 +1,5 @@
 Backlog:
 
- * benchmark multithreaded std::sort using Parallel Mode in GCC:
-   https://gcc.gnu.org/onlinedocs/libstdc++/manual/parallel_mode.html
  * convert native C++ sorts to use items agents
  * replace asserts with matchers in tests
  * add ActorRef wrappers with typed `tell` forwarders

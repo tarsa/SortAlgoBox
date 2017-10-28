@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,7 +16,6 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.sorts.natives
 
@@ -25,8 +24,13 @@ import pl.tarsa.sortalgobox.tests.NativesUnitSpecBase
 class NativeStdSortSpec extends NativesUnitSpecBase {
   typeBehavior[NativeStdSort]
 
-  it must "sort and validate" in {
-    val sort = new NativeStdSort(testNativesCache)
+  it must "sort and validate in sequential mode" in {
+    val sort = new NativeStdSort(parallel = false, testNativesCache)
+    sort.forSize(12345, validate = true)
+  }
+
+  it must "sort and validate in parallel mode" in {
+    val sort = new NativeStdSort(parallel = true, testNativesCache)
     sort.forSize(12345, validate = true)
   }
 }
