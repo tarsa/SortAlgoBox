@@ -22,11 +22,4 @@
 
 #include xstr(SORT_HEADER)
 
-using namespace tarsa;
-
-template<typename item_t>
-void sortPerform(items_handler_t<item_t> &itemsHandler) {
-    tarsa::SORT_ALGO(*itemsHandler.agent);
-}
-
 #endif /* SABMAIN_HPP */

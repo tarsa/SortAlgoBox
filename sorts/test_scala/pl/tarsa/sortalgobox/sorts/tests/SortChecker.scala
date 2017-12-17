@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,19 +16,19 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.sorts.tests
 
 import org.scalatest.MustMatchers
-import pl.tarsa.sortalgobox.core.common._
-import pl.tarsa.sortalgobox.core.common.agents.implementations._
+import pl.tarsa.sortalgobox.core.common.items.agents.PlainItemsAgent
+import pl.tarsa.sortalgobox.core.common.{
+  ComparableItemsAgentSortAlgorithm,
+  NumericItemsAgentSortAlgorithm,
+  SelfMeasuredSortAlgorithm
+}
 import pl.tarsa.sortalgobox.random.Mwc64x
-import pl.tarsa.sortalgobox.sorts.scala.merge.MergeSort
-import pl.tarsa.sortalgobox.sorts.scala.radix.RadixSort
 
-class SortCheckerInt(doSorting: (Array[Int]) => Unit) extends MustMatchers {
-  
+class SortCheckerInt(doSorting: Array[Int] => Unit) extends MustMatchers {
   def forEmptyArray(): Unit = {
     val array = Array.emptyIntArray
     doSorting(array)
@@ -46,16 +46,16 @@ class SortCheckerInt(doSorting: (Array[Int]) => Unit) extends MustMatchers {
     array mustBe Array(2, 3, 5, 8)
   }
 
-  def forArrayOfSize(size: Int): Unit = {
+  def forArrayOfSize(size: Int, bits: Int = 32): Unit = {
     val generator = new Mwc64x
-    val array = Array.fill(size)(generator.nextInt())
+    val array = Array.fill(size)(generator.next(bits))
     val sortedArray = array.sorted
     doSorting(array)
     array mustBe sortedArray
   }
 }
 
-class SortCheckerLong(doSorting: (Array[Long]) => Unit) extends MustMatchers {
+class SortCheckerLong(doSorting: Array[Long] => Unit) extends MustMatchers {
 
   def forEmptyArray(): Unit = {
     val array = Array.emptyLongArray
@@ -84,26 +84,20 @@ class SortCheckerLong(doSorting: (Array[Long]) => Unit) extends MustMatchers {
 }
 
 object SortChecker {
-  def apply(measuredSortAlgorithm: MeasuredSortAlgorithm[Int]): SortCheckerInt =
-    new SortCheckerInt(array => measuredSortAlgorithm.sort(array))
+  def apply(algorithm: SelfMeasuredSortAlgorithm[Int]): SortCheckerInt =
+    new SortCheckerInt(array => algorithm.sort(array))
 
-  def apply(comparisonSortAlgorithm: ComparisonSortAlgorithm): SortCheckerInt =
+  def apply(algorithm: ComparableItemsAgentSortAlgorithm): SortCheckerInt = {
     new SortCheckerInt(intArray => {
-      val itemsAgent = new ComparingIntArrayItemsAgent(intArray)
-      comparisonSortAlgorithm.sort(itemsAgent)
+      val sortSetup = algorithm.setupSort(intArray)
+      algorithm.sortExplicit(sortSetup, PlainItemsAgent)
     })
+  }
 
-  def apply(mergeSort: MergeSort): SortCheckerInt =
+  def apply(algorithm: NumericItemsAgentSortAlgorithm): SortCheckerInt = {
     new SortCheckerInt(intArray => {
-      val buffer = Array.ofDim[Int](intArray.length)
-      val itemsAgent = new MergeSortIntArrayItemsAgent(intArray, buffer)
-      mergeSort.sort(itemsAgent)
+      val sortSetup = algorithm.setupSort(intArray)
+      algorithm.sortExplicit(sortSetup, PlainItemsAgent)
     })
-
-  def apply(radixSort: RadixSort): SortCheckerInt =
-    new SortCheckerInt(intArray => {
-      val buffer = Array.ofDim[Int](intArray.length)
-      val itemsAgent = new RadixSortIntArrayItemsAgent(intArray, buffer)
-      radixSort.sort(itemsAgent)
-    })
+  }
 }

@@ -1,7 +1,7 @@
 /* 
  * sortquickrandomized.hpp -- sorting algorithms benchmark
  * 
- * Copyright (C) 2014 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2014 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  *  This software is provided 'as-is', without any express or implied
  *  warranty.  In no event will the author be held liable for any damages
@@ -27,12 +27,13 @@
 
 namespace tarsa {
 
-    namespace privateRandomizedQuickSort {
+    template<typename ItemType, ComparisonOperator<ItemType> compOp,
+            ssize_t threshold>
+    class TheSorter {
+        ItemType * const a;
+        ssize_t const count;
 
-        template<typename ItemType, ComparisonOperator<ItemType> compOp,
-        ssize_t threshold>
-        void quicksort(ItemType * const a, ssize_t const left,
-                ssize_t const right) {
+        void quicksort(ssize_t const left, ssize_t const right) {
             ItemType x;
             if (right - left > threshold) {
                 x = a[(rand() % (right - left + 1)) + left];
@@ -53,22 +54,26 @@ namespace tarsa {
                 }
             }
 
-            if (left < j) quicksort<ItemType, compOp, threshold>(a, left, j);
-            if (right > i) quicksort<ItemType, compOp, threshold>(a, i, right);
+            if (left < j) quicksort(left, j);
+            if (right > i) quicksort(i, right);
         }
-    }
 
-    template<typename ItemType, ComparisonOperator<ItemType> compOp,
-    ssize_t threshold = 100 >
-    void RandomizedQuickSort(ItemType * const a, ssize_t const count) {
-        privateRandomizedQuickSort::quicksort<ItemType, compOp, threshold>(
-                a, 0, count - 1);
-    }
+    public:
+        TheSorter(ItemType * const a, ssize_t const count): a(a), count(count) {
+        }
 
-    template<typename ItemType, ssize_t threshold = 100 >
-    void RandomizedQuickSort(ItemType * const a, ssize_t const count) {
-        RandomizedQuickSort<ItemType, genericComparisonOperator, threshold>(
-                a, count);
+        void sort() {
+            quicksort(0, count - 1);
+        }
+    };
+
+    template<typename item_t>
+    using Sorter = TheSorter<item_t, genericComparisonOperator, 100>;
+
+    template<typename ItemType>
+    Sorter<ItemType> * makeSorter(ItemType * const a, ssize_t const count) {
+        return new TheSorter<ItemType, genericComparisonOperator, 100>(a,
+            count);
     }
 }
 

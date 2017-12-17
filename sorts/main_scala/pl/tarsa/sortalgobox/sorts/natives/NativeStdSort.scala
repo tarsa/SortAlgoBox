@@ -22,6 +22,7 @@ package pl.tarsa.sortalgobox.sorts.natives
 import java.lang.Long.parseLong
 
 import pl.tarsa.sortalgobox.core.NativeBenchmark
+import pl.tarsa.sortalgobox.core.exceptions.VerificationFailedException
 import pl.tarsa.sortalgobox.natives.build.{
   CompilerDefine,
   CompilerOptions,
@@ -42,7 +43,7 @@ class NativeStdSort(parallel: Boolean,
 
   override val buildConfig: NativeBuildConfig = {
     val algoDefines = Seq(
-      CompilerDefine("ITEMS_HANDLER_TYPE", Some("ITEMS_HANDLER_RAW_REFERENCE")),
+      CompilerDefine("ITEMS_HANDLER_TYPE", Some("ITEMS_HANDLER_REFERENCE")),
       CompilerDefine("SORT_MECHANICS", Some("std__sort.hpp"))) ++
       Some(CompilerDefine("_GLIBCXX_PARALLEL", None)).filter(_ => parallel)
     val compilerOptions = CompilerOptions(
@@ -57,9 +58,17 @@ class NativeStdSort(parallel: Boolean,
     val execResult = nativesCache.runCachedProgram(buildConfig, input)
     val lines = execResult.stdOut.lines.toList
     if (validate) {
-      val valid = lines(1) == "pass"
-      assert(valid)
+      val valid = lines.isDefinedAt(1) && lines(1) == "pass"
+      if (!valid) {
+        val errorMsg = s"""$name failed:
+            |- exit code: ${execResult.exitValue}
+            |- stdOut: ${execResult.stdOut}
+            |- stdErr: ${execResult.stdErr}
+          """.stripMargin
+        throw new VerificationFailedException(errorMsg)
+      }
     }
+
     val nanosTaken = parseLong(lines.head, 16)
     Duration.fromNanos(nanosTaken)
   }
@@ -70,6 +79,7 @@ object NativeStdSort extends NativeComponentsSupport {
     NativeMwc64x.header ++ makeResourceComponents(
       ("/pl/tarsa/sortalgobox/natives/", "macros.hpp"),
       ("/pl/tarsa/sortalgobox/natives/", "utilities.hpp"),
+      ("/pl/tarsa/sortalgobox/natives/agents/", "items_agent.hpp"),
       ("/pl/tarsa/sortalgobox/sorts/natives/common/", "main.cpp"),
       ("/pl/tarsa/sortalgobox/sorts/natives/common/", "items_handler.hpp"),
       ("/pl/tarsa/sortalgobox/sorts/natives/", "std__sort.hpp")

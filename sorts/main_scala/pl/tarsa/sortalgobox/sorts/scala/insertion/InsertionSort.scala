@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,22 +16,20 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.sorts.scala.insertion
 
-import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
-import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
+import pl.tarsa.sortalgobox.core.common.Specialization.Group
+import pl.tarsa.sortalgobox.sorts.scala.ComparisonSortBase
 
-class InsertionSort extends ComparisonSortAlgorithm {
-  override def sort[ItemType](
-    itemsAgent: ComparingItemsAgent[ItemType]): Unit = {
-    import itemsAgent._
+object InsertionSort extends ComparisonSortBase {
+  override def sort[@specialized(Group) Item: Setup, _: Agent](): Unit = {
+    val buf = buf1[Item]
 
-    for (i <- 1 until size0) {
+    for (i <- 1 until a.size(buf)) {
       var j = i
-      while (j > 0 && compare0(j - 1, j) > 0) {
-        swap0(j - 1, j)
+      while (j > 0 && a.compareGtI(buf, j - 1, j)) {
+        a.swap(buf, j - 1, j)
         j -= 1
       }
     }

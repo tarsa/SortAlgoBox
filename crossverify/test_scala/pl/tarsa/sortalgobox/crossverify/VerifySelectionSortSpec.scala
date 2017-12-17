@@ -24,9 +24,8 @@ import pl.tarsa.sortalgobox.sorts.natives.NativeSelectionSort
 import pl.tarsa.sortalgobox.sorts.scala.selection.SelectionSort
 
 class VerifySelectionSortSpec extends CrossVerifySpecBase {
-
   registerCrossVerifyTest("Selection Sort",
                           1234,
                           new NativeSelectionSort(_, _),
-                          new SelectionSort)
+                          SelectionSort)
 }

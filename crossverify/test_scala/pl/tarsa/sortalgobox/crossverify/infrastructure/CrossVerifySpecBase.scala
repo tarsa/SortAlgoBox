@@ -24,11 +24,8 @@ import java.nio.file.{Files, Path}
 import org.apache.commons.io.IOUtils
 import pl.tarsa.sortalgobox.common.SortAlgoBoxConfiguration.rootTempDir
 import pl.tarsa.sortalgobox.core.NativeBenchmark
-import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
-import pl.tarsa.sortalgobox.core.common.agents.implementations.{
-  ComparingIntArrayItemsAgent,
-  VerifyingComparingIntArrayItemsAgent
-}
+import pl.tarsa.sortalgobox.core.common.ComparableItemsAgentSortAlgorithm
+import pl.tarsa.sortalgobox.core.common.items.agents.VerifyingItemsAgent
 import pl.tarsa.sortalgobox.core.crossverify.PureNumberDecoder
 import pl.tarsa.sortalgobox.natives.build.NativesCache
 import pl.tarsa.sortalgobox.random.Mwc64x
@@ -39,7 +36,7 @@ abstract class CrossVerifySpecBase extends NativesUnitSpecBase {
       sortName: String,
       itemsNumber: Int,
       nativeSortConstructor: (NativesCache, Option[Path]) => NativeBenchmark,
-      scalaSort: ComparisonSortAlgorithm): Unit = {
+      scalaSort: ComparableItemsAgentSortAlgorithm): Unit = {
     s"Native $sortName" must s"take steps identical to Scala $sortName" in {
       val recordingFilePath =
         Files.createTempFile(rootTempDir, "recording", ".bin")
@@ -50,14 +47,18 @@ abstract class CrossVerifySpecBase extends NativesUnitSpecBase {
         val replayer = new PureNumberDecoder(stream)
         val generator = Mwc64x()
         val array = Array.fill[Int](itemsNumber)(generator.nextInt())
-        val itemsAgent = new VerifyingComparingIntArrayItemsAgent(
-          replayer,
-          new ComparingIntArrayItemsAgent(array),
-          b => assert(b))
-        scalaSort.sort(itemsAgent)
+        val itemsAgent = new VerifyingItemsAgent(replayer, verify)
+        val sortSetup = scalaSort.setupSort(array)
+        scalaSort.sortExplicit(sortSetup, itemsAgent)
       } finally {
         Files.delete(recordingFilePath)
       }
+    }
+  }
+
+  private def verify(success: Boolean): Unit = {
+    if (!success) {
+      fail()
     }
   }
 }

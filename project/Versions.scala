@@ -21,8 +21,8 @@
 object Versions {
   val theScala = "2.12.4"
 
-  val akka = "2.5.6"
-  val akkaHttp = "10.0.10"
+  val akka = "2.5.8"
+  val akkaHttp = "10.0.11"
   val scalaFx = "8.0.144-R12"
 
   val scalaTest = "3.0.4"

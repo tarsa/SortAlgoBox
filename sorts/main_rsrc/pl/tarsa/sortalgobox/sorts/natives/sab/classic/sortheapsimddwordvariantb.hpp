@@ -87,6 +87,11 @@ namespace tarsa {
         ItemType * const a;
         ssize_t const count;
 
+        static_assert(Payload == false, "payload not implemented");
+        static_assert(std::is_same<ItemType, int32_t>::value ||
+                      std::is_same<ItemType, uint32_t>::value,
+                      "parameters invalid or specialization missing");
+
         /*
          * based on: http://stackoverflow.com/a/23592221/492749
          */
@@ -145,21 +150,19 @@ namespace tarsa {
         TheSorter(ItemType * const a, ssize_t const count): a(a), count(count) {
         }
 
-        void heapsort() {
+        void sort() {
             heapify();
             drainHeap();
         }
     };
 
-    template<typename ItemType, bool Ascending = true, bool Payload = false >
-    void SimdDwordHeapSortVariantB(ItemType * const a,
-            ssize_t const count) {
-        static_assert(Payload == false, "payload not implemented");
-        bool constexpr ok = std::is_same<ItemType, int32_t>::value
-                || std::is_same<ItemType, uint32_t>::value;
-        static_assert(ok, "parameters invalid or specialization missing");
-        TheSorter<ItemType, std::is_same<ItemType, int32_t>::value, Ascending,
-                Payload>(a, count).heapsort();
+    template<typename item_t>
+    using Sorter = TheSorter<item_t, true, true, false>;
+
+    template<typename ItemType>
+    Sorter<ItemType> * makeSorter(ItemType * const a, ssize_t const count) {
+        return new TheSorter<ItemType, std::is_same<ItemType, int32_t>::value,
+            true, false>(a, count);
     }
 }
 

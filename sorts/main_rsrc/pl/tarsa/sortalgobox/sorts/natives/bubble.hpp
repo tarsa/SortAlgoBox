@@ -17,27 +17,40 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-#ifndef MAIN_HPP
-#define MAIN_HPP
+#ifndef BUBBLE_HPP
+#define BUBBLE_HPP
 
 #include <cstddef>
 
 #include "items_handler.hpp"
 
-template<template<typename, size_t> class ItemsAgent, typename item_t>
-void sort(ItemsAgent<item_t, 0> agent) {
-    for (size_t i = agent.size0() - 1; i >= 1; i--) {
-        for (size_t j = 0; j < i; j++) {
-            if (agent.compare0(j, j + 1) == tarsa::CompareAbove) {
-                agent.swap0(j, j + 1);
+namespace tarsa {
+
+    template<typename item_t>
+    class Sorter {
+        ItemsAgent a;
+        Buffer<item_t> buf;
+
+    public:
+        Sorter(ItemsAgent const agent, item_t * const array,
+                size_t const length): a(agent),
+                buf(Buffer<item_t>(array, length, 0)) {}
+
+        void sort() {
+            for (size_t i = a.size(buf) - 1; i >= 1; i--) {
+                for (size_t j = 0; j < i; j++) {
+                    if (a.compareGtI(buf, j, j + 1)) {
+                        a.swap(buf, j, j + 1);
+                    }
+                }
             }
         }
+    };
+
+    template<typename item_t>
+    Sorter<item_t> * makeSorter(items_handler_t<item_t> &handler) {
+        return new Sorter<item_t>(*handler.agent, handler.input, handler.size);
     }
 }
 
-template<typename item_t>
-void sortPerform(items_handler_t<item_t> &itemsHandler) {
-    sort(*itemsHandler.agent);
-}
-
-#endif /* MAIN_HPP */
+#endif /* BUBBLE_HPP */

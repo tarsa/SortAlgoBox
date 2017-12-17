@@ -26,4 +26,4 @@ class ClassicSabHeapSimdDwordCascadingVariantC(
   extends ClassicSabBenchmark(
     sortAlgoName = "SimdDwordCascadingHeapSortVariantC",
     sortHeader = "sortheapsimddwordcascadingvariantc.hpp",
-    nativesCache, sortSimd = true)
+    nativesCache)

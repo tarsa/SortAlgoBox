@@ -23,7 +23,7 @@ import java.nio.{ByteBuffer, ByteOrder}
 
 import org.jocl.CL._
 import org.jocl.{Pointer, Sizeof, cl_event, cl_mem}
-import pl.tarsa.sortalgobox.core.common.MeasuredSortAlgorithm
+import pl.tarsa.sortalgobox.core.common.SelfMeasuredSortAlgorithm
 import pl.tarsa.sortalgobox.opencl.{
   CLCache,
   CLDeviceContext,
@@ -34,7 +34,7 @@ import pl.tarsa.sortalgobox.opencl.{
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.io.Source
 
-object GpuBitonicSort extends MeasuredSortAlgorithm[Int] {
+object GpuBitonicSort extends SelfMeasuredSortAlgorithm[Int] {
   val sourceCodePath = "/pl/tarsa/sortalgobox/sorts/opencl/GpuBitonicSort.cl"
 
   override def sort(array: Array[Int]): FiniteDuration =

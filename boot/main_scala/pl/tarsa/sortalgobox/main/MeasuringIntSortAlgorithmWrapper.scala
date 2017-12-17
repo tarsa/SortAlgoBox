@@ -19,29 +19,33 @@
  */
 package pl.tarsa.sortalgobox.main
 
-import pl.tarsa.sortalgobox.core.common.agents.implementations.ComparingIntArrayItemsAgent
+import pl.tarsa.sortalgobox.core.common.items.agents.{
+  ItemsAgent,
+  PlainItemsAgent
+}
 import pl.tarsa.sortalgobox.core.common.{
-  ComparisonSortAlgorithm,
+  ComparableItemsAgentSortAlgorithm,
   GenericIntSortAlgorithm,
-  MeasuredSortAlgorithm
+  SelfMeasuredSortAlgorithm
 }
 
 import scala.concurrent.duration.Duration
 
 object MeasuringIntSortAlgorithmWrapper {
-  def apply(plainSortAlgorithm: AnyRef): MeasuredSortAlgorithm[Int] = {
+  def apply(plainSortAlgorithm: AnyRef): SelfMeasuredSortAlgorithm[Int] = {
     plainSortAlgorithm match {
       case sortAlgorithm: GenericIntSortAlgorithm =>
         wrap(sortAlgorithm)
-      case sortAlgorithm: ComparisonSortAlgorithm =>
+      case sortAlgorithm: ComparableItemsAgentSortAlgorithm =>
         wrap { intArray: Array[Int] =>
-          val itemsAgent = new ComparingIntArrayItemsAgent(intArray)
-          sortAlgorithm.sort(itemsAgent)
+          val itemsAgent: ItemsAgent = PlainItemsAgent
+          val setup = sortAlgorithm.setupSort(intArray)
+          sortAlgorithm.sortExplicit(setup, itemsAgent)
         }
     }
   }
 
-  def wrap(doSorting: (Array[Int]) => Unit): MeasuredSortAlgorithm[Int] = {
+  def wrap(doSorting: Array[Int] => Unit): SelfMeasuredSortAlgorithm[Int] = {
     (array: Array[Int]) =>
       val startTime = System.nanoTime()
       doSorting(array)

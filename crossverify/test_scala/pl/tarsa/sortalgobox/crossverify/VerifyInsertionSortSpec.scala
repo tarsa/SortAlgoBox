@@ -24,9 +24,8 @@ import pl.tarsa.sortalgobox.sorts.natives.NativeInsertionSort
 import pl.tarsa.sortalgobox.sorts.scala.insertion.InsertionSort
 
 class VerifyInsertionSortSpec extends CrossVerifySpecBase {
-
   registerCrossVerifyTest("Insertion Sort",
                           1234,
                           new NativeInsertionSort(_, _),
-                          new InsertionSort)
+                          InsertionSort)
 }

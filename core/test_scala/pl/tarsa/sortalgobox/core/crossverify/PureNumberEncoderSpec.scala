@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -17,11 +17,9 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-
 package pl.tarsa.sortalgobox.core.crossverify
 
 import java.io.{ByteArrayOutputStream, OutputStream}
-import java.util.{Arrays => jArrays}
 
 import org.apache.commons.io.output.ThresholdingOutputStream
 import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
@@ -31,30 +29,58 @@ class PureNumberEncoderSpec extends CommonUnitSpecBase {
 
   class OverflowException extends Exception
 
-  it must "fail on serializing negative int" in {
-    havingSize(0) { codec =>
-      an[IllegalArgumentException] mustBe thrownBy {
-        codec.serializeInt(-1)
-      }
-    }()
+  it must "serialize false value" in {
+    havingSize() { codec =>
+      codec.serializeBit(false)
+    }(contents = 0)
+  }
+
+  it must "serialize true value" in {
+    havingSize() { codec =>
+      codec.serializeBit(true)
+    }(contents = 1)
+  }
+
+  it must "serialize positive byte" in {
+    havingSize() { codec =>
+      codec.serializeByte(100)
+    }(contents = 100)
+  }
+
+  it must "serialize negative byte" in {
+    havingSize() { codec =>
+      codec.serializeByte(-100)
+    }(contents = -100)
   }
 
   it must "serialize int zero" in {
-    havingSize(1) { codec =>
+    havingSize() { codec =>
       codec.serializeInt(0)
     }(contents = 0)
   }
 
   it must "serialize positive int" in {
-    havingSize(9) { codec =>
+    havingSize() { codec =>
       codec.serializeInt(1234567)
-    }(contents = -121, -83, 75)
+    }(contents = -114, -38, -106, 1)
   }
 
-  it must "serialize max int" in {
-    havingSize(9) { codec =>
+  it must "serialize negative int" in {
+    havingSize() { codec =>
+      codec.serializeInt(-1234567)
+    }(contents = -115, -38, -106, 1)
+  }
+
+  it must "serialize Int.MaxValue" in {
+    havingSize() { codec =>
       codec.serializeInt(Int.MaxValue)
-    }(contents = -1, -1, -1, -1, 7)
+    }(contents = -2, -1, -1, -1, 15)
+  }
+
+  it must "serialize Int.MinValue" in {
+    havingSize() { codec =>
+      codec.serializeInt(Int.MinValue)
+    }(contents = -1, -1, -1, -1, 15)
   }
 
   it must "fail on int serialization when not enough remaining space" in {
@@ -62,33 +88,37 @@ class PureNumberEncoderSpec extends CommonUnitSpecBase {
       a[OverflowException] mustBe thrownBy {
         codec.serializeInt(Int.MaxValue)
       }
-    }(contents = -1, -1)
-  }
-
-  it must "fail on serializing negative long" in {
-    havingSize(0) { codec =>
-      an[IllegalArgumentException] mustBe thrownBy {
-        codec.serializeLong(-1L)
-      }
-    }()
+    }(contents = -2, -1)
   }
 
   it must "serialize long zero" in {
-    havingSize(1) { codec =>
+    havingSize() { codec =>
       codec.serializeLong(0L)
     }(contents = 0)
   }
 
   it must "serialize positive long" in {
-    havingSize(9) { codec =>
+    havingSize() { codec =>
       codec.serializeLong(123456789000L)
-    }(contents = -120, -76, -28, -12, -53, 3)
+    }(contents = -112, -24, -56, -23, -105, 7)
   }
 
-  it must "serialize max long" in {
-    havingSize(9) { codec =>
+  it must "serialize negative long" in {
+    havingSize() { codec =>
+      codec.serializeLong(-123456789000L)
+    }(contents = -113, -24, -56, -23, -105, 7)
+  }
+
+  it must "serialize Long.MaxValue" in {
+    havingSize() { codec =>
       codec.serializeLong(Long.MaxValue)
-    }(contents = -1, -1, -1, -1, -1, -1, -1, -1, 127)
+    }(contents = -2, -1, -1, -1, -1, -1, -1, -1, -1, 1)
+  }
+
+  it must "serialize Long.MinValue" in {
+    havingSize() { codec =>
+      codec.serializeLong(Long.MinValue)
+    }(contents = -1, -1, -1, -1, -1, -1, -1, -1, -1, 1)
   }
 
   it must "fail on long serialization when not enough remaining space" in {
@@ -96,11 +126,11 @@ class PureNumberEncoderSpec extends CommonUnitSpecBase {
       a[OverflowException] mustBe thrownBy {
         codec.serializeLong(Long.MaxValue)
       }
-    }(-1, -1)
+    }(-2, -1)
   }
 
-  def havingSize(size: Int)(function: PureNumberEncoder => Unit)
-    (contents: Byte*): Unit = {
+  def havingSize(size: Int = 10)(function: PureNumberEncoder => Unit)(
+      contents: Byte*): Unit = {
     val baos = new ByteArrayOutputStream()
     val stream = new ThresholdingOutputStream(size) {
       override def getStream: OutputStream =
@@ -113,8 +143,8 @@ class PureNumberEncoderSpec extends CommonUnitSpecBase {
     try {
       function(codec)
     } finally {
-      assert(stream.getByteCount == contents.length)
-      assert(jArrays.equals(baos.toByteArray, contents.toArray))
+      stream.getByteCount mustBe contents.length
+      baos.toByteArray mustBe contents.toArray
     }
   }
 }

@@ -17,31 +17,10 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-package pl.tarsa.sortalgobox.core.common.agents.implementations
+package pl.tarsa.sortalgobox.core.common
 
-import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
+import scala.concurrent.duration.FiniteDuration
 
-class ComparingIntArrayItemsAgent(items: Array[Int], base: Int = 0)
-    extends ComparingItemsAgent[Int] {
-  override type SelfType = ComparingIntArrayItemsAgent
-
-  override def withBase(newIndexingBase: Int): SelfType = {
-    if (base == newIndexingBase) this
-    else new ComparingIntArrayItemsAgent(items, newIndexingBase)
-  }
-
-  override def size0: Int =
-    items.length
-
-  override def get0(i: Int): Int =
-    items(i - base)
-
-  override def set0(i: Int, v: Int): Unit =
-    items(i - base) = v
-
-  override def copy0(i: Int, j: Int, n: Int): Unit =
-    System.arraycopy(items, i - base, items, j - base, n)
-
-  override def compare(a: Int, b: Int): Int =
-    Ordering.Int.compare(a, b)
+abstract class SelfMeasuredSortAlgorithm[T] {
+  def sort(array: Array[T]): FiniteDuration
 }

@@ -24,9 +24,8 @@ import pl.tarsa.sortalgobox.sorts.natives.sab.agent.AgentSabHeapBinaryOneBasedVa
 import pl.tarsa.sortalgobox.sorts.scala.sab.SabHeapBinaryOneBasedVariantA
 
 class VerifySabHeapBinaryOneBasedVariantASpec extends CrossVerifySpecBase {
-
   registerCrossVerifyTest("SabHeapBinaryOneBasedVariantA",
                           12345,
                           new AgentSabHeapBinaryOneBasedVariantA(_, _),
-                          new SabHeapBinaryOneBasedVariantA)
+                          SabHeapBinaryOneBasedVariantA)
 }

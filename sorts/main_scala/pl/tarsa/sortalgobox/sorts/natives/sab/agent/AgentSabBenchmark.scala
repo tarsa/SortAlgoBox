@@ -23,6 +23,7 @@ import java.lang.Long.parseLong
 import java.nio.file.Path
 
 import pl.tarsa.sortalgobox.core.NativeBenchmark
+import pl.tarsa.sortalgobox.core.exceptions.VerificationFailedException
 import pl.tarsa.sortalgobox.natives.build.{
   CompilerDefine,
   CompilerOptions,
@@ -44,9 +45,9 @@ abstract class AgentSabBenchmark(sortAlgoName: String,
   override val buildConfig: NativeBuildConfig = {
     val algoDefines = Seq(
       CompilerDefine("ITEMS_HANDLER_TYPE", if (recordingFileOpt.isDefined) {
-        Some("ITEMS_HANDLER_AGENT_RECORDING_COMPARING")
+        Some("ITEMS_HANDLER_AGENT_RECORDING")
       } else {
-        Some("ITEMS_HANDLER_AGENT_COMPARING")
+        Some("ITEMS_HANDLER_AGENT_PLAIN")
       }),
       CompilerDefine("SORT_ALGO", Some(sortAlgoName)),
       CompilerDefine("SORT_HEADER", Some(sortHeader)),
@@ -75,9 +76,17 @@ abstract class AgentSabBenchmark(sortAlgoName: String,
     val execResult = nativesCache.runCachedProgram(buildConfig, input)
     val lines = execResult.stdOut.lines.toList
     if (validate) {
-      val valid = lines(1) == "pass"
-      assert(valid)
+      val valid = lines.isDefinedAt(1) && lines(1) == "pass"
+      if (!valid) {
+        val errorMsg = s"""$name failed:
+            |- exit code: ${execResult.exitValue}
+            |- stdOut: ${execResult.stdOut}
+            |- stdErr: ${execResult.stdErr}
+          """.stripMargin
+        throw new VerificationFailedException(errorMsg)
+      }
     }
+
     val nanosTaken = parseLong(lines.head, 16)
     Duration.fromNanos(nanosTaken)
   }

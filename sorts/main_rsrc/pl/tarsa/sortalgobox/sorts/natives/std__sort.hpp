@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -17,15 +17,31 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-#ifndef MAIN_HPP
-#define MAIN_HPP
+#ifndef STD__SORT_HPP
+#define STD__SORT_HPP
 
 #include "items_handler.hpp"
 
-template<typename item_t>
-void sortPerform(items_handler_t<item_t> &itemsHandler) {
-    item_t * const work = itemsHandler.input;
-    std::sort(work, work + itemsHandler.size);
+namespace tarsa {
+
+    template<typename item_t>
+    class Sorter {
+        item_t * const array;
+        size_t const length;
+
+    public:
+        Sorter(item_t * const array, size_t const length): array(array),
+            length(length) {}
+
+        void sort() {
+            std::sort(array, array + length);
+        }
+    };
+
+    template<typename item_t>
+    Sorter<item_t> * makeSorter(items_handler_t<item_t> &handler) {
+        return new Sorter<item_t>(handler.input, handler.size);
+    }
 }
 
-#endif /* MAIN_HPP */
+#endif /* STD__SORT_HPP */

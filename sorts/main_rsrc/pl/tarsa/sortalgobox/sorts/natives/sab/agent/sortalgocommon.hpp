@@ -22,7 +22,4 @@
 #ifndef SORTALGOCOMMON_HPP
 #define	SORTALGOCOMMON_HPP
 
-namespace tarsa {
-}
-
 #endif	/* SORTALGOCOMMON_HPP */

@@ -17,16 +17,10 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-package pl.tarsa.sortalgobox.core.common.agents
+package pl.tarsa.sortalgobox.core.common
 
-abstract class ComparingItemsAgent[ItemType] extends ItemsAgent[ItemType] {
-  override type SelfType <: ComparingItemsAgent[ItemType]
+import scala.Specializable.Group
 
-  def compare(a: ItemType, b: ItemType): Int
-
-  def compare0(i: Int, j: Int): Int =
-    compare(get0(i), get0(j))
-
-  def compareLt0(i: Int, j: Int): Boolean =
-    compare0(i, j) < 0
+object Specialization {
+  final val Group = new Group((Byte, Short, Int, Long))
 }

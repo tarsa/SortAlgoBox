@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,23 +16,24 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.sorts.scala.quick
 
-import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
+import pl.tarsa.sortalgobox.core.common.Specialization.Group
+import pl.tarsa.sortalgobox.core.common.items.agents.ItemsAgent
+import pl.tarsa.sortalgobox.core.common.items.buffers.ComparableItemsBuffer
 
-private [sortalgobox]
-class SinglePivotPartition {
-  def partitionAndComputeBounds[ItemType](
-    itemsAgent: ComparingItemsAgent[ItemType],
-    start: Int, after: Int, pivotIndex: Int): (Int, Int) = {
-    import itemsAgent._
-
+private[sortalgobox] class SinglePivotPartition {
+  def partitionAndComputeBounds[@specialized(Group) Item](
+      a: ItemsAgent,
+      buf: ComparableItemsBuffer[Item],
+      start: Int,
+      after: Int,
+      pivotIndex: Int): (Int, Int) = {
     var notBiggerAfter: Int = start
     var notSmallerStart: Int = after
 
-    def partitionNonEmptyArray(pivot: ItemType): Unit = {
+    def partitionNonEmptyArray(pivot: Item): Unit = {
       while (thereIsNotPartitionedPortion) {
         growPartitionsWithoutSwapping(pivot)
         if (thereIsNotPartitionedPortion) {
@@ -43,35 +44,35 @@ class SinglePivotPartition {
 
     def thereIsNotPartitionedPortion = notBiggerAfter < notSmallerStart
 
-    def growPartitionsWithoutSwapping(pivot: ItemType): Unit = {
+    def growPartitionsWithoutSwapping(pivot: Item): Unit = {
       growLeftPartitionUntilBlocked(pivot)
       growRightPartitionUntilBlocked(pivot)
     }
 
-    def growLeftPartitionUntilBlocked(pivot: ItemType): Unit = {
+    def growLeftPartitionUntilBlocked(pivot: Item): Unit = {
       while (thereIsNotPartitionedPortion &&
-        compare(get0(notBiggerAfter), pivot) < 0) {
+             a.compareLtIV(buf, notBiggerAfter, pivot)) {
         notBiggerAfter += 1
       }
     }
 
-    def growRightPartitionUntilBlocked(pivot: ItemType): Unit = {
+    def growRightPartitionUntilBlocked(pivot: Item): Unit = {
       while (thereIsNotPartitionedPortion &&
-        compare(get0(notSmallerStart - 1), pivot) > 0) {
+             a.compareGtIV(buf, notSmallerStart - 1, pivot)) {
         notSmallerStart -= 1
       }
     }
 
     def growBlockedPartitionsBySwap(): Unit = {
       notSmallerStart -= 1
-      swap0(notBiggerAfter, notSmallerStart)
+      a.swap(buf, notBiggerAfter, notSmallerStart)
       notBiggerAfter += 1
     }
 
     def computeOptimizedPartitionsBounds = {
       if (partitionsOverlap) {
         assert(partitionsOverlapMinimally,
-          s"Overlap is: ${notBiggerAfter - notSmallerStart}")
+               s"Overlap is: ${notBiggerAfter - notSmallerStart}")
         (notBiggerAfter - 1, notSmallerStart + 1)
       } else {
         (notBiggerAfter, notSmallerStart)
@@ -83,7 +84,7 @@ class SinglePivotPartition {
     def partitionsOverlap = notBiggerAfter > notSmallerStart
 
     if (thereIsNotPartitionedPortion) {
-      val pivot = get0(pivotIndex)
+      val pivot = a.get(buf, pivotIndex)
       partitionNonEmptyArray(pivot)
     }
     computeOptimizedPartitionsBounds

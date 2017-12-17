@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -17,7 +17,6 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-
 package pl.tarsa.sortalgobox.core.crossverify
 
 import java.io.InputStream
@@ -25,17 +24,34 @@ import java.io.InputStream
 import scala.annotation.tailrec
 
 class PureNumberDecoder(input: InputStream) {
+  def deserializeBit(): Boolean = {
+    val value = input.read()
+    if (value == -1) {
+      throw new PrematureEndOfInputException
+    }
+    if (value > 1) {
+      throw new ValueOverflowException
+    }
+    value == 1
+  }
+
+  def deserializeByte(): Byte = {
+    val value = input.read()
+    if (value == -1) {
+      throw new PrematureEndOfInputException
+    }
+    value.toByte
+  }
+
   def deserializeInt(): Int = {
     @tailrec
     def deserialize(current: Int, shift: Int): Int = {
       val value = input.read()
       if (value == -1) {
         throw new PrematureEndOfInputException
-      } else if (value == 0) {
-        current
       } else {
         val chunk = value & 127
-        if (chunk != 0 && (shift > 31 || chunk > (Int.MaxValue >> shift))) {
+        if (shift > 31 || (shift > 0 && chunk >= (1 << (32 - shift)))) {
           throw new ValueOverflowException
         }
         if (value <= 127) {
@@ -45,7 +61,10 @@ class PureNumberDecoder(input: InputStream) {
         }
       }
     }
-    deserialize(0, 0)
+    val shifted = deserialize(0, 0)
+    val signFlag = (shifted & 1) == 1
+    val absValue = shifted >>> 1
+    if (signFlag) ~absValue else absValue
   }
 
   def deserializeLong(): Long = {
@@ -54,11 +73,9 @@ class PureNumberDecoder(input: InputStream) {
       val value = input.read()
       if (value == -1) {
         throw new PrematureEndOfInputException
-      } else if (value == 0) {
-        current
       } else {
         val chunk = value & 127L
-        if (chunk != 0 && (shift > 63 || chunk > (Long.MaxValue >> shift))) {
+        if (shift > 63 || (shift > 0 && chunk >= (1L << (64 - shift)))) {
           throw new ValueOverflowException
         }
         if (value <= 127) {
@@ -68,6 +85,9 @@ class PureNumberDecoder(input: InputStream) {
         }
       }
     }
-    deserialize(0, 0)
+    val shifted = deserialize(0, 0)
+    val signFlag = (shifted & 1) == 1
+    val absValue = shifted >>> 1
+    if (signFlag) ~absValue else absValue
   }
 }

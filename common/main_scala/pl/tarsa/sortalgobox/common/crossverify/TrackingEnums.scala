@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -21,7 +21,8 @@ package pl.tarsa.sortalgobox.common.crossverify
 
 object TrackingEnums {
   object ActionTypes extends Enumeration {
-    type ActionType = Value
-    val Size0, Get0, Set0, Copy0, Swap0, Compare, Compare0 = Value
+    type Action = Value
+    val Size, Get, Set, Swap, ItemBitsSize, AsLong, GetSlice, CompareEq,
+    CompareGt, CompareGte, CompareLt, CompareLte = Value
   }
 }

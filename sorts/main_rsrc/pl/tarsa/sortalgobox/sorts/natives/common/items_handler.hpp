@@ -25,149 +25,83 @@
 
 #include "utilities.hpp"
 
-#define ITEMS_HANDLER_START                        5346324
-#define ITEMS_HANDLER_AGENT_COMPARING              ITEMS_HANDLER_START + 1
-#define ITEMS_HANDLER_AGENT_RECORDING_COMPARING    ITEMS_HANDLER_START + 2
-#define ITEMS_HANDLER_RAW                          ITEMS_HANDLER_START + 3
-#define ITEMS_HANDLER_RAW_REFERENCE                ITEMS_HANDLER_START + 4
-#define ITEMS_HANDLER_SAB_CACHED                   ITEMS_HANDLER_START + 5
+#define ITEMS_HANDLER_START              -8564120874858705559L
+#define ITEMS_HANDLER_AGENT_PLAIN        ITEMS_HANDLER_START + 1
+#define ITEMS_HANDLER_AGENT_RECORDING    ITEMS_HANDLER_START + 2
+#define ITEMS_HANDLER_REFERENCE          ITEMS_HANDLER_START + 3
 
 static_assert(
-    ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_COMPARING ||
-    ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_RECORDING_COMPARING ||
-    ITEMS_HANDLER_TYPE == ITEMS_HANDLER_RAW ||
-    ITEMS_HANDLER_TYPE == ITEMS_HANDLER_RAW_REFERENCE ||
-    ITEMS_HANDLER_TYPE == ITEMS_HANDLER_SAB_CACHED ||
+    ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_PLAIN ||
+    ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_RECORDING ||
+    ITEMS_HANDLER_TYPE == ITEMS_HANDLER_REFERENCE ||
     false, "Valid items handler type must be selected");
 
-#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_COMPARING || \
-    ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_RECORDING_COMPARING
-#include "comparing_array_items_agent.hpp"
-#endif
-#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_RECORDING_COMPARING
-#include "buffered_io.hpp"
-#include "number_codec.hpp"
-#include "recording_comparing_items_agent.hpp"
+#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_RECORDING
+#define ITEMS_AGENT_TYPE ITEMS_AGENT_TYPE_RECORDING
+#else
+#define ITEMS_AGENT_TYPE ITEMS_AGENT_TYPE_PLAIN
 #endif
 
+#include "items_agent.hpp"
 #include "mwc64x.hpp"
 
 
 template<typename item_t>
 struct items_handler_t {
-#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_COMPARING
-    tarsa::ComparingArrayItemsAgent<item_t> * agent;
-#endif
-#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_RECORDING_COMPARING
-    tarsa::BufferedWriter * writer;
-    tarsa::NumberEncoder * numberEncoder;
-    tarsa::ComparingArrayItemsAgent<item_t> * basicAgent;
-    tarsa::RecordingComparingItemsAgentSetup<tarsa::ComparingArrayItemsAgent>::
-        Result<item_t> * agent;
-#endif
-#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_RAW || \
-    ITEMS_HANDLER_TYPE == ITEMS_HANDLER_RAW_REFERENCE || \
-    ITEMS_HANDLER_TYPE == ITEMS_HANDLER_SAB_CACHED
     item_t * input;
     size_t size;
+#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_RECORDING
+    tarsa::BufferedWriter * writer;
+    tarsa::NumberEncoder * numberEncoder;
 #endif
-#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_SAB_CACHED
-    int8_t * scratchpad;
-#endif
+    tarsa::ItemsAgent * agent;
 };
 
 template<typename item_t>
-items_handler_t<item_t> sortItemsHandlerPrepare(item_t * const input,
-        size_t const size) {
-#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_RECORDING_COMPARING
+items_handler_t<item_t> sortItemsHandlerPrepare(size_t const size) {
+    int32_t * work;
+    checkZero(posix_memalign((void**) &work, 128, sizeof (int32_t) * size));
+    mwc64xFill(work, size);
+    items_handler_t<item_t> itemsHandler;
+    itemsHandler.input = work;
+    itemsHandler.size = size;
+#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_RECORDING
     std::string recordingFilePath;
     std::cin >> recordingFilePath;
-#endif
-    items_handler_t<item_t> itemsHandler;
-#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_COMPARING
-    itemsHandler.agent = checkNonNull(
-        new tarsa::ComparingArrayItemsAgent<item_t>(input, size));
-#endif
-#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_RECORDING_COMPARING
     itemsHandler.writer = checkNonNull(new tarsa::BufferedFileWriter(
         recordingFilePath, 1 << 20, true));
     itemsHandler.numberEncoder = checkNonNull(
         new tarsa::NumberEncoder(itemsHandler.writer));
-    itemsHandler.basicAgent = checkNonNull(
-        new tarsa::ComparingArrayItemsAgent<item_t>(input, size));
-    itemsHandler.agent = checkNonNull(new tarsa::
-        RecordingComparingItemsAgentSetup<tarsa::ComparingArrayItemsAgent>::
-        Result<item_t>(itemsHandler.numberEncoder, *itemsHandler.basicAgent));
-#endif
-#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_RAW || \
-    ITEMS_HANDLER_TYPE == ITEMS_HANDLER_RAW_REFERENCE || \
-    ITEMS_HANDLER_TYPE == ITEMS_HANDLER_SAB_CACHED
-    itemsHandler.input = input;
-    itemsHandler.size = size;
-#endif
-#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_SAB_CACHED
-    checkZero(posix_memalign((void**) &itemsHandler.scratchpad, 128,
-        sizeof (int8_t) * size));
+    itemsHandler.agent = checkNonNull(
+        new tarsa::ItemsAgent(itemsHandler.numberEncoder));
+#else
+    itemsHandler.agent = checkNonNull(new tarsa::ItemsAgent());
 #endif
     return itemsHandler;
 }
 
+/** @returns true if agent checks passed */
 template<typename item_t>
-void sortItemsHandlerReleasePreValidation(
-        items_handler_t<item_t> &itemsHandler) {
-#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_RECORDING_COMPARING
+bool sortItemsHandlerFinish(items_handler_t<item_t> &itemsHandler) {
+#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_RECORDING
     safeDelete(itemsHandler.agent);
     itemsHandler.numberEncoder->flush();
+    bool const checksPassed =
+        itemsHandler.numberEncoder->getError() == tarsa::NumberCodec::NoError;
     safeDelete(itemsHandler.numberEncoder);
     safeDelete(itemsHandler.writer);
-#endif
-#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_SAB_CACHED
-    safeFree(itemsHandler.scratchpad);
-#endif
-}
-
-template<typename item_t>
-void sortItemsHandlerReleasePostValidation(
-        items_handler_t<item_t> &itemsHandler) {
-#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_COMPARING
+    return checksPassed;
+#else
     safeDelete(itemsHandler.agent);
-#endif
-#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_RECORDING_COMPARING
-    safeDelete(itemsHandler.basicAgent);
+    return true;
 #endif
 }
 
 template<typename item_t>
 bool sortValidate(items_handler_t<item_t> const &itemsHandler) {
-#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_COMPARING
-#define compareItemsLt(index1, index2) \
-    itemsHandler.agent->compareLt0(index1, index2)
-#define getItem(index) itemsHandler.agent->get0(index)
-#endif
-#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_RECORDING_COMPARING
-#define compareItemsLt(index1, index2) \
-    itemsHandler.basicAgent->compareLt0(index1, index2)
-#define getItem(index) itemsHandler.basicAgent->get0(index)
-#endif
-#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_RAW || \
-    ITEMS_HANDLER_TYPE == ITEMS_HANDLER_RAW_REFERENCE || \
-    ITEMS_HANDLER_TYPE == ITEMS_HANDLER_SAB_CACHED
     item_t const * const work = itemsHandler.input;
-#define compareItemsLt(index1, index2) (work[index1] < work[index2])
-#define getItem(index) work[index]
-#endif
-#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_COMPARING
-    size_t const size = itemsHandler.agent->size0();
-#endif
-#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_AGENT_RECORDING_COMPARING
-    size_t const size = itemsHandler.basicAgent->size0();
-#endif
-#if ITEMS_HANDLER_TYPE == ITEMS_HANDLER_RAW || \
-    ITEMS_HANDLER_TYPE == ITEMS_HANDLER_RAW_REFERENCE || \
-    ITEMS_HANDLER_TYPE == ITEMS_HANDLER_SAB_CACHED
     size_t const size = itemsHandler.size;
-#endif
-#if ITEMS_HANDLER_TYPE != ITEMS_HANDLER_RAW_REFERENCE
+#if ITEMS_HANDLER_TYPE != ITEMS_HANDLER_REFERENCE
     item_t * reference;
     checkZero(posix_memalign((void**) &reference, 128, sizeof (item_t) * size));
     mwc64xFill(reference, size);
@@ -175,14 +109,12 @@ bool sortValidate(items_handler_t<item_t> const &itemsHandler) {
 #endif
     bool valid = true;
     for (size_t i = 0; valid && (i < size); i++) {
-        valid &= (i == 0) || !compareItemsLt(i, i - 1);
-#if ITEMS_HANDLER_TYPE != ITEMS_HANDLER_RAW_REFERENCE
-        valid &= getItem(i) == reference[i];
+        valid &= (i == 0) || work[i - 1] <= work[i];
+#if ITEMS_HANDLER_TYPE != ITEMS_HANDLER_REFERENCE
+        valid &= work[i] == reference[i];
 #endif
     }
     return valid;
-#undef compareItems
-#undef getItem
 }
 
 #endif // ITEMS_HANDLER_HPP

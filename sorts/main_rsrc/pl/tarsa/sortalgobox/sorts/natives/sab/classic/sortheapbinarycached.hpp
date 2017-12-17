@@ -413,11 +413,14 @@ namespace tarsa {
 
     public:
         TheSorter(ItemType * const a, ssize_t const count,
-            int8_t * const cachedComparisonsTable):
-            a(a), count(count), cachedComparisonsTable(cachedComparisonsTable) {
+                int8_t * const scratchpad): a(a), count(count),
+                cachedComparisonsTable(scratchpad) {}
+
+        virtual ~TheSorter() {
+            free(cachedComparisonsTable);
         }
 
-        void heapsort() {
+        void sort() {
             heapify();
             initCachedComparisons();
 #ifndef NDEBUG     
@@ -427,17 +430,16 @@ namespace tarsa {
         }
     };
 
-    template<typename ItemType, ComparisonOperator<ItemType> compOp>
-    void CachedComparisonsBinaryHeapSort(ItemType * const a,
-            ssize_t const count, int8_t * const scratchpad) {
-        TheSorter<ItemType, compOp>(a, count, scratchpad).heapsort();
-    }
+    template<typename item_t>
+    using Sorter = TheSorter<item_t, genericComparisonOperator>;
 
     template<typename ItemType>
-    void CachedComparisonsBinaryHeapSort(ItemType * const a,
-            ssize_t const count, int8_t * const scratchpad) {
-        CachedComparisonsBinaryHeapSort<ItemType, genericComparisonOperator>(
-                a, count, scratchpad);
+    Sorter<ItemType> * makeSorter(ItemType * const a, ssize_t const count) {
+        int8_t * scratchpad;
+        checkZero(posix_memalign((void**) &scratchpad, 128,
+            sizeof (int8_t) * count));
+        return new TheSorter<ItemType, genericComparisonOperator>(a, count,
+            scratchpad);
     }
 }
 

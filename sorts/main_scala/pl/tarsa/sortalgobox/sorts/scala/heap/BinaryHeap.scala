@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,28 +16,31 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.sorts.scala.heap
 
-import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
+import pl.tarsa.sortalgobox.core.common.Specialization.Group
+import pl.tarsa.sortalgobox.core.common.items.agents.ItemsAgent
+import pl.tarsa.sortalgobox.core.common.items.buffers.ComparableItemsBuffer
 
 import scala.annotation.tailrec
 
-class BinaryHeap[ItemType](val itemsAgent: ComparingItemsAgent[ItemType]) {
+class BinaryHeap[@specialized(Group) Item] protected[heap] (
+    val itemsAgent: ItemsAgent,
+    val buf: ComparableItemsBuffer[Item]) {
   import itemsAgent._
 
   var size = 0
 
-  def addElem(a: ItemType): Unit = {
-    set0(size, a)
+  def addElem(a: Item): Unit = {
+    set(buf, size, a)
     size += 1
     siftUp(size - 1)
   }
 
-  def extractTop: ItemType = {
-    val result = get0(0)
-    set0(0, get0(size - 1))
+  def extractTop: Item = {
+    val result = get(buf, 0)
+    set(buf, 0, get(buf, size - 1))
     size -= 1
     siftDown(0)
     result
@@ -47,8 +50,8 @@ class BinaryHeap[ItemType](val itemsAgent: ComparingItemsAgent[ItemType]) {
   final def siftUp(currentIndex: Int): Unit = {
     if (currentIndex > 0) {
       val parentIndex = getParentIndex(currentIndex)
-      if (compare0(parentIndex, currentIndex) < 0) {
-        swap0(currentIndex, parentIndex)
+      if (compareLtI(buf, parentIndex, currentIndex)) {
+        swap(buf, currentIndex, parentIndex)
         siftUp(parentIndex)
       }
     }
@@ -58,27 +61,29 @@ class BinaryHeap[ItemType](val itemsAgent: ComparingItemsAgent[ItemType]) {
   final def siftDown(currentIndex: Int): Unit = {
     var maxIndex = currentIndex
     val firstChildIndex = currentIndex * 2 + 1
-    if (firstChildIndex < size && compare0(firstChildIndex, maxIndex) > 0) {
+    if (firstChildIndex < size && compareGtI(buf, firstChildIndex, maxIndex)) {
       maxIndex = firstChildIndex
     }
     val secondChildIndex = firstChildIndex + 1
-    if (secondChildIndex < size && compare0(secondChildIndex, maxIndex) > 0) {
+    if (secondChildIndex < size && compareGtI(buf, secondChildIndex, maxIndex)) {
       maxIndex = secondChildIndex
     }
-    swap0(currentIndex, maxIndex)
+    swap(buf, currentIndex, maxIndex)
     if (maxIndex != currentIndex) {
       siftDown(maxIndex)
     }
   }
 
-  def getParentIndex(childIndex: Int) = (childIndex - 1) / 2
+  def getParentIndex(childIndex: Int): Int =
+    (childIndex - 1) / 2
 }
 
 object BinaryHeap {
-  def apply[ItemType](itemsAgent: ComparingItemsAgent[ItemType]):
-  BinaryHeap[ItemType] = {
-    val heap = new BinaryHeap[ItemType](itemsAgent)
-    heap.size = itemsAgent.size0
+  def apply[@specialized(Group) Item](
+      itemsAgent: ItemsAgent,
+      buffer: ComparableItemsBuffer[Item]): BinaryHeap[Item] = {
+    val heap = new BinaryHeap[Item](itemsAgent, buffer)
+    heap.size = itemsAgent.size(buffer)
     heapify(heap)
     heap
   }

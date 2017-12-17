@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -46,7 +46,7 @@ void safeDelete(T* &pointer) {
 template<typename T>
 void safeFree(T* &pointer) {
     free(pointer);
-    pointer == nullptr;
+    pointer = nullptr;
 }
 
 #endif /* UTILITIES_HPP */

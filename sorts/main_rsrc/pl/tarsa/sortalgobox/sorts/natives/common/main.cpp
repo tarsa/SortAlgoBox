@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -40,27 +40,24 @@ int main(int argc, char** argv) {
     size_t size;
     std::cin >> shouldValidate >> size;
 
-    int32_t * work;
-    checkZero(posix_memalign((void**) &work, 128, sizeof (int32_t) * size));
-    mwc64xFill(work, size);
+    items_handler_t<int32_t> itemsHandler =
+        sortItemsHandlerPrepare<int32_t>(size);
 
-    items_handler_t<int32_t> itemsHandler = sortItemsHandlerPrepare(work, size);
-
+    tarsa::Sorter<int32_t> * sorter = tarsa::makeSorter(itemsHandler);
     auto startingChrono = std::chrono::system_clock::now();
-    sortPerform(itemsHandler);
+    sorter->sort();
     auto elapsedChrono = std::chrono::system_clock::now() - startingChrono;
     uint64_t elapsedChronoNanoseconds = std::chrono::duration_cast<std::chrono
         ::nanoseconds>(elapsedChrono).count();
     printf("%lx\n", elapsedChronoNanoseconds);
+    safeDelete(sorter);
 
-    sortItemsHandlerReleasePreValidation(itemsHandler);
+    bool const agentChecksPassed = sortItemsHandlerFinish(itemsHandler);
 
     if (shouldValidate) {
-        bool const valid = sortValidate(itemsHandler);
+        bool const valid = agentChecksPassed && sortValidate(itemsHandler);
         std::cout << (valid ? "pass" : "fail") << std::endl;
     }
-
-    sortItemsHandlerReleasePostValidation(itemsHandler);
 
     return EXIT_SUCCESS;
 }

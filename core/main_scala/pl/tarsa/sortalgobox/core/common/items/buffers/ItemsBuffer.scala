@@ -17,30 +17,16 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-package pl.tarsa.sortalgobox.core.common.agents.implementations
+package pl.tarsa.sortalgobox.core.common.items.buffers
 
-import pl.tarsa.sortalgobox.core.common.agents.ItemsAgent
-import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
+abstract class ItemsBuffer[Self <: ItemsBuffer[Self]] private[items] {
+  self: Self =>
 
-abstract class BaseSingleIntArrayItemsAgentSpec[AgentType <: ItemsAgent[_]](
-    builder: Array[Int] => AgentType)
-    extends CommonUnitSpecBase {
+  /** Identifier for verification purposes */
+  protected[items] def id: Int
 
-  def readTest(inputItems: Int*)(operations: (AgentType => Unit)*) {
-    val agent = builder(inputItems.toArray)
-    operations.foreach(_(agent))
-  }
+  /** Indexing base */
+  protected[items] def base: Int
 
-  def writeTest(inputItems: Int*)(operations: (AgentType => Unit)*)(
-      outputItems: Int*) {
-    val array = inputItems.toArray
-    val agent = builder(array)
-    operations.foreach(_(agent))
-    assert(array.toSeq == outputItems)
-  }
-
-  def pureTest(operations: (AgentType => Unit)*): Unit = {
-    val agent = builder(null)
-    operations.foreach(_(agent))
-  }
+  protected[items] def length: Int
 }

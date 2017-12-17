@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,27 +16,29 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.sorts.scala.quick
 
-import pl.tarsa.sortalgobox.core.common.agents.implementations.ComparingIntArrayItemsAgent
+import pl.tarsa.sortalgobox.core.common.items.agents.PlainItemsAgent
+import pl.tarsa.sortalgobox.core.common.items.buffers.ComparableItemsBuffer
 import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
 import scala.language.implicitConversions
 
 class SinglePivotPartitionSpec extends CommonUnitSpecBase {
-
   typeBehavior[SinglePivotPartition]
 
-  implicit def intArrayToComparingItemsAgent(array: Array[Int]):
-  ComparingIntArrayItemsAgent = new ComparingIntArrayItemsAgent(array)
+  private def agent = PlainItemsAgent
+
+  implicit def intArrayToComparableItemsBuffer(
+      array: Array[Int]): ComparableItemsBuffer[Int] =
+    ComparableItemsBuffer(0, array, 0)
 
   it must "handle empty arrays" in {
     val array = Array[Int]()
     val partition = new SinglePivotPartition
-    val (leftAfter, rightStart) = partition.partitionAndComputeBounds(
-      array, 0, array.length, 0)
+    val (leftAfter, rightStart) =
+      partition.partitionAndComputeBounds(agent, array, 0, array.length, 0)
     leftAfter mustBe 0
     rightStart mustBe 0
   }
@@ -44,8 +46,8 @@ class SinglePivotPartitionSpec extends CommonUnitSpecBase {
   it must "handle single element arrays" in {
     val array = Array(5)
     val partition = new SinglePivotPartition
-    val (leftAfter, rightStart) = partition.partitionAndComputeBounds(
-      array, 0, array.length, 0)
+    val (leftAfter, rightStart) =
+      partition.partitionAndComputeBounds(agent, array, 0, array.length, 0)
     leftAfter must be <= rightStart
     array mustBe Array(5)
   }
@@ -54,8 +56,8 @@ class SinglePivotPartitionSpec extends CommonUnitSpecBase {
     def freshArray = Array(1, 2, 3, 5, 8, 13, 21)
     val array = freshArray
     val partition = new SinglePivotPartition
-    val (leftAfter, rightStart) = partition.partitionAndComputeBounds(
-      array, 0, array.length, 0)
+    val (leftAfter, rightStart) =
+      partition.partitionAndComputeBounds(agent, array, 0, array.length, 0)
     leftAfter mustBe 0
     rightStart mustBe 1
     array(0) mustBe 1
@@ -68,10 +70,10 @@ class SinglePivotPartitionSpec extends CommonUnitSpecBase {
     val partition = new SinglePivotPartition
     val pivotIndex = 3
     val pivot = array(pivotIndex)
-    val (leftAfter, rightStart) = partition.partitionAndComputeBounds(
-      array, 0, array.length, pivotIndex)
-    all (array.slice(0, leftAfter)) must be <= pivot
-    all (array.slice(rightStart, array.length)) must be >= pivot
+    val (leftAfter, rightStart) = partition
+      .partitionAndComputeBounds(agent, array, 0, array.length, pivotIndex)
+    all(array.slice(0, leftAfter)) must be <= pivot
+    all(array.slice(rightStart, array.length)) must be >= pivot
     array.sorted mustBe freshArray.sorted
   }
 }

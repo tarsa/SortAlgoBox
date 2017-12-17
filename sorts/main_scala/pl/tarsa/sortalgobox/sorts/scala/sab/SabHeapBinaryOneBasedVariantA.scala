@@ -19,32 +19,33 @@
  */
 package pl.tarsa.sortalgobox.sorts.scala.sab
 
-import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
-import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
+import pl.tarsa.sortalgobox.core.common.Specialization.{Group => Grp}
+import pl.tarsa.sortalgobox.core.common.items.buffers.ComparableItemsBuffer
+import pl.tarsa.sortalgobox.sorts.scala.ComparisonSortBase
 
 import scala.annotation.tailrec
+import scala.{specialized => spec}
 
-class SabHeapBinaryOneBasedVariantA extends ComparisonSortAlgorithm {
-  override def sort[ItemType](agent: ComparingItemsAgent[ItemType]): Unit = {
-    heapsort(agent.withBase(1))
+object SabHeapBinaryOneBasedVariantA extends ComparisonSortBase {
+  override def setupSort[@spec(Grp) Item: Ordering](
+      items: Array[Item]): Setup[Item] =
+    new Setup(ComparableItemsBuffer(0, items, 1))
+
+  override def sort[@spec(Grp) Item: Setup, _: Agent](): Unit = {
+    heapify()
+    drainHeap()
   }
 
-  private def heapsort[ItemType](agent: ComparingItemsAgent[ItemType]): Unit = {
-    heapify(agent)
-    drainHeap(agent)
-  }
-
-  private def heapify[ItemType](agent: ComparingItemsAgent[ItemType]): Unit = {
-    val count = agent.size0
+  private def heapify[@spec(Grp) Item: Setup, _: Agent](): Unit = {
+    val count = a.size(buf1[Item])
     for (item <- (count / 2) to 1 by -1) {
-      siftDown(agent, item, count)
+      siftDown(item, count)
     }
   }
 
-  private def siftDown[ItemType](agent: ComparingItemsAgent[ItemType],
-                                 start: Int,
-                                 end: Int): Unit = {
-    import agent._
+  private def siftDown[@spec(Grp) Item: Setup, _: Agent](start: Int,
+                                                         end: Int): Unit = {
+    val buf = buf1[Item]
 
     @tailrec
     def siftStep(root: Int): Unit = {
@@ -52,23 +53,23 @@ class SabHeapBinaryOneBasedVariantA extends ComparisonSortAlgorithm {
       val right = left + 1
 
       if (right <= end) {
-        if (compareLt0(root, left)) {
-          if (compareLt0(left, right)) {
-            swap0(root, right)
+        if (a.compareLtI(buf, root, left)) {
+          if (a.compareLtI(buf, left, right)) {
+            a.swap(buf, root, right)
             siftStep(right)
           } else {
-            swap0(root, left)
+            a.swap(buf, root, left)
             siftStep(left)
           }
         } else {
-          if (compareLt0(root, right)) {
-            swap0(root, right)
+          if (a.compareLtI(buf, root, right)) {
+            a.swap(buf, root, right)
             siftStep(right)
           }
         }
       } else {
-        if (left == end && compareLt0(root, left)) {
-          swap0(root, left)
+        if (left == end && a.compareLtI(buf, root, left)) {
+          a.swap(buf, root, left)
         }
       }
     }
@@ -76,12 +77,12 @@ class SabHeapBinaryOneBasedVariantA extends ComparisonSortAlgorithm {
     siftStep(start)
   }
 
-  private def drainHeap[ItemType](
-      agent: ComparingItemsAgent[ItemType]): Unit = {
-    val count = agent.size0
+  private def drainHeap[@spec(Grp) Item: Setup, _: Agent](): Unit = {
+    val buf = buf1[Item]
+    val count = a.size(buf)
     for (next <- count until 1 by -1) {
-      agent.swap0(next, 1)
-      siftDown(agent, 1, next - 1)
+      a.swap(buf, next, 1)
+      siftDown(1, next - 1)
     }
   }
 }

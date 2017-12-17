@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,20 +16,21 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.core.common
 
 import scala.reflect.ClassTag
 
-abstract class GenericSortAlgorithm[T: ClassTag](doSorting: (Array[T] => Unit))
-  extends (Array[T] => Unit) {
-  
-  override def apply(array: Array[T]): Unit = doSorting(array)
+sealed abstract class GenericSortAlgorithm[T: ClassTag](
+    doSorting: Array[T] => Unit)
+    extends (Array[T] => Unit) {
+
+  override def apply(array: Array[T]): Unit =
+    doSorting(array)
 }
 
-case class GenericIntSortAlgorithm(doSorting: (Array[Int] => Unit))
-  extends GenericSortAlgorithm[Int](doSorting)
+case class GenericIntSortAlgorithm(doSorting: Array[Int] => Unit)
+    extends GenericSortAlgorithm[Int](doSorting)
 
-case class GenericLongSortAlgorithm(doSorting: (Array[Long] => Unit))
-  extends GenericSortAlgorithm[Long](doSorting)
+case class GenericLongSortAlgorithm(doSorting: Array[Long] => Unit)
+    extends GenericSortAlgorithm[Long](doSorting)

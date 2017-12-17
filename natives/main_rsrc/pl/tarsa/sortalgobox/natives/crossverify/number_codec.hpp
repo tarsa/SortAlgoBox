@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -29,7 +29,7 @@ namespace tarsa {
     class NumberCodec {
     public:
         enum error_t {
-            OK, NegativeValue, ValueOverflow, BufferedIoError
+            NoError, ValueOverflow, BufferedIoError
         };
 
     protected:
@@ -37,7 +37,7 @@ namespace tarsa {
 
     public:
         NumberCodec() {
-            error = OK;
+            error = NoError;
         }
 
         error_t getError() const {
@@ -46,8 +46,7 @@ namespace tarsa {
 
         char const * showError() const {
             switch (error) {
-                case OK: return "OK";
-                case NegativeValue: return "NegativeValue";
+                case NoError: return "NoError";
                 case ValueOverflow: return "ValueOverflow";
                 case BufferedIoError: return "BufferedIoError";
                 default: return nullptr;
@@ -60,37 +59,48 @@ namespace tarsa {
 
     public:
         NumberEncoder(BufferedWriter * const writer): writer(writer) {
-            error = (writer == nullptr) ? BufferedIoError : OK;
+            error = (writer == nullptr) ? BufferedIoError : NoError;
         }
 
         void flush() {
-            if (error == OK && !writer->flush(true)) {
+            if (error == NoError && !writer->flush(true)) {
                 error = BufferedIoError;
             }
         }
 
-        void serializeInt(int32_t const value) {
-            if (error == OK) {
-                if (value < 0) {
-                    error = NegativeValue;
-                } else if (value <= INT8_MAX) {
-                    if (!writer->write(value)) {
-                        error = BufferedIoError;
-                    }
-                } else {
-                    if (!writer->write((value & 127) - 128)) {
-                        error = BufferedIoError;
-                    }
-                    serializeInt(value >> 7);
+        void serializeBit(bool const value) {
+            if (error == NoError) {
+                int8_t const byte = value ? 1 : 0;
+                if (!writer->write(byte)) {
+                    error = BufferedIoError;
+                }
+            }
+          }
+
+        void serializeByte(int8_t const value) {
+            if (error == NoError) {
+                if (!writer->write(value)) {
+                    error = BufferedIoError;
                 }
             }
         }
 
-        void serializeLong(int64_t const value) {
-            if (error == OK) {
-                if (value < 0) {
-                    error = NegativeValue;
-                } else if (value <= INT8_MAX) {
+        void serializeInt(int32_t const original) {
+            uint32_t const abs = original < 0 ? -original : original;
+            uint32_t const value = (abs << 1) - (original < 0);
+            serializeInt0(value);
+        }
+
+        void serializeLong(int64_t const original) {
+            uint64_t const abs = original < 0 ? -original : original;
+            uint64_t const value = (abs << 1) - (original < 0);
+            serializeLong0(value);
+        }
+
+    private:
+        void serializeInt0(uint32_t const value) {
+            if (error == NoError) {
+                if ((value >> 7) == 0) {
                     if (!writer->write(value)) {
                         error = BufferedIoError;
                     }
@@ -98,7 +108,22 @@ namespace tarsa {
                     if (!writer->write((value & 127) - 128)) {
                         error = BufferedIoError;
                     }
-                    serializeLong(value >> 7);
+                    serializeInt0(value >> 7);
+                }
+            }
+        }
+
+        void serializeLong0(uint64_t const value) {
+            if (error == NoError) {
+                if ((value >> 7) == 0) {
+                    if (!writer->write(value)) {
+                        error = BufferedIoError;
+                    }
+                } else {
+                    if (!writer->write((value & 127) - 128)) {
+                        error = BufferedIoError;
+                    }
+                    serializeLong0(value >> 7);
                 }
             }
         }
@@ -109,73 +134,95 @@ namespace tarsa {
 
     public:
         NumberDecoder(BufferedReader * const reader): reader(reader) {
-            error = (reader == nullptr) ? BufferedIoError : OK;
+            error = (reader == nullptr) ? BufferedIoError : NoError;
         }
 
-    private:
-        int32_t deserializeInt0(int32_t const current, int32_t const shift) {
-            if (error == OK) {
+        bool deserializeBit() {
+            if (error == NoError) {
+                int32_t const input = reader->read();
+                if (input == -1) {
+                    error = BufferedIoError;
+                    return false;
+                } else if (input > 1) {
+                    error = ValueOverflow;
+                    return false;
+                } else {
+                    return input == 1;
+                }
+            }
+        }
+
+        int8_t deserializeByte() {
+            if (error == NoError) {
                 int32_t const input = reader->read();
                 if (input == -1) {
                     error = BufferedIoError;
                     return -1;
                 } else {
-                    if (input == 0) {
-                        return current;
-                    } else {
-                        int32_t const chunk = input & 127;
-                        if ((chunk != 0) && ((shift > 31)
-                                || (chunk > (INT32_MAX >> shift)))) {
-                            error = ValueOverflow;
-                            return -1;
-                        } else {
-                            int32_t const next = (chunk << shift) + current;
-                            if (input <= 127) {
-                                return next;
-                            } else {
-                                return deserializeInt0(next, shift + 7);
-                            }
-                        }
-                    }
+                    return input;
                 }
             }
         }
 
-        int64_t deserializeLong0(int64_t const current, int32_t const shift) {
-            if (error == OK) {
-                int32_t const input = reader->read();
-                if (input == -1) {
-                    error = BufferedIoError;
-                    return -1;
-                } else {
-                    if (input == 0) {
-                        return current;
-                    } else {
-                        int64_t const chunk = input & 127;
-                        if ((chunk != 0) && ((shift > 63)
-                                || (chunk > (INT64_MAX >> shift)))) {
-                            error = ValueOverflow;
-                            return -1;
-                        } else {
-                            int64_t const next = (chunk << shift) + current;
-                            if (input <= 127) {
-                                return next;
-                            } else {
-                                return deserializeLong0(next, shift + 7);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-    public:
         int32_t deserializeInt() {
-            return deserializeInt0(0, 0);
+            uint32_t const shifted = deserializeInt0(0u, 0);
+            bool const signFlag = shifted & 1;
+            int32_t const absValue = shifted >> 1;
+            return signFlag ? ~absValue : absValue;
         }
 
         int64_t deserializeLong() {
-            return deserializeLong0(0L, 0);
+            uint64_t const shifted = deserializeLong0(0uL, 0);
+            bool const signFlag = shifted & 1;
+            int64_t const absValue = shifted >> 1;
+            return signFlag ? ~absValue : absValue;
+        }
+
+    private:
+        uint32_t deserializeInt0(uint32_t const current, int32_t const shift) {
+            if (error == NoError) {
+                int32_t const input = reader->read();
+                if (input == -1) {
+                    error = BufferedIoError;
+                    return 1;
+                } else {
+                    uint32_t const chunk = input & 127;
+                    if (shift > 31 ||
+                            (shift > 0 && chunk >= (1u << 32 - shift))) {
+                        error = ValueOverflow;
+                        return 1;
+                    }
+                    uint32_t const next = (chunk << shift) + current;
+                    if (input <= 127) {
+                        return next;
+                    } else {
+                        return deserializeInt0(next, shift + 7);
+                    }
+                }
+            }
+        }
+
+        uint64_t deserializeLong0(uint64_t const current, int32_t const shift) {
+            if (error == NoError) {
+                int32_t const input = reader->read();
+                if (input == -1) {
+                    error = BufferedIoError;
+                    return 1;
+                } else {
+                    uint64_t const chunk = input & 127;
+                    if (shift > 63 ||
+                            (shift > 0 && chunk >= (1uL << 64 - shift))) {
+                        error = ValueOverflow;
+                        return 1;
+                    }
+                    uint64_t const next = (chunk << shift) + current;
+                    if (input <= 127) {
+                        return next;
+                    } else {
+                        return deserializeLong0(next, shift + 7);
+                    }
+                }
+            }
         }
     };
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,48 +16,73 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.sorts.scala.merge
 
-import pl.tarsa.sortalgobox.core.common.PureSortAlgorithm
-import pl.tarsa.sortalgobox.core.common.agents.MergeSortItemsAgent
+import pl.tarsa.sortalgobox.core.common.ComparableItemsAgentSortAlgorithm
+import pl.tarsa.sortalgobox.core.common.Specialization.Group
+import pl.tarsa.sortalgobox.core.common.items.buffers.ComparableItemsBuffer
 
-class MergeSort extends PureSortAlgorithm[MergeSortItemsAgent] {
-  override def sort[ItemType](
-    itemsAgent: MergeSortItemsAgent[ItemType]): Unit = {
-    import itemsAgent._
+import scala.{specialized => spec}
 
-    val n = size0
-    for (width <- Stream.iterate(1L)(_ * 2).takeWhile(_ < n)) {
+object MergeSort extends ComparableItemsAgentSortAlgorithm {
+  class Setup[@spec(Group) Item: Permit](
+      val buffer1: ComparableItemsBuffer[Item],
+      val buffer2: ComparableItemsBuffer[Item])
+
+  override def setupSort[@spec(Group) Item: Ordering](
+      items: Array[Item]): Setup[Item] = {
+    new Setup(ComparableItemsBuffer(0, items, 0),
+              ComparableItemsBuffer(0, items.clone(), 0))
+  }
+
+  override protected def sort[@spec(Group) Item: Setup, _: Agent](): Unit = {
+    val buf1 = setup[Item].buffer1
+    val buf2 = setup[Item].buffer2
+
+    val n = a.size(buf1)
+    for (width <- Iterator.iterate(1L)(_ * 2).takeWhile(_ < n)) {
       for (i <- 0L until n by width * 2) {
         val start = Math.min(i, n)
         val med = Math.min(start + width, n)
         val next = Math.min(med + width, n)
-        bottomUpMerge(itemsAgent, start.toInt, med.toInt, next.toInt)
+        bottomUpMerge(start.toInt, med.toInt, next.toInt)
       }
-      copy10(0, 0, n)
+      for (i <- 0 until n) {
+        a.set(buf1, i, a.get(buf2, i))
+      }
     }
   }
 
-  private def bottomUpMerge[ItemType](itemsAgent: MergeSortItemsAgent[ItemType],
-    start: Int, med: Int, next: Int): Unit = {
-    import itemsAgent._
+  private def bottomUpMerge[@spec(Group) Item: Setup, _: Agent](
+      start: Int,
+      med: Int,
+      next: Int): Unit = {
+    val buf1 = setup[Item].buffer1
+    val buf2 = setup[Item].buffer2
 
     var left = start
     var right = med
     var dest = start
     while (left < med && right < next) {
-      if (compare00(left, right) <= 0) {
-        set1(dest, get0(left))
+      if (a.compareLteI(buf1, left, right)) {
+        a.set(buf2, dest, a.get(buf1, left))
         left += 1
       } else {
-        set1(dest, get0(right))
+        a.set(buf2, dest, a.get(buf1, right))
         right += 1
       }
       dest += 1
     }
-    copy01(left, dest, med - left)
-    copy01(right, dest + med - left, next - right)
+    while (left < med) {
+      a.set(buf2, dest, a.get(buf1, left))
+      left += 1
+      dest += 1
+    }
+    while (right < next) {
+      a.set(buf2, dest, a.get(buf1, right))
+      right += 1
+      dest += 1
+    }
   }
 }

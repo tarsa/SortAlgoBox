@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -17,7 +17,6 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-
 package pl.tarsa.sortalgobox.core.crossverify
 
 import java.io.OutputStream
@@ -25,33 +24,39 @@ import java.io.OutputStream
 import scala.annotation.tailrec
 
 class PureNumberEncoder(output: OutputStream) {
-  def serializeInt(value: Int): Unit = {
+  def serializeBit(value: Boolean): Unit = {
+    val byte: Byte = if (value) 1 else 0
+    output.write(byte)
+  }
+
+  def serializeByte(value: Byte): Unit =
+    output.write(value)
+
+  def serializeInt(original: Int): Unit = {
     @tailrec
     def serialize(value: Int): Unit = {
-      if (value < 0) {
-        throw new IllegalArgumentException
-      } else if (value <= Byte.MaxValue) {
-        output.write(value)
+      if ((value >>> 7) == 0) {
+        output.write(value.toByte)
       } else {
-        output.write((value & 127) - 128)
-        serialize(value >> 7)
+        output.write((value.toByte & 127) - 128)
+        serialize(value >>> 7)
       }
     }
+    val value = (original.abs << 1) - (original >>> 31)
     serialize(value)
   }
 
-  def serializeLong(value: Long): Unit = {
+  def serializeLong(original: Long): Unit = {
     @tailrec
     def serialize(value: Long): Unit = {
-      if (value < 0) {
-        throw new IllegalArgumentException
-      } else if (value <= Byte.MaxValue) {
+      if ((value >>> 7) == 0) {
         output.write(value.toByte)
       } else {
-        output.write(((value & 127) - 128).toByte)
-        serialize(value >> 7)
+        output.write((value.toByte & 127) - 128)
+        serialize(value >>> 7)
       }
     }
+    val value = (original.abs << 1) - (original >>> 63)
     serialize(value)
   }
 }

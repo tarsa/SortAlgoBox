@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -17,7 +17,6 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-
 package pl.tarsa.sortalgobox.core.crossverify
 
 import java.io.ByteArrayInputStream
@@ -27,6 +26,38 @@ import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
 class PureNumberDecoderSpec extends CommonUnitSpecBase {
   typeBehavior[PureNumberDecoder]
+
+  it must "deserialize false value" in {
+    havingContents(0) { codec =>
+      codec.deserializeBit() mustBe false
+    }(position = 1)
+  }
+
+  it must "deserialize true value" in {
+    havingContents(1) { codec =>
+      codec.deserializeBit() mustBe true
+    }(position = 1)
+  }
+
+  it must "fail on unexpected value when deserializing boolean" in {
+    havingContents(8) { codec =>
+      a[ValueOverflowException] mustBe thrownBy {
+        codec.deserializeBit()
+      }
+    }(position = 1)
+  }
+
+  it must "deserialize positive byte" in {
+    havingContents(100) { codec =>
+      codec.deserializeByte() mustBe 100
+    }(position = 1)
+  }
+
+  it must "deserialize negative byte" in {
+    havingContents(-100) { codec =>
+      codec.deserializeByte() mustBe -100
+    }(position = 1)
+  }
 
   it must "fail on deserialization of empty buffer for int" in {
     havingContents() { codec =>
@@ -47,30 +78,36 @@ class PureNumberDecoderSpec extends CommonUnitSpecBase {
 
   it must "deserialize int zero" in {
     havingContents(0) { codec =>
-      assert(codec.deserializeInt() == 0)
+      codec.deserializeInt() mustBe 0
     }(position = 1)
   }
 
-  it must "fully deserialize weirdly encoded int zero" in {
-    havingContents(-128, -128, -128, -128, -128, -128, -128, 0) { codec =>
-      assert(codec.deserializeInt() == 0)
-    }(position = 8)
-  }
-
   it must "deserialize positive int" in {
-    havingContents(-121, -83, 75) { codec =>
-      assert(codec.deserializeInt() == 1234567)
-    }(position = 3)
+    havingContents(-114, -38, -106, 1) { codec =>
+      codec.deserializeInt() mustBe 1234567
+    }(position = 4)
   }
 
-  it must "deserialize max int" in {
-    havingContents(-1, -1, -1, -1, 7) { codec =>
-      assert(codec.deserializeInt() == Int.MaxValue)
+  it must "deserialize negative int" in {
+    havingContents(-115, -38, -106, 1) { codec =>
+      codec.deserializeInt() mustBe -1234567
+    }(position = 4)
+  }
+
+  it must "deserialize Int.MaxValue" in {
+    havingContents(-2, -1, -1, -1, 15) { codec =>
+      codec.deserializeInt() mustBe Int.MaxValue
+    }(position = 5)
+  }
+
+  it must "deserialize Int.MinValue" in {
+    havingContents(-1, -1, -1, -1, 15) { codec =>
+      codec.deserializeInt() mustBe Int.MinValue
     }(position = 5)
   }
 
   it must "fail on deserialization of slightly too big number for int" in {
-    havingContents(-1, -1, -1, -1, 8) { codec =>
+    havingContents(-2, -1, -1, -1, 16) { codec =>
       a[ValueOverflowException] mustBe thrownBy {
         codec.deserializeInt()
       }
@@ -104,31 +141,36 @@ class PureNumberDecoderSpec extends CommonUnitSpecBase {
 
   it must "deserialize long zero" in {
     havingContents(0) { codec =>
-      assert(codec.deserializeLong() == 0L)
+      codec.deserializeLong() mustBe 0L
     }(position = 1)
   }
 
-  it must "fully deserialize weirdly encoded long zero" in {
-    havingContents(-128, -128, -128, -128, -128, -128, -128, -128, -128, -128,
-      -128, -128, -128, -128, -128, -128, -128, -128, 0) { codec =>
-      assert(codec.deserializeLong() == 0L)
-    }(position = 19)
-  }
-
   it must "deserialize positive long" in {
-    havingContents(-120, -76, -28, -12, -53, 3) { codec =>
-      assert(codec.deserializeLong() == 123456789000L)
+    havingContents(-112, -24, -56, -23, -105, 7) { codec =>
+      codec.deserializeLong() mustBe 123456789000L
     }(position = 6)
   }
 
-  it must "deserialize max long" in {
-    havingContents(-1, -1, -1, -1, -1, -1, -1, -1, 127) { codec =>
-      assert(codec.deserializeLong() == Long.MaxValue)
-    }(position = 9)
+  it must "deserialize negative long" in {
+    havingContents(-113, -24, -56, -23, -105, 7) { codec =>
+      codec.deserializeLong() mustBe -123456789000L
+    }(position = 6)
+  }
+
+  it must "deserialize Long.MaxValue" in {
+    havingContents(-2, -1, -1, -1, -1, -1, -1, -1, -1, 1) { codec =>
+      codec.deserializeLong() mustBe Long.MaxValue
+    }(position = 10)
+  }
+
+  it must "deserialize Long.MinValue" in {
+    havingContents(-1, -1, -1, -1, -1, -1, -1, -1, -1, 1) { codec =>
+      codec.deserializeLong() mustBe Long.MinValue
+    }(position = 10)
   }
 
   it must "fail on deserialization of slightly too big number for long" in {
-    havingContents(-1, -1, -1, -1, -1, -1, -1, -1, -1, 1) { codec =>
+    havingContents(-2, -1, -1, -1, -1, -1, -1, -1, -1, 3) { codec =>
       a[ValueOverflowException] mustBe thrownBy {
         codec.deserializeLong()
       }
@@ -136,22 +178,22 @@ class PureNumberDecoderSpec extends CommonUnitSpecBase {
   }
 
   it must "fail on deserialization of way too big number for long" in {
-    havingContents(-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0) { codec =>
+    havingContents(-2, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0) { codec =>
       a[ValueOverflowException] mustBe thrownBy {
         codec.deserializeLong()
       }
     }(position = 10)
   }
 
-  def havingContents(contents: Byte*)(function: PureNumberDecoder => Unit)
-    (position: Int): Unit = {
-    val stream = new CountingInputStream(new ByteArrayInputStream(
-      contents.toArray))
+  def havingContents(contents: Byte*)(function: PureNumberDecoder => Unit)(
+      position: Int): Unit = {
+    val stream = new CountingInputStream(
+      new ByteArrayInputStream(contents.toArray))
     val codec = new PureNumberDecoder(stream)
     try {
       function(codec)
     } finally {
-      assert(stream.getCount == position)
+      stream.getCount mustBe position
     }
   }
 }

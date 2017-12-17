@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -20,28 +20,14 @@
 #ifndef SABMAIN_HPP
 #define SABMAIN_HPP
 
-#if defined(SORT_CACHED) && defined(SORT_SIMD)
-#error Unsupported combination
-#endif
-
 #include xstr(SORT_HEADER)
 
-using namespace tarsa;
+namespace tarsa {
 
-#define ComparisonOperator genericComparisonOperator
-
-template<typename item_t>
-void sortPerform(items_handler_t<item_t> &itemsHandler) {
-    int32_t * const work = itemsHandler.input;
-    size_t const size = itemsHandler.size;
-#if defined(SORT_SIMD)
-    tarsa::SORT_ALGO<item_t, true>(work, size);
-#elif defined(SORT_CACHED)
-    tarsa::SORT_ALGO<item_t, ComparisonOperator>(work, size,
-        itemsHandler.scratchpad);
-#else
-    tarsa::SORT_ALGO<item_t, ComparisonOperator>(work, size);
-#endif
+    template<typename item_t>
+    Sorter<item_t> * makeSorter(items_handler_t<item_t> &handler) {
+        return makeSorter<item_t>(handler.input, handler.size);
+    }
 }
 
 #endif /* SABMAIN_HPP */

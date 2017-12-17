@@ -19,7 +19,7 @@
  */
 package pl.tarsa.sortalgobox.main
 
-import pl.tarsa.sortalgobox.core.common.MeasuredSortAlgorithm
+import pl.tarsa.sortalgobox.core.common.SelfMeasuredSortAlgorithm
 import pl.tarsa.sortalgobox.core.{Benchmark, NativeBenchmark}
 import pl.tarsa.sortalgobox.random.Mwc64x
 import pl.tarsa.sortalgobox.sorts.jre._
@@ -34,12 +34,12 @@ import scala.concurrent.duration.FiniteDuration
 object BenchmarksConfigurations {
   val plainSorts: List[(String, AnyRef)] =
     List(
-      "BitonicSort" -> new BitonicSort,
+      "BitonicSort" -> BitonicSort,
       "SequentialArraysSort" -> SequentialArraysSort.intSort,
       "ParallelArraySort" -> ParallelArraysSort.intSort
     )
 
-  val measuredSorts: List[(String, MeasuredSortAlgorithm[Int])] =
+  val measuredSorts: List[(String, SelfMeasuredSortAlgorithm[Int])] =
     List(
       "CpuBitonicSort" -> CpuBitonicSort,
       "GpuBitonicSort" -> GpuBitonicSort,
@@ -72,7 +72,7 @@ object BenchmarksConfigurations {
 
   val benchmarks: List[Benchmark] = {
     nativeBenchmarks ::: measuredSorts.map {
-      case (sortName: String, sort: MeasuredSortAlgorithm[Int]) =>
+      case (sortName: String, sort: SelfMeasuredSortAlgorithm[Int]) =>
         new Benchmark {
           override def forSize(itemsNumber: Int,
                                validate: Boolean,

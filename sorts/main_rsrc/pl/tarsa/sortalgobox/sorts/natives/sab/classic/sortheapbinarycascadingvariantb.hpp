@@ -155,26 +155,21 @@ namespace tarsa {
         }
 
     public:
-        TheSorter(ItemType * const a, ssize_t const count): a(a), count(count) {
-        }
+        TheSorter(ItemType * const a, ssize_t const count):
+            a(a - 1), count(count) {}
 
-        void heapsort() {
+        void sort() {
             heapify();
             drainHeap();
         }
     };
 
-    template<typename ItemType, ComparisonOperator<ItemType> compOp>
-    void BinaryHeapSortCascadingVariantB(ItemType * const a,
-            ssize_t const count) {
-        TheSorter<ItemType, compOp>(a - 1, count).heapsort();
-    }
+    template<typename item_t>
+    using Sorter = TheSorter<item_t, genericComparisonOperator>;
 
     template<typename ItemType>
-    void BinaryHeapSortCascadingVariantB(ItemType * const a,
-            ssize_t const count) {
-        BinaryHeapSortCascadingVariantB<ItemType, genericComparisonOperator>(
-                a, count);
+    Sorter<ItemType> * makeSorter(ItemType * const a, ssize_t const count) {
+        return new TheSorter<ItemType, genericComparisonOperator>(a, count);
     }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,20 +16,19 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.sorts.scala.bitonic
 
-import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
-import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
+import pl.tarsa.sortalgobox.core.common.Specialization.Group
+import pl.tarsa.sortalgobox.sorts.scala.ComparisonSortBase
 
-class BitonicSort extends ComparisonSortAlgorithm {
-  override def sort[ItemType](
-    itemsAgent: ComparingItemsAgent[ItemType]): Unit = {
-    import itemsAgent._
+object BitonicSort extends ComparisonSortBase {
+  override def sort[@specialized(Group) Item: Setup, _: Agent](): Unit = {
+    val buf = buf1[Item]
 
-    val size = size0
-    val phasesPerBlock = Stream.iterate(1)(_ + 1)
+    val size = a.size(buf)
+    val phasesPerBlock = Iterator
+      .iterate(1)(_ + 1)
       .takeWhile(phases => (1L << (phases - 1)) < size)
     for (phasesInBlock <- phasesPerBlock;
          phase <- phasesInBlock to 1 by -1) {
@@ -45,8 +44,8 @@ class BitonicSort extends ComparisonSortAlgorithm {
           val lower = upper + halfBlockSize
           (upper, lower)
         }
-        if (second < size && compare0(first, second) > 0) {
-          swap0(first, second)
+        if (second < size && a.compareGtI(buf, first, second)) {
+          a.swap(buf, first, second)
         }
       }
     }

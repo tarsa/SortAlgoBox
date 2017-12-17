@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -19,25 +19,24 @@
  */
 package pl.tarsa.sortalgobox.sorts.scala.selection
 
-import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
-import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
+import pl.tarsa.sortalgobox.core.common.Specialization.Group
+import pl.tarsa.sortalgobox.sorts.scala.ComparisonSortBase
 
-class SelectionSort extends ComparisonSortAlgorithm {
-  override def sort[ItemType](
-    itemsAgent: ComparingItemsAgent[ItemType]): Unit = {
-    import itemsAgent._
+object SelectionSort extends ComparisonSortBase {
+  override def sort[@specialized(Group) Item: Setup, _: Agent](): Unit = {
+    val buf = buf1[Item]
 
-    val size = size0
+    val size = a.size(buf)
     for (i <- 0 to size - 2) {
       val j = ((i + 1) until size).foldLeft(i) {
         case (lastMinIndex, itemIndex) =>
-          if (compare0(lastMinIndex, itemIndex) > 0) {
+          if (a.compareGtI(buf, lastMinIndex, itemIndex)) {
             itemIndex
           } else {
             lastMinIndex
           }
       }
-      swap0(i, j)
+      a.swap(buf, i, j)
     }
   }
 }

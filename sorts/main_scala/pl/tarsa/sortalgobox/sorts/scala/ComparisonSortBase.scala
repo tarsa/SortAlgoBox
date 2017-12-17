@@ -17,15 +17,22 @@
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-package pl.tarsa.sortalgobox.core.common.agents
+package pl.tarsa.sortalgobox.sorts.scala
 
-abstract class SlicingItemsAgent[ItemType] extends ItemsAgent[ItemType] {
-  override type SelfType <: SlicingItemsAgent[ItemType]
+import pl.tarsa.sortalgobox.core.common.ComparableItemsAgentSortAlgorithm
+import pl.tarsa.sortalgobox.core.common.Specialization.Group
+import pl.tarsa.sortalgobox.core.common.items.buffers.ComparableItemsBuffer
+import scala.{specialized => spec}
 
-  def keySizeInBits: Int
+abstract class ComparisonSortBase extends ComparableItemsAgentSortAlgorithm {
+  class Setup[@spec(Group) Item: Permit](
+      val buffer1: ComparableItemsBuffer[Item])
 
-  def getItemSlice(v: ItemType, lowestBit: Int, length: Int): Int
+  override def setupSort[@spec(Group) Item: Ordering](
+      items: Array[Item]): Setup[Item] =
+    new Setup(ComparableItemsBuffer(0, items, 0))
 
-  def getItemSlice0(i: Int, lowestBit: Int, length: Int): Int =
-    getItemSlice(get0(i), lowestBit, length)
+  protected final def buf1[@spec(Group) Item: Setup]
+    : ComparableItemsBuffer[Item] =
+    setup[Item].buffer1
 }

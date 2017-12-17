@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,22 +16,20 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.sorts.scala.heap
 
-import pl.tarsa.sortalgobox.core.common.ComparisonSortAlgorithm
-import pl.tarsa.sortalgobox.core.common.agents.ComparingItemsAgent
+import pl.tarsa.sortalgobox.core.common.Specialization.Group
+import pl.tarsa.sortalgobox.sorts.scala.ComparisonSortBase
 
-class HeapSort extends ComparisonSortAlgorithm {
-  override def sort[ItemType](
-    itemsAgent: ComparingItemsAgent[ItemType]): Unit = {
-    import itemsAgent._
+object HeapSort extends ComparisonSortBase {
+  override def sort[@specialized(Group) Item: Setup, _: Agent](): Unit = {
+    val buf = buf1[Item]
 
-    val heap = BinaryHeap[ItemType](itemsAgent)
+    val heap = BinaryHeap[Item](a, buf)
     while (heap.size > 0) {
       val top = heap.extractTop
-      set0(heap.size, top)
+      a.set(buf, heap.size, top)
     }
   }
 }

@@ -26,4 +26,4 @@ class ClassicSabHeapBinaryCached(
   extends ClassicSabBenchmark(
     sortAlgoName = "CachedComparisonsBinaryHeapSort",
     sortHeader = "sortheapbinarycached.hpp",
-    nativesCache, "ITEMS_HANDLER_SAB_CACHED", sortCached = true)
+    nativesCache)

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -21,27 +21,43 @@ package pl.tarsa.sortalgobox.natives.agents
 
 import pl.tarsa.sortalgobox.common.crossverify.TrackingEnums.ActionTypes
 import pl.tarsa.sortalgobox.common.crossverify.TrackingEnums.ActionTypes._
-import pl.tarsa.sortalgobox.natives.build.{NativeBuildComponentFromString, NativeComponentsSupport}
+import pl.tarsa.sortalgobox.natives.build.{
+  NativeBuildComponent,
+  NativeBuildComponentFromString,
+  NativeComponentsSupport
+}
 import pl.tarsa.sortalgobox.natives.generators.NativeEnumGenerator
 
 object ItemsAgentsBuildComponents extends NativeComponentsSupport {
-  val trackingEnum = Seq(NativeBuildComponentFromString(
-    NativeEnumGenerator("tracking_codes_t", "Code", ActionTypes)
-    (Size0 -> "Size0", Get0 -> "Get0", Set0 -> "Set0", Copy0 -> "Copy0",
-      Swap0 -> "Swap0", Compare -> "Compare", Compare0 -> "Compare0"),
-    "action_codes.hpp"))
+  val trackingEnum = Seq(
+    NativeBuildComponentFromString(
+      NativeEnumGenerator("tracking_codes_t", "Code", ActionTypes)(
+        Size -> "Size",
+        Get -> "Get",
+        Set -> "Set",
+        Swap -> "Swap",
+        ItemBitsSize -> "ItemBitsSize",
+        AsLong -> "AsLong",
+        GetSlice -> "GetSlice",
+        CompareEq -> "CompareEq",
+        CompareGt -> "CompareGt",
+        CompareGte -> "CompareGte",
+        CompareLt -> "CompareLt",
+        CompareLte -> "CompareLte"
+      ),
+      "action_codes.hpp"
+    ))
 
-  val standard = makeResourceComponents(
-    ("/pl/tarsa/sortalgobox/natives/agents/", "items_agent.hpp"),
-    ("/pl/tarsa/sortalgobox/natives/agents/", "comparing_items_agent.hpp"),
-    ("/pl/tarsa/sortalgobox/natives/agents/implementations/",
-      "comparing_array_items_agent.hpp"))
-
-  val recording = standard ++
+  val standard: Seq[NativeBuildComponent] = {
     makeResourceComponents(
+      ("/pl/tarsa/sortalgobox/natives/agents/", "items_agent.hpp")
+    )
+  }
+
+  val recording: Seq[NativeBuildComponent] = {
+    standard ++ makeResourceComponents(
       ("/pl/tarsa/sortalgobox/natives/", "buffered_io.hpp"),
-      ("/pl/tarsa/sortalgobox/natives/agents/implementations/",
-        "recording_comparing_items_agent.hpp"),
-      ("/pl/tarsa/sortalgobox/natives/crossverify/", "number_codec.hpp")) ++
-    trackingEnum
+      ("/pl/tarsa/sortalgobox/natives/crossverify/", "number_codec.hpp")
+    ) ++ trackingEnum
+  }
 }

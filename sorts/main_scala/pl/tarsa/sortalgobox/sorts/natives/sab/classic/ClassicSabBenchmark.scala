@@ -37,23 +37,16 @@ import scala.concurrent.duration.{Duration, FiniteDuration}
 
 class ClassicSabBenchmark(sortAlgoName: String,
                           sortHeader: String,
-                          nativesCache: NativesCache,
-                          itemsHandlerType: String = "ITEMS_HANDLER_RAW",
-                          sortCached: Boolean = false,
-                          sortSimd: Boolean = false)
+                          nativesCache: NativesCache)
     extends NativeBenchmark {
 
   override val buildConfig: NativeBuildConfig = {
-    val sortTypeDefines = Seq(
-      ("SORT_CACHED", sortCached),
-      ("SORT_SIMD", sortSimd)
-    ).collect { case (defineName, true) => CompilerDefine(defineName, None) }
     val algoDefines = Seq(
-      CompilerDefine("ITEMS_HANDLER_TYPE", Some(itemsHandlerType)),
+      CompilerDefine("ITEMS_HANDLER_TYPE", Some("ITEMS_HANDLER_AGENT_PLAIN")),
       CompilerDefine("SORT_ALGO", Some(sortAlgoName)),
       CompilerDefine("SORT_HEADER", Some(sortHeader)),
       CompilerDefine("SORT_MECHANICS", Some("sabmain.hpp"))
-    ) ++ sortTypeDefines
+    )
     val compilerOptions = CompilerOptions(
       defines = CompilerOptions.defaultDefines ++ algoDefines)
     NativeBuildConfig(ClassicSabBenchmark.components(sortHeader),
@@ -68,9 +61,14 @@ class ClassicSabBenchmark(sortAlgoName: String,
     val execResult = nativesCache.runCachedProgram(buildConfig, input)
     val lines = execResult.stdOut.lines.toList
     if (validate) {
-      val valid = lines(1) == "pass"
+      val valid = lines.isDefinedAt(1) && lines(1) == "pass"
       if (!valid) {
-        throw new VerificationFailedException()
+        val errorMsg = s"""$sortAlgoName failed:
+            |- exit code: ${execResult.exitValue}
+            |- stdOut: ${execResult.stdOut}
+            |- stdErr: ${execResult.stdErr}
+          """.stripMargin
+        throw new VerificationFailedException(errorMsg)
       }
     }
     val nanosTaken = parseLong(lines.head, 16)
@@ -85,6 +83,7 @@ object ClassicSabBenchmark extends NativeComponentsSupport {
     NativeMwc64x.header ++ makeResourceComponents(
       ("/pl/tarsa/sortalgobox/natives/", "macros.hpp"),
       ("/pl/tarsa/sortalgobox/natives/", "utilities.hpp"),
+      ("/pl/tarsa/sortalgobox/natives/agents/", "items_agent.hpp"),
       ("/pl/tarsa/sortalgobox/sorts/natives/common/", "main.cpp"),
       ("/pl/tarsa/sortalgobox/sorts/natives/common/", "items_handler.hpp"),
       (sabNamePrefix, "sabmain.hpp"),

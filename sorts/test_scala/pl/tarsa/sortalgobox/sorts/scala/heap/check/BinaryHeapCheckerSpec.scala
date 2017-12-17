@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,26 +16,28 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.sorts.scala.heap.check
 
-import pl.tarsa.sortalgobox.core.common.agents.implementations.ComparingIntArrayItemsAgent
+import pl.tarsa.sortalgobox.core.common.items.agents.PlainItemsAgent
+import pl.tarsa.sortalgobox.core.common.items.buffers.ComparableItemsBuffer
 import pl.tarsa.sortalgobox.sorts.scala.heap.BinaryHeap
 import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
 import scala.language.implicitConversions
 
 class BinaryHeapCheckerSpec extends CommonUnitSpecBase {
-
   typeBehavior[BinaryHeapChecker.type]
 
-  implicit def intArrayToComparingItemsAgent(array: Array[Int]):
-  ComparingIntArrayItemsAgent = new ComparingIntArrayItemsAgent(array)
+  private def agent = PlainItemsAgent
+
+  implicit def intArrayToComparableItemsBuffer(
+      array: Array[Int]): ComparableItemsBuffer[Int] =
+    ComparableItemsBuffer(0, array, 0)
 
   it must "handle empty heap" in {
     val array = Array.emptyIntArray
-    val heap = new BinaryHeap(array) {
+    val heap = new BinaryHeap(agent, array) {
       size = array.length
     }
     assert(BinaryHeapChecker.check(heap))
@@ -43,7 +45,7 @@ class BinaryHeapCheckerSpec extends CommonUnitSpecBase {
 
   it must "handle single element heap" in {
     val array = Array(5)
-    val heap = new BinaryHeap(array) {
+    val heap = new BinaryHeap(agent, array) {
       size = array.length
     }
     assert(BinaryHeapChecker.check(heap))
@@ -51,7 +53,7 @@ class BinaryHeapCheckerSpec extends CommonUnitSpecBase {
 
   it must "handle multiple element heap" in {
     val array = Array(5, 3, 4, 3, 2, 4)
-    val heap = new BinaryHeap(array) {
+    val heap = new BinaryHeap(agent, array) {
       size = array.length
     }
     assert(BinaryHeapChecker.check(heap))
@@ -59,7 +61,7 @@ class BinaryHeapCheckerSpec extends CommonUnitSpecBase {
 
   it must "detect violations of heap property" in {
     val array = Array(3, 3, 5, 2, 3)
-    val heap = new BinaryHeap(array) {
+    val heap = new BinaryHeap(agent, array) {
       size = array.length
     }
     assert(!BinaryHeapChecker.check(heap))

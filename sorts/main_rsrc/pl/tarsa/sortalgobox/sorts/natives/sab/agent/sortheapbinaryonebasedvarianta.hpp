@@ -26,21 +26,23 @@
 
 namespace tarsa {
 
-    template<template<typename, size_t> class ItemsAgent, typename item_t>
-    class TheSorter {
-        ItemsAgent<item_t, 1> agent;
+    template<typename item_t>
+    class Sorter {
+        ItemsAgent a;
+        Buffer<item_t> buf;
 
     public:
-        TheSorter(ItemsAgent<item_t, 1> agent): agent(agent) {
-        }
+        Sorter(ItemsAgent const agent, item_t * const array,
+                size_t const length): a(agent),
+                buf(Buffer<item_t>(array - 1, length, 0)) {}
 
-        void heapsort() {
+        void sort() {
             heapify();
             drainHeap();
         }
 
         void heapify() {
-            size_t const count = agent.size0();
+            size_t const count = a.size(buf);
             for (ssize_t item = count / 2; item >= 1; item--) {
                 siftDown(item, count);
             }
@@ -53,25 +55,25 @@ namespace tarsa {
                 ssize_t const right = left + 1;
 
                 if (right <= end) {
-                    if (agent.compareLt0(root, left)) {
-                        if (agent.compareLt0(left, right)) {
-                            agent.swap0(root, right);
+                    if (a.compareLtI(buf, root, left)) {
+                        if (a.compareLtI(buf, left, right)) {
+                            a.swap(buf, root, right);
                             root = right;
                         } else {
-                            agent.swap0(root, left);
+                            a.swap(buf, root, left);
                             root = left;
                         }
                     } else {
-                        if (agent.compareLt0(root, right)) {
-                            agent.swap0(root, right);
+                        if (a.compareLtI(buf, root, right)) {
+                            a.swap(buf, root, right);
                             root = right;
                         } else {
                             return;
                         }
                     }
                 } else {
-                    if (left == end && agent.compareLt0(root, left)) {
-                        agent.swap0(root, left);
+                    if (left == end && a.compareLtI(buf, root, left)) {
+                        a.swap(buf, root, left);
                     }
                     return;
                 }
@@ -79,22 +81,17 @@ namespace tarsa {
         }
 
         void drainHeap() {
-            size_t const count = agent.size0();
+            size_t const count = a.size(buf);
             for (ssize_t next = count; next > 1; next--) {
-                agent.swap0(next, 1);
+                a.swap(buf, next, 1);
                 siftDown(1, next - 1);
             }
         }
     };
 
-    template<template<typename, size_t> class ItemsAgent, typename item_t>
-    void OneBasedBinaryHeapSortVariantA(ItemsAgent<item_t, 1> agent) {
-        TheSorter<ItemsAgent, item_t>(agent).heapsort();
-    }
-
-    template<template<typename, size_t> class ItemsAgent, typename item_t>
-    void OneBasedBinaryHeapSortVariantA(ItemsAgent<item_t, 0> agent) {
-        OneBasedBinaryHeapSortVariantA(agent.withBase1());
+    template<typename item_t>
+    Sorter<item_t> * makeSorter(items_handler_t<item_t> &handler) {
+        return new Sorter<item_t>(*handler.agent, handler.input, handler.size);
     }
 }
 

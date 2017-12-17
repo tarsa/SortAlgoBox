@@ -21,7 +21,7 @@ package pl.tarsa.sortalgobox.tests
 
 import java.util.concurrent.{Executors, TimeUnit}
 
-import org.scalatest.{FlatSpec, Inside, MustMatchers}
+import org.scalatest.{AppendedClues, FlatSpec, Inside, Inspectors, MustMatchers}
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{
@@ -30,25 +30,33 @@ import scala.concurrent.{
   ExecutionContextExecutorService,
   Future
 }
-import scala.reflect.ClassTag
+import scala.reflect.runtime.universe._
 
 abstract class CommonUnitSpecBase
     extends FlatSpec
     with MustMatchers
-    with Inside {
-
-  type TestException = LightException
+    with Inside
+    with Inspectors
+    with AppendedClues {
 
   System.setProperty("uniqueLibraryNames", "true")
 
-  val `have full code coverage` = "have full code coverage"
-
-  def typeBehavior[T](implicit classTag: ClassTag[T]): Unit =
-    behavior of classTag.runtimeClass.getSimpleName
+  type TestException = LightException
 
   def testException: Exception =
     LightException(s"boom in $suiteName")
 
+  //noinspection UnitMethodIsParameterless
+  // TODO add parentheses
+  def typeBehavior[T: TypeTag]: Unit =
+    behavior of typeName[T]
+
+  def typeName[T: TypeTag]: String =
+    typeOf[T].typeSymbol.toString
+
+  val `have full code coverage` = "have full code coverage"
+
+  // TODO remove and mix in Futures trait instead
   implicit class InstantFuture[T](future: Future[T]) {
     def readyNow(): Future[T] = Await.ready(future, Duration.Inf)
 

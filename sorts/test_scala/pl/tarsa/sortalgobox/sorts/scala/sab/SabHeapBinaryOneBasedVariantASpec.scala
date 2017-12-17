@@ -23,9 +23,9 @@ import pl.tarsa.sortalgobox.sorts.tests.SortChecker
 import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
 class SabHeapBinaryOneBasedVariantASpec extends CommonUnitSpecBase {
-  typeBehavior[SabHeapBinaryOneBasedVariantA]
+  typeBehavior[SabHeapBinaryOneBasedVariantA.type]
 
-  def sort = new SabHeapBinaryOneBasedVariantA
+  private def sort = SabHeapBinaryOneBasedVariantA
 
   it must "handle empty array" in {
     SortChecker(sort).forEmptyArray()

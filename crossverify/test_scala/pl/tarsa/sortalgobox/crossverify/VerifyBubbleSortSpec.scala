@@ -24,9 +24,8 @@ import pl.tarsa.sortalgobox.sorts.natives.NativeBubbleSort
 import pl.tarsa.sortalgobox.sorts.scala.bubble.BubbleSort
 
 class VerifyBubbleSortSpec extends CrossVerifySpecBase {
-
   registerCrossVerifyTest("Bubble Sort",
                           1234,
                           new NativeBubbleSort(_, _),
-                          new BubbleSort)
+                          BubbleSort)
 }

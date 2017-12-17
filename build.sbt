@@ -60,7 +60,7 @@ lazy val deps =
         "com.typesafe.akka" %% "akka-actor" % Versions.akka,
         "com.typesafe.akka" %% "akka-http" % Versions.akkaHttp,
         "com.jsuereth" %% "scala-arm" % "2.0",
-        "commons-io" % "commons-io" % "2.5",
+        "commons-io" % "commons-io" % "2.6",
         "org.apache.commons" % "commons-math3" % "3.6.1",
         "org.scalafx" %% "scalafx" % Versions.scalaFx,
         // test libraries
