@@ -4,6 +4,8 @@ Backlog:
    * event handler can be ignoring, recording or verifying
    * reduces code duplication (no recording or verifying items agents)
    * allows to subclass items agent to provide custom operations
+   * candidates for using custom items agents are SIMD heap sorts and
+     verticalLeaderSelect operations
  * update README.md
  * convert native C++ sorts to use items agents
  * replace asserts with matchers in tests
