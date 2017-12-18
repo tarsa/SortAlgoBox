@@ -1,5 +1,9 @@
 Backlog:
 
+ * separate event handlers from items agents
+   * event handler can be ignoring, recording or verifying
+   * reduces code duplication (no recording or verifying items agents)
+   * allows to subclass items agent to provide custom operations
  * update README.md
  * convert native C++ sorts to use items agents
  * replace asserts with matchers in tests
