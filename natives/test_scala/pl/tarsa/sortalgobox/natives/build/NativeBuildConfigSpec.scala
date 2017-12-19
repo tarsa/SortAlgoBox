@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,30 +16,44 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.natives.build
 
 import java.nio.file.Files
 
-import pl.tarsa.sortalgobox.common.{SortAlgoBoxConfiguration, SortAlgoBoxConstants}
+import pl.tarsa.sortalgobox.common.{
+  SortAlgoBoxConfiguration,
+  SortAlgoBoxConstants
+}
 import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
 class NativeBuildConfigSpec extends CommonUnitSpecBase {
   typeBehavior[NativeBuildConfig]
 
   it must "make proper command line" in {
-    val defines = Seq(CompilerDefine("name1", None),
-      CompilerDefine("name2", Some("value")))
-    val options = CompilerOptions("compiler", Some("standard"), Some("level"),
-      defines, Seq("-option"), "executable")
+    val defines = Seq(
+      CompilerDefine("name1", None),
+      CompilerDefine("name2", Some("value"))
+    )
+    val options = CompilerOptions("compiler",
+                                  Some("standard"),
+                                  Some("level"),
+                                  defines,
+                                  Seq("-option"),
+                                  "executable")
     val buildConfig = NativeBuildConfig(null, "file.ext", options)
 
-    val expected = Seq("compiler", "-std=standard", "level", "-option",
-      "-Dname1", "-Dname2=value", "-o", "executable", "file.ext")
-    val actual = buildConfig.makeCommandLine
+    val args = buildConfig.makeCommandLine
 
-    assertResult(expected)(actual)
+    args mustBe Seq("compiler",
+                    "-std=standard",
+                    "level",
+                    "-option",
+                    "-Dname1",
+                    "-Dname2=value",
+                    "-o",
+                    "executable",
+                    "file.ext")
   }
 
   it must "make proper CMakeLists" in {
@@ -50,23 +64,23 @@ class NativeBuildConfigSpec extends CommonUnitSpecBase {
       languageStandardOpt = Some("standard"),
       optimizationLevelOpt = Some("level"),
       defines = Seq(CompilerDefine("name1", None),
-        CompilerDefine("name2", Some("value"))),
+                    CompilerDefine("name2", Some("value"))),
       options = Seq("-option1", "-option2"),
-      executableFileName = "abc.xxx")
+      executableFileName = "abc.xxx"
+    )
 
+    val cmakeLines =
+      NativeBuildConfig(components, mainSourceFile, compilerOptions).makeCMakeLists
 
-    val expected = Seq(
+    cmakeLines mustBe Seq(
       "cmake_minimum_required (VERSION 2.8)",
       "project (SortAlgo)",
       """set(PROJECT_COMPILE_FLAGS "-std=standard level -option1 -option2")""",
       """set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} """ +
         """${PROJECT_COMPILE_FLAGS}" )""",
       "add_definitions(-Dname1 -Dname2=value)",
-      "add_executable(SortAlgo abc.xyz)")
-    val actual = NativeBuildConfig(components, mainSourceFile, compilerOptions)
-      .makeCMakeLists
-
-    assertResult(expected)(actual)
+      "add_executable(SortAlgo abc.xyz)"
+    )
   }
 
   it must "copy build components" in {
@@ -81,23 +95,25 @@ class NativeBuildConfigSpec extends CommonUnitSpecBase {
     val components = Seq(
       NativeBuildComponentFromResource(resourceNamePrefix, fileName1),
       NativeBuildComponentFromString(contents, fileName2),
-      NativeBuildComponentFromGenerator(generator, fileName3,
-        prependLicense = false))
+      NativeBuildComponentFromGenerator(generator,
+                                        fileName3,
+                                        prependLicense = false)
+    )
 
-    val destination = Files.createTempDirectory(
-      SortAlgoBoxConfiguration.rootTempDir, "test")
+    val destination =
+      Files.createTempDirectory(SortAlgoBoxConfiguration.rootTempDir, "test")
     val file1 = destination.resolve(fileName1)
     val file2 = destination.resolve(fileName2)
     val file3 = destination.resolve(fileName3)
 
     NativeBuildConfig(components, null, null).copyBuildComponents(destination)
 
-    assert(Files.readAllBytes(file1) ===
-      "Lorem ipsum dolor sit amet.\n".getBytes("UTF-8"))
-    assert(Files.readAllBytes(file2) ===
-      SortAlgoBoxConstants.licenseHeader ++ contents.getBytes("UTF-8"))
-    assert(Files.readAllBytes(file3) ===
-      generator().getBytes("UTF-8"))
+    Files.readAllBytes(file1) mustBe
+      "Lorem ipsum dolor sit amet.\n".getBytes("UTF-8")
+    Files.readAllBytes(file2) mustBe
+      SortAlgoBoxConstants.licenseHeader ++ contents.getBytes("UTF-8")
+    Files.readAllBytes(file3) mustBe
+      generator().getBytes("UTF-8")
 
     Files.delete(file1)
     Files.delete(file2)

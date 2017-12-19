@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -28,23 +28,29 @@ class NativesCacheSpec extends NativesUnitSpecBase {
   it must "compile file without defines" in {
     val buildConfig = NativeBuildConfig(components, "source.cpp")
     val execResult = testNativesCache.runCachedProgram(buildConfig, Nil)
-    assertResult("Hello.")(execResult.stdOut.trim)
+    execResult.stdOut.trim mustBe "Hello."
   }
 
   it must "compile file with header" in {
-    val buildConfig = NativeBuildConfig(components, "source.cpp",
-      CompilerOptions(options = CompilerOptions.defaultOptions ++
-        Seq("-include", "source.hpp")))
+    val buildConfig =
+      NativeBuildConfig(components,
+                        "source.cpp",
+                        CompilerOptions(
+                          options = CompilerOptions.defaultOptions ++
+                            Seq("-include", "source.hpp")))
     val execResult = testNativesCache.runCachedProgram(buildConfig, Nil)
-    assertResult("Hello from main.hpp")(execResult.stdOut.trim)
+    execResult.stdOut.trim mustBe "Hello from main.hpp"
   }
 
   it must "compile file with define" in {
-    val buildConfig = NativeBuildConfig(components, "source.cpp",
-      CompilerOptions(defines = CompilerOptions.defaultDefines ++
-        Seq(CompilerDefine("SOURCE", Some("test")))))
+    val buildConfig =
+      NativeBuildConfig(components,
+                        "source.cpp",
+                        CompilerOptions(
+                          defines = CompilerOptions.defaultDefines ++
+                            Seq(CompilerDefine("SOURCE", Some("test")))))
     val execResult = testNativesCache.runCachedProgram(buildConfig, Nil)
-    assertResult("Hello from test!")(execResult.stdOut.trim)
+    execResult.stdOut.trim mustBe "Hello from test!"
   }
 
   it must "fail when compilation is unsuccessful" in {
@@ -56,7 +62,7 @@ class NativesCacheSpec extends NativesUnitSpecBase {
 }
 
 object NativesCacheSpec extends NativeComponentsSupport {
-  val components = makeResourceComponents(
+  val components: Seq[NativeBuildComponent] = makeResourceComponents(
     ("/pl/tarsa/sortalgobox/natives/", "macros.hpp"),
     ("/pl/tarsa/sortalgobox/natives/", "source.cpp"),
     ("/pl/tarsa/sortalgobox/natives/", "source.hpp"))

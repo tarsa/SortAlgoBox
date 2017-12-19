@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,7 +16,6 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.random
 
@@ -30,14 +29,15 @@ import org.jocl._
 import scala.Array._
 import scala.io.Source
 
-class GpuMwc64x {
+object GpuMwc64x {
   val sourceCodePaths = List(
     "/pl/tarsa/sortalgobox/random/mwc64x/opencl/skip_mwc.cl",
     "/pl/tarsa/sortalgobox/random/mwc64x/opencl/mwc64x_rng.cl",
     "/pl/tarsa/sortalgobox/random/mwc64x/opencl/mwc64xvec2_rng.cl",
     "/pl/tarsa/sortalgobox/random/mwc64x/opencl/mwc64xvec4_rng.cl",
     "/pl/tarsa/sortalgobox/random/mwc64x/opencl/mwc64xvec8_rng.cl",
-    "/pl/tarsa/sortalgobox/random/mwc64x/opencl/dump_kernels.cl")
+    "/pl/tarsa/sortalgobox/random/mwc64x/opencl/dump_kernels.cl"
+  )
   val allowedVectorLengths = Set(1, 2, 4, 8)
 
   def generate(n: Int, workItems: Int, vectorLength: Int = 1): Array[Int] = {
@@ -54,8 +54,10 @@ class GpuMwc64x {
     array
   }
 
-  def generateWithContext(array: Array[Int], workItems: Int, vectorLength: Int,
-    deviceContext: CLDeviceContext): Unit = {
+  def generateWithContext(array: Array[Int],
+                          workItems: Int,
+                          vectorLength: Int,
+                          deviceContext: CLDeviceContext): Unit = {
     if (array.isEmpty) {
       return
     }
@@ -65,16 +67,22 @@ class GpuMwc64x {
     setExceptionsEnabled(true)
 
     val commandQueue = clCreateCommandQueue(deviceContext.context,
-      deviceContext.deviceId, 0, null)
+                                            deviceContext.deviceId,
+                                            0,
+                                            null)
 
     val memObjects = ofDim[cl_mem](1)
 
     memObjects(0) = clCreateBuffer(deviceContext.context,
-      CL_MEM_READ_WRITE, array.length * bytesInInt, null, null)
+                                   CL_MEM_READ_WRITE,
+                                   array.length * bytesInInt,
+                                   null,
+                                   null)
 
     val programSources = sourceCodePaths.map { sourceCodePath =>
-      val programFile = Source.fromInputStream(
-        getClass.getResourceAsStream(sourceCodePath), "UTF-8")
+      val programFile =
+        Source.fromInputStream(getClass.getResourceAsStream(sourceCodePath),
+                               "UTF-8")
       val programSource = programFile.getLines().mkString("\n")
       programFile.close()
       programSource
@@ -95,15 +103,31 @@ class GpuMwc64x {
     val global_work_size = Array(workItems.toLong)
     val local_work_size = Array(256L)
 
-    clEnqueueNDRangeKernel(commandQueue, kernel, 1, null, global_work_size,
-      local_work_size, 0, null, null)
+    clEnqueueNDRangeKernel(commandQueue,
+                           kernel,
+                           1,
+                           null,
+                           global_work_size,
+                           local_work_size,
+                           0,
+                           null,
+                           null)
 
-    val buffer = ByteBuffer.allocateDirect(array.length * bytesInInt)
-      .order(ByteOrder.nativeOrder()).asIntBuffer()
+    val buffer = ByteBuffer
+      .allocateDirect(array.length * bytesInInt)
+      .order(ByteOrder.nativeOrder())
+      .asIntBuffer()
     val pBuffer = Pointer.to(buffer)
 
-    clEnqueueReadBuffer(commandQueue, memObjects(0), CL_TRUE, 0,
-      array.length * bytesInInt, pBuffer, 0, null, null)
+    clEnqueueReadBuffer(commandQueue,
+                        memObjects(0),
+                        CL_TRUE,
+                        0,
+                        array.length * bytesInInt,
+                        pBuffer,
+                        0,
+                        null,
+                        null)
     buffer.get(array)
 
     memObjects.foreach(clReleaseMemObject)

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -22,20 +22,18 @@ package pl.tarsa.sortalgobox.natives.generators
 import pl.tarsa.sortalgobox.tests.CommonUnitSpecBase
 
 class NativeEnumGeneratorSpec extends CommonUnitSpecBase {
-  typeBehavior[NativeEnumGenerator.type ]
+  typeBehavior[NativeEnumGenerator.type]
 
   it must "generate proper enum" in {
     import SomeEnums._
-    val generated = NativeEnumGenerator("my_enum_t", "k", SomeEnums)(
-      A -> "A", B -> "B", C -> "C")
+    val mappings = Seq(A -> "A", B -> "B", C -> "C")
+    val generated =
+      NativeEnumGenerator("my_enum_t", "k", SomeEnums)(mappings: _*)
 
-    val expected =
+    generated mustBe
       s"""enum my_enum_t {
          |  kA = 0, kB = 1, kC = 2
          |};""".stripMargin
-    val actual = generated
-
-    assertResult(expected)(actual)
   }
 
   it must "fail when provided non-matching enumeration and mapping" in {

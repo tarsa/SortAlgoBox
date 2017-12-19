@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -32,9 +32,10 @@ class CLCacheSpec extends CommonUnitSpecBase with BeforeAndAfterAll {
   it must "compile fine when input is correct" in {
     val example = getClass.getResource("example.cl")
     val sources = List(io.Source.fromURL(example).mkString)
-    val program = CLCache.withCpuContext(ctx =>
-      CLCache.getCachedProgram(ctx, sources))
-    assert(program ne null)
+    val program = CLCache.withCpuContext { ctx =>
+      CLCache.getCachedProgram(ctx, sources)
+    }
+    program must not be null
   }
 
   it must "fail when compilation is unsuccessful" in guardedOpenCLTest {

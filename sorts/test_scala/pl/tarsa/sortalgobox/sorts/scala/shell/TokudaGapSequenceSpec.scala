@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,7 +16,6 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.sorts.scala.shell
 
@@ -26,19 +25,14 @@ class TokudaGapSequenceSpec extends CommonUnitSpecBase {
   typeBehavior[TokudaGapSequence.type]
 
   it must "generate full sequence" in {
-    val expected = Array(1147718699, 510097199, 226709865, 100759939, 44782195,
+    val sequence = TokudaGapSequence.forSize(Int.MaxValue)
+    sequence mustBe Array(1147718699, 510097199, 226709865, 100759939, 44782195,
       19903197, 8845865, 3931495, 1747330, 776590, 345151, 153400, 68177, 30300,
       13466, 5984, 2659, 1181, 524, 232, 102, 45, 19, 8, 3, 1)
-
-    val actual = TokudaGapSequence.forSize(Int.MaxValue)
-
-    assertResult(expected)(actual)
   }
 
   it must "generate small subsequence" in {
-    val expected = Array(102, 45, 19, 8, 3, 1)
-    val actual = TokudaGapSequence.forSize(128)
-
-    assertResult(expected)(actual)
+    val sequence = TokudaGapSequence.forSize(128)
+    sequence mustBe Array(102, 45, 19, 8, 3, 1)
   }
 }

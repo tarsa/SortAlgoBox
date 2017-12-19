@@ -58,7 +58,7 @@ class BinaryHeapSpec extends CommonUnitSpecBase {
     val size = 100
     val storage = Array.ofDim[Int](size)
     val heap = new BinaryHeap(agent, storage)
-    (0 until size).foreach { _ =>
+    forAll(0 until size) { _ =>
       heap.addElem(generator.nextInt())
       assert(BinaryHeapChecker.check(heap))
     }
@@ -74,13 +74,13 @@ class BinaryHeapSpec extends CommonUnitSpecBase {
   it must "extract the only element from heap" in {
     val element = 5
     val heap = BinaryHeap(agent, Array(element))
-    assertResult(element)(heap.extractTop)
-    assertResult(0)(heap.size)
+    heap.extractTop mustBe element
+    heap.size mustBe 0
   }
 
   it must "extract maximum element from heap" in {
     val heap = BinaryHeap(agent, Array(5, 8, 3, 1))
-    assertResult(8)(heap.extractTop)
-    assertResult(3)(heap.size)
+    heap.extractTop mustBe 8
+    heap.size mustBe 3
   }
 }

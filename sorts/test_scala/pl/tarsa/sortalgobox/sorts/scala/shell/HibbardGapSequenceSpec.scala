@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Piotr Tarsa ( http://github.com/tarsa )
+ * Copyright (C) 2015 - 2017 Piotr Tarsa ( http://github.com/tarsa )
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author be held liable for any damages
@@ -16,7 +16,6 @@
  * 2. Altered source versions must be plainly marked as such, and must not be
  * misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
  */
 package pl.tarsa.sortalgobox.sorts.scala.shell
 
@@ -26,19 +25,15 @@ class HibbardGapSequenceSpec extends CommonUnitSpecBase {
   typeBehavior[HibbardGapSequence.type]
 
   it must "generate full sequence" in {
-    val expected = Array(1073741823, 536870911, 268435455,
-      134217727, 67108863, 33554431, 16777215, 8388607, 4194303, 2097151,
-      1048575, 524287, 262143, 131071, 65535, 32767, 16383, 8191, 4095, 2047,
-      1023, 511, 255, 127, 63, 31, 15, 7, 3, 1)
-    val actual = HibbardGapSequence.forSize(Int.MaxValue)
-
-    assertResult(expected)(actual)
+    val sequence = HibbardGapSequence.forSize(Int.MaxValue)
+    sequence mustBe Array(1073741823, 536870911, 268435455, 134217727, 67108863,
+      33554431, 16777215, 8388607, 4194303, 2097151, 1048575, 524287, 262143,
+      131071, 65535, 32767, 16383, 8191, 4095, 2047, 1023, 511, 255, 127, 63,
+      31, 15, 7, 3, 1)
   }
 
   it must "generate small subsequence" in {
-    val expected = Array(127, 63, 31, 15, 7, 3, 1)
-    val actual = HibbardGapSequence.forSize(128)
-
-    assertResult(expected)(actual)
+    val sequence = HibbardGapSequence.forSize(128)
+    sequence mustBe Array(127, 63, 31, 15, 7, 3, 1)
   }
 }

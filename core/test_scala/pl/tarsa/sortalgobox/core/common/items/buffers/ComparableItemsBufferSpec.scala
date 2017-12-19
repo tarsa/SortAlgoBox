@@ -50,7 +50,7 @@ class ComparableItemsBufferSpec extends CommonUnitSpecBase {
         buffer.base mustBe 0
         buffer.length mustBe array.length
 
-        array.indices.foreach { i =>
+        forEvery(array.indices) { i =>
           buffer.get(i) mustBe array(i)
         }
 
@@ -77,7 +77,7 @@ class ComparableItemsBufferSpec extends CommonUnitSpecBase {
         buffer.base mustBe 1
         buffer.length mustBe array.length
 
-        array.indices.foreach { i =>
+        forEvery(array.indices) { i =>
           buffer.get(i + 1) mustBe array(i)
         }
 
